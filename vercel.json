@@ -1,0 +1,13 @@
+{
+  "crons": [
+    { "path": "/api/cron/sync-gmail", "schedule": "*/15 * * * *" },
+    { "path": "/api/cron/send-sequences", "schedule": "*/15 * * * *" },
+    { "path": "/api/cron/send-text-blasts", "schedule": "*/15 * * * *" },
+    { "path": "/api/cron/weekly-review", "schedule": "0 21 * * 0" },
+    { "path": "/api/cron/prep-sheet", "schedule": "*/5 * * * *" },
+    { "path": "/api/cron/rate-feed", "schedule": "0 14 * * *" },
+    { "path": "/api/cron/reply-reminders", "schedule": "*/15 * * * *" },
+    { "path": "/api/cron/booking-reminders", "schedule": "*/5 * * * *" },
+    { "path": "/api/cron/auto-stage", "schedule": "0 * * * *" }
+  ]
+}

@@ -1,0 +1,15 @@
+-- A batch email is supposed to be a one-off send to whoever had the
+-- target tag(s) at the moment it was created - but processBroadcastSequence
+-- re-resolves the live audience (contact_tags membership) every single
+-- cron run, since it shares its send logic with 'broadcast' (which is
+-- meant to stay live, since its whole point is a scheduled step going out
+-- to whoever currently qualifies). That made a batch email keep picking up
+-- anyone newly tagged after it was created/sent - e.g. new registrants for
+-- a recurring event tag, long after the event it was actually about.
+--
+-- Freezing membership at creation time, in a new column read only for
+-- type = 'batch', fixes this without touching 'broadcast' at all -
+-- exclude/opt-out/archived checks still run live off this frozen list
+-- (see resolveEmailAudience's memberIds param), since those should always
+-- reflect the contact's current state even for a one-off send.
+alter table public.email_sequences add column snapshot_contact_ids uuid[];

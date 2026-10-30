@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* BottomNav is min-h-[66px] plus .safe-bottom (max(safe-area, 10px)).
+     Fixed/sticky chrome (Engage strip, thread composer, bulk bar, Log pill)
+     must sit above this, not the old 64px `bottom-16`. */
+  --app-bottom-nav: calc(66px + max(env(safe-area-inset-bottom), 10px));
+  --paper: #f7f1ea;
+  --paper-card: #fffbf8;
+  --paper-line: #eadfd6;
+  --terracotta: #c45c4a;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  @apply bg-[#f7f1ea] text-neutral-900;
+}
+
+/* Display serif: Fraunces at poster optical size so greetings and names
+   read editorial instead of "Inter but slightly different." Ignored if
+   the loaded cut is not variable. */
+.font-display {
+  font-family: var(--font-serif), ui-serif, Georgia, serif;
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 96, "SOFT" 28, "WONK" 0.8;
+}
+
+/* Comfortable tap targets on mobile */
+button,
+a {
+  touch-action: manipulation;
+}
+
+.safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 10px);
+}

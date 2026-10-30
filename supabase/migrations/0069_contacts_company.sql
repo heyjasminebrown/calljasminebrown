@@ -1,0 +1,11 @@
+-- NOTE (lender chassis trim): the original 0069_listings.sql created the
+-- whole "Listings" reverse-prospecting portal (listings, listing_agents,
+-- agents, listing_sends, etc.) - a real-estate-agent-specific feature
+-- intentionally excluded from this chassis (see README). That table set,
+-- and every later migration that only touched it, were dropped entirely
+-- rather than carried over unused.
+--
+-- The one statement from the original file that touches a shared, still-
+-- used table is kept below: a plain "company" text field on contacts
+-- (populated by e.g. the Blinq business-card integration).
+alter table public.contacts add column if not exists company text;
