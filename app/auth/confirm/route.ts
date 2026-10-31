@@ -14,11 +14,22 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
+  const code = searchParams.get("code");
   const next = safeInternalPath(searchParams.get("next") || request.cookies.get(AUTH_NEXT_COOKIE)?.value);
 
   if (token_hash && type) {
     const supabase = await createClient();
     const { error } = await supabase.auth.verifyOtp({ type, token_hash });
+    if (!error) {
+      redirect(next);
+    }
+  } else if (code) {
+    // Fallback for Supabase's default Magic Link template, which can't be
+    // edited without custom SMTP: its link lands here with a PKCE `code`
+    // instead of a token_hash. Only works in the same browser that
+    // requested the link.
+    const supabase = await createClient();
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
       redirect(next);
     }
