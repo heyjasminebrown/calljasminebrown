@@ -13,6 +13,8 @@ export async function findOrCreateContact(
   ownerId: string,
   input: {
     email?: string | null;
+    // Only CSV import supplies this; stored, never used to match on its own.
+    secondaryEmail?: string | null;
     phone?: string | null;
     firstName?: string | null;
     lastName?: string | null;
@@ -32,22 +34,23 @@ export async function findOrCreateContact(
   },
 ): Promise<{ id: string; wasCreated: boolean } | null> {
   const email = input.email?.trim().toLowerCase() || null;
+  const secondaryEmail = input.secondaryEmail?.trim().toLowerCase() || null;
   const phone = input.phone?.trim() || null;
   if (!email && !phone) return null;
 
   const { data: candidates } = await admin
     .from("contacts")
-    .select("id, first_name, last_name, email, phone, secondary_phone, quo_contact_id")
+    .select("id, first_name, last_name, email, secondary_email, phone, secondary_phone, quo_contact_id")
     .eq("owner_id", ownerId)
     .eq("archived", false);
 
   const match = (candidates ?? []).find((c) => {
-    const emailMatch = email && c.email && c.email.trim().toLowerCase() === email;
+    const emailMatch = email && [c.email, c.secondary_email].some((e) => e && e.trim().toLowerCase() === email);
     const phoneMatch = phone && (phonesMatch(c.phone, phone) || phonesMatch(c.secondary_phone, phone));
     return emailMatch || phoneMatch;
   });
   if (match) {
-    await enrichContact(admin, match, { email, phone, firstName: input.firstName, lastName: input.lastName });
+    await enrichContact(admin, match, { email, secondaryEmail, phone, firstName: input.firstName, lastName: input.lastName });
     // A re-imported CSV (now carrying a date column that didn't exist on
     // the first import) is the intended way to backfill a wrong lead_date
     // on a contact created before this field existed - a deliberate,
@@ -82,6 +85,7 @@ export async function findOrCreateContact(
       first_name: input.firstName?.trim() || email || phone || "Unknown",
       last_name: input.lastName?.trim() || "",
       email,
+      secondary_email: secondaryEmail,
       phone,
       contact_type: input.contactType ?? "other",
       lead_source: input.leadSource,
@@ -113,8 +117,8 @@ export async function findOrCreateContact(
 // real data already on the contact.
 async function enrichContact(
   admin: SupabaseClient,
-  contact: { id: string; first_name: string; last_name: string; email: string | null; phone: string | null },
-  incoming: { email: string | null; phone: string | null; firstName?: string | null; lastName?: string | null },
+  contact: { id: string; first_name: string; last_name: string; email: string | null; secondary_email: string | null; phone: string | null },
+  incoming: { email: string | null; secondaryEmail?: string | null; phone: string | null; firstName?: string | null; lastName?: string | null },
 ) {
   const patch: Record<string, string> = {};
 
@@ -124,6 +128,9 @@ async function enrichContact(
   }
   if (!contact.email && incoming.email) patch.email = incoming.email;
   if (!contact.phone && incoming.phone) patch.phone = incoming.phone;
+  const secondary = incoming.secondaryEmail;
+  const onFile = [contact.email, contact.secondary_email, patch.email].map((e) => e?.toLowerCase());
+  if (!contact.secondary_email && secondary && !onFile.includes(secondary)) patch.secondary_email = secondary;
 
   if (Object.keys(patch).length > 0) {
     await admin.from("contacts").update(patch).eq("id", contact.id);

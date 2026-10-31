@@ -3,6 +3,7 @@ export interface ParsedContactRow {
   firstName: string | null;
   lastName: string | null;
   email: string | null;
+  secondaryEmail: string | null;
   phone: string | null;
   leadDate: string | null;
   errors: string[];
@@ -28,6 +29,10 @@ const HEADER_ALIASES: Record<string, string> = {
   "attendee email": "email",
   "buyer email": "email",
   "purchaser email": "email",
+  "secondary email": "secondaryEmail",
+  "email 2": "secondaryEmail",
+  "other email": "secondaryEmail",
+  "work email": "secondaryEmail",
   phone: "phone",
   "phone number": "phone",
   "buyer phone number": "phone",
@@ -125,10 +130,13 @@ export function parseBulkContacts(text: string): { rows: ParsedContactRow[]; unm
 
     const emailRaw = byField.email || null;
     const email = emailRaw && EMAIL_RE.test(emailRaw) ? emailRaw : null;
+    const secondaryEmailRaw = byField.secondaryEmail || null;
+    const secondaryEmail = secondaryEmailRaw && EMAIL_RE.test(secondaryEmailRaw) ? secondaryEmailRaw : null;
     const phone = byField.phone || null;
 
     const errors: string[] = [];
     if (emailRaw && !email) errors.push(`Doesn't look like a valid email: "${emailRaw}"`);
+    if (secondaryEmailRaw && !secondaryEmail) errors.push(`Doesn't look like a valid secondary email: "${secondaryEmailRaw}"`);
     if (!email && !phone) errors.push("No email or phone - can't match or create a contact without one");
     if (!firstName && !lastName) errors.push("No name");
 
@@ -143,7 +151,7 @@ export function parseBulkContacts(text: string): { rows: ParsedContactRow[]; unm
       }
     }
 
-    rows.push({ line: i + 1, firstName, lastName, email, phone, leadDate, errors });
+    rows.push({ line: i + 1, firstName, lastName, email, secondaryEmail, phone, leadDate, errors });
   }
 
   return { rows, unmatchedHeaders };

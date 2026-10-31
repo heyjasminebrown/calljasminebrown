@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 // email/mailing tool (Eventbrite's own contact list import, Mailchimp,
 // etc.) actually wants. Never includes unsubscribe_token or owner_id -
 // those are internal, not something that belongs in a downloaded file.
-const HEADERS = ["First Name", "Last Name", "Email", "Phone", "Tags", "Stage", "Contact Type", "Lead Source", "Lead Date"];
+const HEADERS = ["First Name", "Last Name", "Email", "Secondary Email", "Phone", "Tags", "Stage", "Contact Type", "Lead Source", "Lead Date"];
 
 function csvCell(value: string): string {
   if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
       c.first_name,
       c.last_name ?? "",
       c.email ?? "",
+      c.secondary_email ?? "",
       formatPhone(c.phone),
       c.contact_tags.filter((ct) => ct.tags).map((ct) => ct.tags!.name).join("; "),
       c.pipeline_stages?.name ?? "",

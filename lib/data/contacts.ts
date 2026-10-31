@@ -73,7 +73,14 @@ export async function listTags() {
   return (data ?? []) as Tag[];
 }
 
-export type MergeCandidate = { id: string; first_name: string; last_name: string; phone: string | null; email: string | null };
+export type MergeCandidate = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  phone: string | null;
+  email: string | null;
+  secondary_email: string | null;
+};
 
 // Lightweight list for the "merge into…" picker - every non-archived
 // contact, not just the current filtered view, so a duplicate can be
@@ -82,7 +89,7 @@ export async function listMergeCandidates(): Promise<MergeCandidate[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("contacts")
-    .select("id, first_name, last_name, phone, email")
+    .select("id, first_name, last_name, phone, email, secondary_email")
     .eq("archived", false)
     .order("first_name", { ascending: true });
   return (data ?? []) as MergeCandidate[];
@@ -187,7 +194,7 @@ export async function listContacts(filters: ContactListFilters) {
   if (filters.leadDateTo) query = query.lte("lead_date", filters.leadDateTo);
   if (filters.q) {
     const q = filters.q.trim();
-    query = query.or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%,email.ilike.%${q}%,phone.ilike.%${q}%`);
+    query = query.or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%,email.ilike.%${q}%,secondary_email.ilike.%${q}%,phone.ilike.%${q}%`);
   }
 
   // Tag, name, follow-up, and likelihood sorts need the joined data (or a

@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isAuthorizedCronRequest } from "@/lib/cron-auth";
 import { listUpcomingEvents } from "@/lib/google/calendar";
 import { buildPrepSheet } from "@/lib/data/prep-sheet";
+import { emailOrSecondaryIn } from "@/lib/crm/meeting-match";
 import { renderPrepSheetEmail } from "@/lib/crm/prep-sheet-email";
 import { sendGmailMessage } from "@/lib/google/send-email";
 import { notifyNewLead } from "@/lib/push/send-push";
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
         .select("id")
         .eq("owner_id", OWNER_ID)
         .eq("archived", false)
-        .in("email", event.attendeeEmails)
+        .or(emailOrSecondaryIn(event.attendeeEmails))
         .limit(1)
         .maybeSingle();
       if (!contact) continue;

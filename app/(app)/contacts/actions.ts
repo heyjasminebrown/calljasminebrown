@@ -133,6 +133,7 @@ export async function bulkImportContacts(rows: ParsedContactRow[], tagName: stri
   for (const row of rows) {
     const result = await findOrCreateContact(admin, user.id, {
       email: row.email,
+      secondaryEmail: row.secondaryEmail,
       phone: row.phone,
       firstName: row.firstName,
       lastName: row.lastName,

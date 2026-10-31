@@ -1,5 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+// PostgREST `.or()` filter matching contacts whose primary OR secondary
+// email is in the list. Values are double-quoted so an address can't break
+// the filter syntax.
+export function emailOrSecondaryIn(emails: string[]): string {
+  const list = emails.map((e) => `"${e.replace(/["\\]/g, "")}"`).join(",");
+  return `email.in.(${list}),secondary_email.in.(${list})`;
+}
+
 // Whenever a meeting is scheduled through the CRM, meeting-actions.ts
 // stores the Google Calendar event id as an activity's dedupe key
 // (source: "manual", dedupe_field: "google_event_id" - see
@@ -32,7 +40,7 @@ export async function matchByAttendeeEmail(admin: SupabaseClient, ownerId: strin
     .select("id")
     .eq("owner_id", ownerId)
     .eq("archived", false)
-    .in("email", cleaned)
+    .or(emailOrSecondaryIn(cleaned))
     .limit(1)
     .maybeSingle();
 

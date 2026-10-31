@@ -168,6 +168,7 @@ export interface Contact {
   email: string | null;
   phone: string | null;
   secondary_phone: string | null;
+  secondary_email: string | null;
   contact_type: ContactType;
   representing: Representing | null;
   listing_address: string | null;

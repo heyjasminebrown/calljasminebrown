@@ -58,6 +58,7 @@ export function ContactDetailsCard({
       email: contact.email ?? "",
       phone: contact.phone ?? "",
       secondary_phone: contact.secondary_phone ?? "",
+      secondary_email: contact.secondary_email ?? "",
       contact_type: contact.contact_type,
       representing: contact.representing,
       listing_address: contact.listing_address ?? "",
@@ -110,6 +111,7 @@ export function ContactDetailsCard({
       email: values.email || null,
       phone: values.phone || null,
       secondary_phone: values.secondary_phone || null,
+      secondary_email: values.secondary_email || null,
       contact_type: values.contact_type,
       representing: values.representing || null,
       listing_address: values.listing_address || null,
@@ -196,6 +198,10 @@ export function ContactDetailsCard({
         <div>
           <label className={labelClass}>Secondary phone</label>
           <input type="tel" {...register("secondary_phone")} className={fieldClass} />
+        </div>
+        <div>
+          <label className={labelClass}>Secondary email</label>
+          <input type="email" {...register("secondary_email")} className={fieldClass} />
         </div>
         <div>
           <label className={labelClass}>Type</label>

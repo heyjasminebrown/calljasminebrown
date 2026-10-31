@@ -88,8 +88,17 @@ export async function syncGmailInbox(admin: SupabaseClient, ownerId: string) {
     return { synced: 0, skipped: "baseline_set" as const };
   }
 
-  const { data: contacts } = await admin.from("contacts").select("id, email").eq("owner_id", ownerId).not("email", "is", null);
-  const contactByEmail = new Map((contacts ?? []).map((c) => [c.email!.toLowerCase(), c.id]));
+  const { data: contacts } = await admin
+    .from("contacts")
+    .select("id, email, secondary_email")
+    .eq("owner_id", ownerId)
+    .or("email.not.is.null,secondary_email.not.is.null");
+  // Secondary first so a primary email wins if two contacts share an address.
+  const contactByEmail = new Map(
+    (contacts ?? []).flatMap((c) =>
+      [c.secondary_email, c.email].filter((e): e is string => !!e).map((e) => [e.toLowerCase(), c.id] as const),
+    ),
+  );
 
   let messageIds = new Set<string>();
   let pageToken: string | undefined;

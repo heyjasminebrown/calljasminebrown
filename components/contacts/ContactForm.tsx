@@ -53,6 +53,7 @@ export function ContactForm({
           email: contact.email ?? "",
           phone: contact.phone ?? "",
           secondary_phone: contact.secondary_phone ?? "",
+          secondary_email: contact.secondary_email ?? "",
           contact_type: contact.contact_type,
           representing: contact.representing,
           listing_address: contact.listing_address ?? "",
@@ -88,20 +89,21 @@ export function ContactForm({
   const showReferralFee = agentTag != null && selectedTagIds.includes(agentTag.id);
 
   const watchedEmail = watch("email");
+  const watchedSecondaryEmail = watch("secondary_email");
   const watchedPhone = watch("phone");
   const duplicate = useMemo(() => {
-    const email = watchedEmail?.trim().toLowerCase() || null;
+    const emails = [watchedEmail, watchedSecondaryEmail].map((e) => e?.trim().toLowerCase()).filter(Boolean);
     const phone = watchedPhone?.trim() || null;
-    if (!email && !phone) return null;
+    if (emails.length === 0 && !phone) return null;
     return (
       existingContacts.find((c) => {
         if (c.id === contact?.id) return false;
-        const emailMatch = email && c.email && c.email.trim().toLowerCase() === email;
+        const emailMatch = [c.email, c.secondary_email].some((e) => e && emails.includes(e.trim().toLowerCase()));
         const phoneMatch = phone && phonesMatch(c.phone, phone);
         return emailMatch || phoneMatch;
       }) ?? null
     );
-  }, [watchedEmail, watchedPhone, existingContacts, contact?.id]);
+  }, [watchedEmail, watchedSecondaryEmail, watchedPhone, existingContacts, contact?.id]);
 
   async function onSubmit(values: ContactFormValues) {
     setSubmitting(true);
@@ -128,6 +130,7 @@ export function ContactForm({
       email: values.email || null,
       phone: values.phone || null,
       secondary_phone: values.secondary_phone || null,
+      secondary_email: values.secondary_email || null,
       contact_type: values.contact_type,
       representing: values.representing || null,
       listing_address: values.listing_address || null,
@@ -252,9 +255,16 @@ export function ContactForm({
             {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email.message as string}</p>}
           </div>
         </div>
-        <div>
-          <Label htmlFor="secondary_phone">Secondary phone</Label>
-          <Input id="secondary_phone" type="tel" {...register("secondary_phone")} />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="secondary_phone">Secondary phone</Label>
+            <Input id="secondary_phone" type="tel" {...register("secondary_phone")} />
+          </div>
+          <div>
+            <Label htmlFor="secondary_email">Secondary email</Label>
+            <Input id="secondary_email" type="email" {...register("secondary_email")} />
+            {errors.secondary_email && <p className="mt-1 text-xs text-red-600">{errors.secondary_email.message as string}</p>}
+          </div>
         </div>
         {duplicate && (
           <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
