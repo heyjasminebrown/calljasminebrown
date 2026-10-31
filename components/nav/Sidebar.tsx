@@ -30,8 +30,8 @@ export function Sidebar({ userEmail, counts = {} }: { userEmail?: string | null;
     <aside className="hidden w-[220px] shrink-0 flex-col border-r border-[#ddd7da] bg-[#ebeaeb] px-3 py-[22px] lg:flex">
       <div className="flex items-center gap-2.5 px-2.5 pb-[22px]">
         {/* Swap the file at OWNER_HEADSHOT_SRC (lib/brand/identity.ts) for
-            your own headshot. A 1:1 object-cover + zoom keeps a square
-            source image's face centered in the circle. */}
+            your own headshot. Expects a square image already cropped
+            to head and shoulders. */}
         <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full ring-1 ring-[#ddd7da]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -40,7 +40,6 @@ export function Sidebar({ userEmail, counts = {} }: { userEmail?: string | null;
             width={36}
             height={36}
             className="h-full w-full object-cover"
-            style={{ transform: "scale(2.4)", transformOrigin: "center 16%" }}
           />
         </div>
         <div className="min-w-0">
