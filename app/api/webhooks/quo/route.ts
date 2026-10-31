@@ -11,6 +11,7 @@ import { updateEngagementTag } from "@/lib/crm/engagement";
 import { recordOptOut, isOptOutMessage } from "@/lib/crm/consent";
 import { isIncludedQuoNumber } from "@/lib/quo/phone-filter";
 import { detectSpam, isNumberAllowlisted, hasRecentMissedCallBurst, getDisabledSpamReasons, type SpamCheckResult } from "@/lib/crm/spam-signals";
+import { reportFailure } from "@/lib/errors/report-failure";
 
 // Extraction (a Claude call over the full transcript) runs after the
 // response via after() below, but the function invocation itself still
@@ -33,12 +34,12 @@ export async function POST(request: NextRequest) {
     });
   }
   if (!ok) {
-    console.error("Quo webhook rejected: signature check failed", reason);
+    await reportFailure("Quo webhook rejected: signature check failed", reason);
     return NextResponse.json({ error: "invalid signature" }, { status: 401 });
   }
 
   if (!OWNER_ID) {
-    console.error("Quo webhook received but CRM_OWNER_USER_ID is not configured");
+    await reportFailure("Quo webhook received but CRM_OWNER_USER_ID is not configured");
     return NextResponse.json({ error: "server not configured" }, { status: 500 });
   }
 
@@ -64,7 +65,14 @@ export async function POST(request: NextRequest) {
         phone: call.counterpartNumber,
         leadSource: "Quo (auto-created from call)",
       });
-      if (!contact) console.error("Quo call: no contact matched or created", { counterpart: call.counterpartNumber, raw: JSON.stringify(body) });
+      if (!contact) {
+        await reportFailure(
+          call.counterpartNumber
+            ? `Quo call from ${call.counterpartNumber} wasn't logged: couldn't match or create a contact`
+            : "Quo call wasn't logged: no phone number found in Quo's webhook payload",
+          { counterpart: call.counterpartNumber, raw: JSON.stringify(body) },
+        );
+      }
       if (contact) {
         const spamCheck = await checkCallForSpam(admin, OWNER_ID, call);
 
@@ -133,7 +141,7 @@ export async function POST(request: NextRequest) {
       // sitting in Vercel's logs to fix the parsing from, next time this
       // happens.
       if (!result) {
-        console.error(`Quo ${eventType}: couldn't attach to any activity (quoCallId=${call.quoCallId ?? "null"})`, JSON.stringify(body));
+        await reportFailure(`Quo ${eventType}: couldn't attach to any activity (quoCallId=${call.quoCallId ?? "null"})`, JSON.stringify(body));
       }
 
       // A 12-second robocall has no summary/transcript at call.completed
@@ -199,7 +207,14 @@ export async function POST(request: NextRequest) {
         phone: msg.counterpartNumber,
         leadSource: "Quo (auto-created from text)",
       });
-      if (!contact) console.error("Quo text: no contact matched or created", { counterpart: msg.counterpartNumber, raw: JSON.stringify(body) });
+      if (!contact) {
+        await reportFailure(
+          msg.counterpartNumber
+            ? `Quo text from ${msg.counterpartNumber} wasn't logged: couldn't match or create a contact`
+            : "Quo text wasn't logged: no phone number found in Quo's webhook payload",
+          { counterpart: msg.counterpartNumber, raw: JSON.stringify(body) },
+        );
+      }
       else console.log("Quo text logged on contact", contact.id, contact.wasCreated ? "(new contact)" : "");
       if (contact) {
         const activity = await upsertActivity(admin, OWNER_ID, contact.id, "quo", "quo_message_id", msg.quoMessageId, {
@@ -232,7 +247,7 @@ export async function POST(request: NextRequest) {
       console.log("Unhandled Quo webhook event type:", eventType);
     }
   } catch (err) {
-    console.error("Error processing Quo webhook", eventType, err);
+    await reportFailure("Error processing Quo webhook", eventType, err);
   }
 
   return NextResponse.json({ received: true });

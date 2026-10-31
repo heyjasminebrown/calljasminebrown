@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { phonesMatch } from "@/lib/phone";
 import { syncContactToQuo } from "@/lib/quo/sync-contact";
 import { hasPlaceholderName } from "@/lib/crm/merge-fields";
+import { reportFailure } from "@/lib/errors/report-failure";
 
 export type MatchCandidate = {
   id: string;
@@ -129,7 +130,7 @@ export async function findOrCreateContact(
     .single();
 
   if (error || !created) {
-    if (error) console.error("findOrCreateContact insert failed", error.message);
+    if (error) await reportFailure("Couldn't create contact", error.message);
     return null;
   }
   input.candidates?.push(created as MatchCandidate);

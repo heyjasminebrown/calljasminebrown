@@ -4,11 +4,12 @@ import { isAuthorizedCronRequest } from "@/lib/cron-auth";
 import { buildWeeklyReview } from "@/lib/data/weekly-review";
 import { sendGmailMessage } from "@/lib/google/send-email";
 import { renderWeeklyReviewEmail } from "@/lib/crm/weekly-review-email";
+import { reportFailure } from "@/lib/errors/report-failure";
 
 const OWNER_ID = process.env.CRM_OWNER_USER_ID;
 
 export async function GET(request: NextRequest) {
-  if (!isAuthorizedCronRequest(request)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!(await isAuthorizedCronRequest(request))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   if (!OWNER_ID) return NextResponse.json({ error: "CRM_OWNER_USER_ID not configured" }, { status: 500 });
 
   const admin = createAdminClient();
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("Weekly-review cron failed", err);
+    await reportFailure("Weekly-review cron failed", err);
     return NextResponse.json({ ok: false, error: err instanceof Error ? err.message : "weekly review failed" }, { status: 500 });
   }
 }

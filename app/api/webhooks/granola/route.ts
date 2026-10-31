@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { parseGranolaEvent } from "@/lib/granola/parse-event";
 import { fetchGranolaNote } from "@/lib/granola/client";
 import { processGranolaNote } from "@/lib/granola/process-note";
+import { reportFailure } from "@/lib/errors/report-failure";
 
 const OWNER_ID = process.env.CRM_OWNER_USER_ID;
 
@@ -14,12 +15,12 @@ export async function POST(request: NextRequest) {
   // Same secret-in-URL pattern as Eventbrite/Jotform.
   const secret = request.nextUrl.searchParams.get("secret");
   if (!process.env.GRANOLA_WEBHOOK_SECRET || secret !== process.env.GRANOLA_WEBHOOK_SECRET) {
-    console.error("Granola webhook rejected: missing/incorrect secret");
+    await reportFailure("Granola webhook rejected: missing/incorrect secret");
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   if (!OWNER_ID) {
-    console.error("Granola webhook received but CRM_OWNER_USER_ID is not configured");
+    await reportFailure("Granola webhook received but CRM_OWNER_USER_ID is not configured");
     return NextResponse.json({ error: "server not configured" }, { status: 500 });
   }
 
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
     if (!event.noteId) {
       // No stable id means no reliable dedupe - log the raw payload so we
       // can see Granola's real field name for this and fix parse-event.ts.
-      console.error("Granola webhook missing a note id - check the payload shape", body);
+      await reportFailure("Granola webhook missing a note id - check the payload shape", body);
       return NextResponse.json({ error: "missing note id" }, { status: 400 });
     }
     if (!event.transcript) {
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
       try {
         note = await fetchGranolaNote(event.noteId);
       } catch (err) {
-        console.error("Granola API error fetching note content", event.noteId, err);
+        await reportFailure("Granola API error fetching note content", event.noteId, err);
         return NextResponse.json({ received: true });
       }
 
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
   } catch (err) {
-    console.error("Error processing Granola webhook", err);
+    await reportFailure("Error processing Granola webhook", err);
     return NextResponse.json({ received: true });
   }
 }

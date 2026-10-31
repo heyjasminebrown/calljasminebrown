@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/nav/Sidebar";
 import { BottomNav } from "@/components/nav/BottomNav";
 import { QuickAddButton } from "@/components/nav/QuickAddButton";
 import { LogPill } from "@/components/nav/LogPill";
+import { SystemErrorsBanner } from "@/components/system/SystemErrorsBanner";
 import { inboxOwedCount, listConversations } from "@/lib/data/messages";
 import { listEventFollowupQueue, listConfirmationQueue } from "@/lib/data/dialer";
 import { getUnmatchedNotesCount } from "@/lib/data/notes-inbox";
@@ -45,7 +46,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <Sidebar userEmail={user?.email} counts={navCounts} />
       </Suspense>
       <div className="flex min-h-dvh min-w-0 flex-1 flex-col lg:h-dvh lg:overflow-hidden">
-        <main className="flex flex-1 flex-col bg-[#ebeaeb] pb-[calc(var(--app-bottom-nav)+12px)] lg:min-h-0 lg:overflow-y-auto lg:pb-8">{children}</main>
+        <main className="flex flex-1 flex-col bg-[#ebeaeb] pb-[calc(var(--app-bottom-nav)+12px)] lg:min-h-0 lg:overflow-y-auto lg:pb-8">
+          <Suspense fallback={null}>
+            <SystemErrorsBanner />
+          </Suspense>
+          {children}
+        </main>
       </div>
       {/* Mobile's FAB slot is Today-only-Log now (LogPill below); New
           contact lives on the Contacts header. More is a flat sheet

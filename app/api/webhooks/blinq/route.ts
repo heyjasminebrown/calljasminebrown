@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { recordBlinqContact } from "@/lib/crm/blinq-contact";
+import { reportFailure } from "@/lib/errors/report-failure";
 
 const OWNER_ID = process.env.CRM_OWNER_USER_ID;
 
@@ -21,12 +22,12 @@ function str(v: unknown): string | null {
 export async function POST(request: NextRequest) {
   const secret = request.nextUrl.searchParams.get("secret");
   if (!process.env.BLINQ_WEBHOOK_SECRET || secret !== process.env.BLINQ_WEBHOOK_SECRET) {
-    console.error("Blinq webhook rejected: missing/incorrect secret");
+    await reportFailure("Blinq webhook rejected: missing/incorrect secret");
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   if (!OWNER_ID) {
-    console.error("Blinq webhook received but CRM_OWNER_USER_ID is not configured");
+    await reportFailure("Blinq webhook received but CRM_OWNER_USER_ID is not configured");
     return NextResponse.json({ error: "server not configured" }, { status: 500 });
   }
 
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
   try {
     await recordBlinqContact(admin, OWNER_ID, { firstName, lastName, email, phone, company, jobTitle, dedupeId: blinqContactId });
   } catch (err) {
-    console.error("Error processing Blinq webhook", err);
+    await reportFailure("Error processing Blinq webhook", err);
   }
 
   return NextResponse.json({ received: true });

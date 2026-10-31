@@ -5,6 +5,7 @@ import { parseCalendlyInvitee } from "@/lib/calendly/parse-event";
 import { findOrCreateContact } from "@/lib/crm/find-or-create-contact";
 import { upsertActivity } from "@/lib/crm/activities";
 import { notifyNewLead } from "@/lib/push/send-push";
+import { reportFailure } from "@/lib/errors/report-failure";
 
 const OWNER_ID = process.env.CRM_OWNER_USER_ID;
 
@@ -18,12 +19,12 @@ export async function POST(request: NextRequest) {
     });
   }
   if (!ok) {
-    console.error("Calendly webhook rejected: signature check failed", reason);
+    await reportFailure("Calendly webhook rejected: signature check failed", reason);
     return NextResponse.json({ error: "invalid signature" }, { status: 401 });
   }
 
   if (!OWNER_ID) {
-    console.error("Calendly webhook received but CRM_OWNER_USER_ID is not configured");
+    await reportFailure("Calendly webhook received but CRM_OWNER_USER_ID is not configured");
     return NextResponse.json({ error: "server not configured" }, { status: 500 });
   }
 
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
       console.log("Unhandled Calendly webhook event type:", eventType);
     }
   } catch (err) {
-    console.error("Error processing Calendly webhook", eventType, err);
+    await reportFailure("Error processing Calendly webhook", eventType, err);
   }
 
   return NextResponse.json({ received: true });

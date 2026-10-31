@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAuthorizedCronRequest } from "@/lib/cron-auth";
 import { fetchFredRate, recordDailyRate } from "@/lib/crm/rate-feed";
+import { reportFailure } from "@/lib/errors/report-failure";
 
 const OWNER_ID = process.env.CRM_OWNER_USER_ID;
 
@@ -11,7 +12,7 @@ const OWNER_ID = process.env.CRM_OWNER_USER_ID;
 // this is a nicety on top of it, not a dependency the feature needs to
 // work at all.
 export async function GET(request: NextRequest) {
-  if (!isAuthorizedCronRequest(request)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!(await isAuthorizedCronRequest(request))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   if (!OWNER_ID) return NextResponse.json({ error: "CRM_OWNER_USER_ID not configured" }, { status: 500 });
 
   const apiKey = process.env.FRED_API_KEY;
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
     await recordDailyRate(admin, OWNER_ID, observation.ratePct, "fred", observation.date);
     return NextResponse.json({ ok: true, ratePct: observation.ratePct, date: observation.date });
   } catch (err) {
-    console.error("Rate-feed cron failed", err);
+    await reportFailure("Rate-feed cron failed", err);
     return NextResponse.json({ ok: false, error: err instanceof Error ? err.message : "rate feed failed" }, { status: 500 });
   }
 }

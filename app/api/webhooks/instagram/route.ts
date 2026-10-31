@@ -5,6 +5,7 @@ import { parseInstagramEvents } from "@/lib/instagram/parse-event";
 import { fetchInstagramProfile } from "@/lib/instagram/graph-client";
 import { createOrGetInstagramMessage, getRememberedMatch, mirrorInstagramMessageToActivity } from "@/lib/data/instagram-messages";
 import { updateEngagementTag } from "@/lib/crm/engagement";
+import { reportFailure } from "@/lib/errors/report-failure";
 
 const OWNER_ID = process.env.CRM_OWNER_USER_ID;
 
@@ -28,12 +29,12 @@ export async function POST(request: NextRequest) {
 
   const { ok, reason } = verifyInstagramSignature(rawBody, request.headers);
   if (!ok) {
-    console.error("Instagram webhook rejected:", reason);
+    await reportFailure("Instagram webhook rejected:", reason);
     return NextResponse.json({ error: "invalid signature" }, { status: 401 });
   }
 
   if (!OWNER_ID) {
-    console.error("Instagram webhook received but CRM_OWNER_USER_ID is not configured");
+    await reportFailure("Instagram webhook received but CRM_OWNER_USER_ID is not configured");
     return NextResponse.json({ error: "server not configured" }, { status: 500 });
   }
 
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
   } catch (err) {
-    console.error("Error processing Instagram webhook", err);
+    await reportFailure("Error processing Instagram webhook", err);
     return NextResponse.json({ received: true });
   }
 }

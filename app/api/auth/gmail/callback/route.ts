@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { google } from "googleapis";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { exchangeCodeForTokens } from "@/lib/google/oauth";
+import { reportFailure } from "@/lib/errors/report-failure";
 
 // Google's redirect back here is a cross-site navigation, which some
 // browsers don't reliably carry cookies across - so this route doesn't
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
 
   const ownerId = process.env.CRM_OWNER_USER_ID;
   if (!ownerId) {
-    console.error("Gmail OAuth callback: CRM_OWNER_USER_ID isn't set");
+    await reportFailure("Gmail OAuth callback: CRM_OWNER_USER_ID isn't set");
     settingsUrl.searchParams.set("gmail_error", "exchange_failed");
     return NextResponse.redirect(settingsUrl);
   }
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
 
     settingsUrl.searchParams.set("gmail_connected", "1");
   } catch (err) {
-    console.error("Gmail OAuth callback failed", err);
+    await reportFailure("Gmail OAuth callback failed", err);
     settingsUrl.searchParams.set("gmail_error", "exchange_failed");
   }
 

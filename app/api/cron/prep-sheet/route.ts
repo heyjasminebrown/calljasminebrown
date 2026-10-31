@@ -7,13 +7,14 @@ import { emailOrSecondaryIn } from "@/lib/crm/meeting-match";
 import { renderPrepSheetEmail } from "@/lib/crm/prep-sheet-email";
 import { sendGmailMessage } from "@/lib/google/send-email";
 import { notifyNewLead } from "@/lib/push/send-push";
+import { reportFailure } from "@/lib/errors/report-failure";
 
 const OWNER_ID = process.env.CRM_OWNER_USER_ID;
 const WINDOW_MIN_MS = 25 * 60 * 1000;
 const WINDOW_MAX_MS = 35 * 60 * 1000;
 
 export async function GET(request: NextRequest) {
-  if (!isAuthorizedCronRequest(request)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!(await isAuthorizedCronRequest(request))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   if (!OWNER_ID) return NextResponse.json({ error: "CRM_OWNER_USER_ID not configured" }, { status: 500 });
 
   const admin = createAdminClient();
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ ok: true, sent });
   } catch (err) {
-    console.error("Prep-sheet cron failed", err);
+    await reportFailure("Prep-sheet cron failed", err);
     return NextResponse.json({ ok: false, error: err instanceof Error ? err.message : "prep sheet failed" }, { status: 500 });
   }
 }
