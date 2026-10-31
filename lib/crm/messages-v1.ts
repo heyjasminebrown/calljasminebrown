@@ -18,7 +18,7 @@ type SmsConversationSource = {
 };
 
 export const MESSAGES_CREAM = "#ebeaeb";
-export const MESSAGES_TERRACOTTA = "#371b3a";
+export const MESSAGES_TERRACOTTA = "#34223a";
 
 export type MessagesFilter = "needs" | "unread" | "all";
 

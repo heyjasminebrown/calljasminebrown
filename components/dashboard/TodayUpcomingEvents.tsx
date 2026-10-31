@@ -12,7 +12,7 @@ export function TodayUpcomingEvents({ items }: { items: TodayCalendarItem[] }) {
     <section data-today-home="events" className="h-full min-w-0">
       <div className={cn("flex h-full flex-col overflow-hidden", TODAY_CARD)}>
         <p className="flex items-center gap-2 px-4 pt-4 text-[15px] font-semibold text-neutral-800 sm:px-5">
-          <Calendar size={16} strokeWidth={1.7} className="text-[#371b3a]" />
+          <Calendar size={16} strokeWidth={1.7} className="text-[#34223a]" />
           Upcoming Events
         </p>
         <div className="mt-1 flex-1">
@@ -24,7 +24,7 @@ export function TodayUpcomingEvents({ items }: { items: TodayCalendarItem[] }) {
                 key={item.id}
                 className={cn("flex items-center gap-3.5 px-4 py-3.5 sm:px-5", i > 0 && "border-t border-[#ddd7da]/80")}
               >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-[#f6e4d6] text-[#371b3a]">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-[#f5e6dc] text-[#34223a]">
                   <Calendar size={18} strokeWidth={1.7} />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -33,7 +33,7 @@ export function TodayUpcomingEvents({ items }: { items: TodayCalendarItem[] }) {
                     {[daysOutLabel(item.startsAt), registered].filter(Boolean).join(" · ")}
                   </p>
                 </div>
-                <Link href={item.href} className="inline-flex shrink-0 items-center gap-0.5 text-[13px] font-medium text-[#371b3a]">
+                <Link href={item.href} className="inline-flex shrink-0 items-center gap-0.5 text-[13px] font-medium text-[#34223a]">
                   View
                   <ChevronRight size={15} />
                 </Link>

@@ -157,7 +157,7 @@ function ContactsTable({
             else contacts.forEach((c) => !selected.has(c.id) && onToggle(c.id));
           }}
           aria-label="Select all"
-          className="h-4 w-4 rounded border-neutral-300 accent-[#371b3a]"
+          className="h-4 w-4 rounded border-neutral-300 accent-[#34223a]"
         />
         <span>Name</span>
         <span>Source</span>
@@ -179,10 +179,10 @@ function ContactsTable({
               checked={selected.has(contact.id)}
               onChange={() => onToggle(contact.id)}
               aria-label={`Select ${fullName(contact)}`}
-              className="h-4 w-4 shrink-0 rounded border-neutral-300 accent-[#371b3a]"
+              className="h-4 w-4 shrink-0 rounded border-neutral-300 accent-[#34223a]"
             />
             <Link href={`/contacts/${contact.id}`} data-contact-open={contact.id} className="flex min-w-0 items-center gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f6e4d6] text-[12px] font-semibold text-[#371b3a]">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f5e6dc] text-[12px] font-semibold text-[#34223a]">
                 {initials(contact.first_name, contact.last_name)}
               </span>
               <span className="min-w-0">
@@ -192,14 +192,14 @@ function ContactsTable({
             </Link>
             <div>
               {source ? (
-                <span className="inline-flex rounded-full bg-[#f6e4d6] px-2.5 py-0.5 text-[12px] font-medium text-[#371b3a]">{source}</span>
+                <span className="inline-flex rounded-full bg-[#f5e6dc] px-2.5 py-0.5 text-[12px] font-medium text-[#34223a]">{source}</span>
               ) : (
                 <span className="text-[13px] text-neutral-300">—</span>
               )}
             </div>
             <div>
               {stageName ? (
-                <span className="inline-flex rounded-full bg-[#f6e4d6] px-2.5 py-0.5 text-[12px] font-medium text-[#371b3a]">{stageName}</span>
+                <span className="inline-flex rounded-full bg-[#f5e6dc] px-2.5 py-0.5 text-[12px] font-medium text-[#34223a]">{stageName}</span>
               ) : (
                 <span className="text-[13px] text-neutral-300">—</span>
               )}
@@ -210,7 +210,7 @@ function ContactsTable({
                 <Link
                   href={threadHref(contact.id)}
                   aria-label={`Text ${fullName(contact)}`}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-[#371b3a] text-peach"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-[#34223a] text-peach"
                 >
                   <MessageSquare size={14} />
                 </Link>
@@ -218,7 +218,7 @@ function ContactsTable({
                   type="button"
                   aria-label={`Call ${fullName(contact)}`}
                   onClick={() => openQuoCall(contact.phone!)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-[#371b3a] text-peach"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-[#34223a] text-peach"
                 >
                   <Phone size={14} />
                 </button>

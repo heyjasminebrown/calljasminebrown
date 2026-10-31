@@ -78,7 +78,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Pro
             <h1
               className={
                 smartView
-                  ? "font-serif text-[32px] font-semibold leading-9 tracking-[-0.03em] text-[#371b3a]"
+                  ? "font-serif text-[32px] font-semibold leading-9 tracking-[-0.03em] text-[#34223a]"
                   : "font-display text-[32px] font-semibold leading-9 tracking-[-0.03em] text-neutral-900"
               }
             >

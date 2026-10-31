@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { TODAY_CARD } from "@/components/dashboard/today-home-layout";
 import type { PipelineStage } from "@/types/database";
 
-const RING = ["#371b3a", "#e7b696", "#5a3d5c", "#e7b696", "#2a142c"];
+const RING = ["#34223a", "#e3b79c", "#5a4660", "#e3b79c", "#291a2e"];
 
 export function TodayPipelineOverview({
   stages,
@@ -53,7 +53,7 @@ export function TodayPipelineOverview({
   return (
     <section data-today-home="pipeline" className={cn("h-full min-w-0 overflow-hidden p-4 sm:p-5", TODAY_CARD, className)}>
       <p className="flex items-center gap-2 text-[15px] font-semibold text-neutral-800">
-        <Clock size={16} strokeWidth={1.7} className="text-[#371b3a]" />
+        <Clock size={16} strokeWidth={1.7} className="text-[#34223a]" />
         Pipeline Overview
       </p>
       <div className={cn("mt-3 flex items-center gap-5", size !== "phone" ? "gap-8" : "md:gap-8")}>

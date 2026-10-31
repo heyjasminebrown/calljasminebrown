@@ -3,8 +3,8 @@
   "short_name": "Jasmine CRM",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f5f1f5",
-  "theme_color": "#371b3a",
+  "background_color": "#f4f1f5",
+  "theme_color": "#34223a",
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }

@@ -135,7 +135,7 @@ export function TodayQueuePanel({
                 data-today-control={`chip-${key}`}
                 className={cn(
                   "flex h-11 shrink-0 items-center whitespace-nowrap rounded-full px-3.5 text-[14px] font-medium",
-                  focus === key ? "bg-[#371b3a] text-peach shadow-[0_4px_10px_rgb(55_27_58_/_0.28)]" : "border border-[#ddd7da] bg-[#fcfbfb] text-neutral-600",
+                  focus === key ? "bg-[#34223a] text-peach shadow-[0_4px_10px_rgb(52_34_58_/_0.28)]" : "border border-[#ddd7da] bg-[#fcfbfb] text-neutral-600",
                 )}
               >
                 {TODAY_QUEUE_SHORT_LABELS[key]} {n}

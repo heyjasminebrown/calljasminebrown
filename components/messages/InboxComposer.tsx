@@ -80,7 +80,7 @@ export function InboxComposer({
           onChange={(e) => setBody(e.target.value)}
           placeholder="Reply…"
           autoComplete="off"
-          className="h-11 min-w-0 flex-1 rounded-full border border-[#ddd7da] bg-white px-4 text-[15px] text-neutral-900 placeholder:text-neutral-400 focus:border-[#371b3a] focus:outline-none focus:ring-2 focus:ring-[#371b3a]/15"
+          className="h-11 min-w-0 flex-1 rounded-full border border-[#ddd7da] bg-white px-4 text-[15px] text-neutral-900 placeholder:text-neutral-400 focus:border-[#34223a] focus:outline-none focus:ring-2 focus:ring-[#34223a]/15"
         />
         <button
           type="submit"

@@ -101,7 +101,7 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
         <ChevronLeft size={18} /> Contacts
       </Link>
       <div className="flex flex-wrap items-start gap-[18px]">
-        <div className="flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-full bg-[#f6e4d6] text-xl font-semibold text-brand-700">
+        <div className="flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-full bg-[#f5e6dc] text-xl font-semibold text-brand-700">
           {initials(contact.first_name, contact.last_name)}
         </div>
         <div className="min-w-0 flex-1">
@@ -121,7 +121,7 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
             </p>
           )}
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="flex h-[36px] items-center gap-1.5 rounded-full bg-[#f6e4d6] px-3 text-[14px] font-medium text-brand-700">
+            <span className="flex h-[36px] items-center gap-1.5 rounded-full bg-[#f5e6dc] px-3 text-[14px] font-medium text-brand-700">
               <Leaf size={14} strokeWidth={2} />
               {stage?.name ?? "No stage"}
             </span>

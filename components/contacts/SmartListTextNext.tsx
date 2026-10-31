@@ -58,10 +58,10 @@ export function SmartListTextNext({
       <div className="flex h-full flex-col border-l border-[#ddd7da] bg-[#fcfbfb]">
         <div className="flex items-center justify-between gap-3 border-b border-[#ddd7da] px-5 py-4">
           <div className="flex min-w-0 items-center gap-2">
-            <Sun size={16} className="shrink-0 text-[#371b3a]" />
+            <Sun size={16} className="shrink-0 text-[#34223a]" />
             <p className="truncate font-serif text-lg font-semibold text-neutral-900">Today · Do next</p>
           </div>
-          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-neutral-400 hover:bg-[#f6e4d6]" aria-label="Close Text & Next">
+          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-neutral-400 hover:bg-[#f5e6dc]" aria-label="Close Text & Next">
             <X size={16} />
           </button>
         </div>
@@ -77,7 +77,7 @@ export function SmartListTextNext({
           ) : (
             <>
               <div className="mt-5 flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f6e4d6] text-[12px] font-semibold text-[#371b3a]">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f5e6dc] text-[12px] font-semibold text-[#34223a]">
                   {initials(current.firstName, current.lastName)}
                 </span>
                 <div className="min-w-0">
@@ -91,7 +91,7 @@ export function SmartListTextNext({
                 value={body}
                 onChange={(e) => setDraft(e.target.value)}
                 rows={6}
-                className="w-full resize-none rounded-[14px] border border-[#ddd7da] bg-[#fdfcfc] px-3.5 py-3 text-[14px] leading-6 text-neutral-800 outline-none focus:border-[#371b3a]/50 focus:ring-2 focus:ring-[#371b3a]/15"
+                className="w-full resize-none rounded-[14px] border border-[#ddd7da] bg-[#fdfcfc] px-3.5 py-3 text-[14px] leading-6 text-neutral-800 outline-none focus:border-[#34223a]/50 focus:ring-2 focus:ring-[#34223a]/15"
               />
               {error && <p className="mt-2 text-[13px] text-red-600">{error}</p>}
             </>
@@ -111,7 +111,7 @@ export function SmartListTextNext({
             type="button"
             onClick={() => void sendAndNext()}
             disabled={!current?.phone || sending || !body.trim()}
-            className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#371b3a] px-3 py-2.5 text-[13px] font-semibold text-peach disabled:opacity-40"
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#34223a] px-3 py-2.5 text-[13px] font-semibold text-peach disabled:opacity-40"
           >
             {sending ? "Sending…" : "Next"}
             {!sending && <ArrowRight size={14} />}

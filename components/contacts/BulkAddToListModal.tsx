@@ -91,14 +91,14 @@ export function BulkAddToListModal({
               <button
                 type="button"
                 onClick={() => setMode("existing")}
-                className={`rounded-full px-3 py-1.5 text-[13px] font-medium ${mode === "existing" ? "bg-[#f6e4d6] text-[#371b3a]" : "bg-neutral-100 text-neutral-600"}`}
+                className={`rounded-full px-3 py-1.5 text-[13px] font-medium ${mode === "existing" ? "bg-[#f5e6dc] text-[#34223a]" : "bg-neutral-100 text-neutral-600"}`}
               >
                 Existing list
               </button>
               <button
                 type="button"
                 onClick={() => setMode("new")}
-                className={`rounded-full px-3 py-1.5 text-[13px] font-medium ${mode === "new" ? "bg-[#f6e4d6] text-[#371b3a]" : "bg-neutral-100 text-neutral-600"}`}
+                className={`rounded-full px-3 py-1.5 text-[13px] font-medium ${mode === "new" ? "bg-[#f5e6dc] text-[#34223a]" : "bg-neutral-100 text-neutral-600"}`}
               >
                 New list
               </button>

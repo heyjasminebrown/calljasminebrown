@@ -28,13 +28,13 @@ export function BottomNav({ counts = {}, userEmail }: { counts?: NavCounts; user
                     onClick={() => setMoreOpen(true)}
                     className={cn(
                       "flex h-full min-h-[66px] w-full flex-col items-center justify-center py-2 text-[12.5px] font-medium active:bg-[#e3dfe1]",
-                      moreActive ? "font-semibold text-[#371b3a]" : "text-neutral-400",
+                      moreActive ? "font-semibold text-[#34223a]" : "text-neutral-400",
                     )}
                   >
                     <span
                       className={cn(
                         "flex min-w-[56px] flex-col items-center gap-[5px] rounded-[14px] px-2.5 py-1.5",
-                        moreActive && "bg-[#f6e4d6]",
+                        moreActive && "bg-[#f5e6dc]",
                       )}
                     >
                       <item.icon size={25} strokeWidth={moreActive ? 2.3 : 1.8} />
@@ -55,13 +55,13 @@ export function BottomNav({ counts = {}, userEmail }: { counts?: NavCounts; user
                   href={item.href}
                   className={cn(
                     "relative flex h-full min-h-[66px] flex-col items-center justify-center gap-[5px] py-2 text-[12.5px] font-medium active:bg-[#e3dfe1]",
-                    active ? "font-semibold text-[#371b3a]" : "text-neutral-400",
+                    active ? "font-semibold text-[#34223a]" : "text-neutral-400",
                   )}
                 >
                   <span
                     className={cn(
                       "relative flex min-w-[56px] flex-col items-center gap-[5px] rounded-[14px] px-2.5 py-1.5",
-                      active && "bg-[#f6e4d6]",
+                      active && "bg-[#f5e6dc]",
                     )}
                   >
                     <item.icon
@@ -70,7 +70,7 @@ export function BottomNav({ counts = {}, userEmail }: { counts?: NavCounts; user
                       className={active && fillActive ? "fill-current" : undefined}
                     />
                     {count && count.value > 0 && (
-                      <span className="absolute right-0 top-0 flex h-[19px] min-w-[19px] items-center justify-center rounded-full bg-[#371b3a] px-1 text-[11px] font-semibold text-peach">
+                      <span className="absolute right-0 top-0 flex h-[19px] min-w-[19px] items-center justify-center rounded-full bg-[#34223a] px-1 text-[11px] font-semibold text-peach">
                         {count.value}
                       </span>
                     )}

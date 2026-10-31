@@ -104,7 +104,7 @@ export function TodayWorklist({
             onClick={() => setActive(chip.key)}
             className={cn(
               "flex h-11 shrink-0 items-center whitespace-nowrap rounded-full px-3.5 text-[14px] font-medium",
-              active === chip.key ? "bg-[#371b3a] text-peach" : "border border-[#ddd7da] bg-[#fcfbfb] text-neutral-600",
+              active === chip.key ? "bg-[#34223a] text-peach" : "border border-[#ddd7da] bg-[#fcfbfb] text-neutral-600",
             )}
           >
             {chip.label}

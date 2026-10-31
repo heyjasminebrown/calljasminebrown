@@ -30,7 +30,7 @@ function Pill({
       disabled={disabled}
       className={cn(
         "rounded-lg px-3.5 py-1.5 text-[13px] font-semibold disabled:opacity-50",
-        filled ? "bg-[#371b3a] text-peach" : "border border-[#ddd7da] bg-white text-neutral-800",
+        filled ? "bg-[#34223a] text-peach" : "border border-[#ddd7da] bg-white text-neutral-800",
       )}
     >
       {children}

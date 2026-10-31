@@ -80,7 +80,7 @@ export function InboxThreadPane({
       <div className="flex min-h-dvh flex-col bg-[#ebeaeb]">
         <div className="sticky top-0 z-10 border-b border-[#ddd7da] bg-[#ebeaeb]/95 px-3 py-3 backdrop-blur">
           <div className="flex items-center justify-between gap-3">
-            <Link href={backHref} className="inline-flex items-center gap-1 text-[15px] font-medium text-[#371b3a]">
+            <Link href={backHref} className="inline-flex items-center gap-1 text-[15px] font-medium text-[#34223a]">
               <ArrowLeft size={18} />
               Messages
             </Link>

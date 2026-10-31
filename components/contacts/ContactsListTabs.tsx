@@ -127,7 +127,7 @@ export function ContactsListTabs({
               placeholder="List name"
               className="h-8 flex-1 rounded-lg border border-neutral-200 px-2 text-[13px] text-neutral-900"
             />
-            <button type="submit" disabled={!name.trim()} className="text-[13px] font-semibold text-[#371b3a] disabled:opacity-40">
+            <button type="submit" disabled={!name.trim()} className="text-[13px] font-semibold text-[#34223a] disabled:opacity-40">
               Save
             </button>
             <button type="button" onClick={() => setSaving(false)} className="text-[13px] text-neutral-400">
@@ -138,7 +138,7 @@ export function ContactsListTabs({
           <button
             type="button"
             onClick={() => setSaving(true)}
-            className="inline-flex items-center gap-1 text-[14px] font-medium text-[#371b3a]"
+            className="inline-flex items-center gap-1 text-[14px] font-medium text-[#34223a]"
           >
             <Plus size={14} /> Save view as list
           </button>
@@ -154,7 +154,7 @@ export function ContactsListTabs({
         onClick={openAll}
         className={cn(
           "-mb-px border-b-2 px-3 py-2.5 text-[14px] font-medium",
-          !activeList && !smartView ? "border-[#371b3a] font-semibold text-[#371b3a]" : "border-transparent text-neutral-500 hover:text-neutral-800",
+          !activeList && !smartView ? "border-[#34223a] font-semibold text-[#34223a]" : "border-transparent text-neutral-500 hover:text-neutral-800",
         )}
       >
         All contacts
@@ -166,7 +166,7 @@ export function ContactsListTabs({
           onClick={() => openSegment(seg)}
           className={cn(
             "-mb-px border-b-2 px-3 py-2.5 text-[14px] font-medium",
-            !smartView && activeList === seg.id ? "border-[#371b3a] font-semibold text-[#371b3a]" : "border-transparent text-neutral-500 hover:text-neutral-800",
+            !smartView && activeList === seg.id ? "border-[#34223a] font-semibold text-[#34223a]" : "border-transparent text-neutral-500 hover:text-neutral-800",
           )}
         >
           {seg.name}
@@ -177,7 +177,7 @@ export function ContactsListTabs({
         onClick={openSmartBuilder}
         className={cn(
           "-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-[14px] font-medium",
-          smartView ? "border-[#371b3a] font-semibold text-[#371b3a]" : "border-transparent text-neutral-500 hover:text-neutral-800",
+          smartView ? "border-[#34223a] font-semibold text-[#34223a]" : "border-transparent text-neutral-500 hover:text-neutral-800",
         )}
       >
         <Zap size={13} /> Smart lists
@@ -197,7 +197,7 @@ export function ContactsListTabs({
             placeholder="List name"
             className="h-8 w-36 rounded-lg border border-neutral-200 px-2 text-[13px] text-neutral-900"
           />
-          <button type="submit" disabled={!name.trim()} className="text-[13px] font-semibold text-[#371b3a] disabled:opacity-40">
+          <button type="submit" disabled={!name.trim()} className="text-[13px] font-semibold text-[#34223a] disabled:opacity-40">
             Save
           </button>
           <button type="button" onClick={() => setSaving(false)} className="text-[13px] text-neutral-400">
@@ -208,7 +208,7 @@ export function ContactsListTabs({
         <button
           type="button"
           onClick={() => setSaving(true)}
-          className="mb-0.5 ml-1 inline-flex items-center gap-1 px-2 py-2.5 text-[14px] font-medium text-[#371b3a]"
+          className="mb-0.5 ml-1 inline-flex items-center gap-1 px-2 py-2.5 text-[14px] font-medium text-[#34223a]"
         >
           <Plus size={14} /> Save view as list
         </button>

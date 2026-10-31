@@ -120,11 +120,11 @@ export function PeopleMobile({
               setSelecting(false);
               setSelected(new Set());
             }}
-            className="text-[16px] font-semibold text-[#371b3a]"
+            className="text-[16px] font-semibold text-[#34223a]"
           >
             Cancel
           </button>
-          <p className="text-[16px] font-semibold text-[#371b3a]">{selected.size} selected</p>
+          <p className="text-[16px] font-semibold text-[#34223a]">{selected.size} selected</p>
         </div>
         <div className="mb-4">
           <ContactsBulkBar
@@ -187,7 +187,7 @@ export function PeopleMobile({
         onClick={() => setFiltersOpen(true)}
         className={cn(
           "mb-3 flex h-11 w-full items-center justify-center gap-2 rounded-[11px] text-[15px] font-semibold",
-          activeFilterCount > 0 ? "bg-[#371b3a] text-peach" : "border border-neutral-200 bg-white text-neutral-800",
+          activeFilterCount > 0 ? "bg-[#34223a] text-peach" : "border border-neutral-200 bg-white text-neutral-800",
         )}
       >
         <SlidersHorizontal size={16} />
@@ -226,7 +226,7 @@ export function PeopleMobile({
               setSelected(new Set());
             } else setSelecting(true);
           }}
-          className="shrink-0 text-[14px] font-semibold text-[#371b3a]"
+          className="shrink-0 text-[14px] font-semibold text-[#34223a]"
         >
           {selecting ? "Cancel" : "Select"}
         </button>

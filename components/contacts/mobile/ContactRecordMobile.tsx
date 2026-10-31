@@ -97,7 +97,7 @@ export function ContactRecordMobile({
           <button
             type="button"
             onClick={() => setStageSheetOpen(true)}
-            className="flex h-[36px] items-center gap-1.5 rounded-full bg-[#f6e4d6] px-3 text-[14px] font-medium text-brand-700"
+            className="flex h-[36px] items-center gap-1.5 rounded-full bg-[#f5e6dc] px-3 text-[14px] font-medium text-brand-700"
           >
             <Leaf size={14} strokeWidth={2} />
             {stage?.name ?? "No stage"}

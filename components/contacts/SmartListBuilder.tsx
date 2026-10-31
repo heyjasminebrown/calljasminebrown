@@ -140,10 +140,10 @@ export function SmartListBuilder({
       <div className="border-b border-[#ddd7da] px-4 py-3">
         <p className="text-[12px] font-semibold uppercase tracking-[.06em] text-neutral-400">Rules</p>
       </div>
-      <div className="divide-y divide-[#f6e4d6]">
+      <div className="divide-y divide-[#f5e6dc]">
         {rules.map((rule, index) => (
           <div key={rule.id} className={cn("grid items-center gap-2 px-4 py-3", mobile ? "grid-cols-1" : "grid-cols-[72px_minmax(0,1.2fr)_minmax(0,1fr)_auto]")}>
-            <span className="text-[12px] font-semibold uppercase tracking-[.06em] text-[#371b3a]">{index === 0 ? "If" : "And"}</span>
+            <span className="text-[12px] font-semibold uppercase tracking-[.06em] text-[#34223a]">{index === 0 ? "If" : "And"}</span>
             <select
               value={rule.field}
               onChange={(e) => updateRule(rule.id, { field: e.target.value as SmartListRuleField })}
@@ -169,7 +169,7 @@ export function SmartListBuilder({
         ))}
       </div>
       <div className="px-4 py-2.5">
-        <button type="button" onClick={addRule} className="inline-flex items-center gap-1 text-[13px] font-medium text-[#371b3a]">
+        <button type="button" onClick={addRule} className="inline-flex items-center gap-1 text-[13px] font-medium text-[#34223a]">
           <Plus size={14} /> Add AND condition
         </button>
       </div>
@@ -193,7 +193,7 @@ export function SmartListBuilder({
               placeholder="Smart list name"
               className="h-10 min-w-[180px] flex-1 rounded-[10px] border border-[#ddd7da] px-3 text-[14px] text-neutral-900"
             />
-            <button type="submit" disabled={!name.trim()} className="text-[13px] font-semibold text-[#371b3a] disabled:opacity-40">
+            <button type="submit" disabled={!name.trim()} className="text-[13px] font-semibold text-[#34223a] disabled:opacity-40">
               Save
             </button>
             <button type="button" onClick={() => setSaving(false)} className="text-[13px] text-neutral-400">
@@ -312,7 +312,7 @@ function ActionButton({
       disabled={disabled}
       className={cn(
         "rounded-xl px-3 py-2.5 text-[14px] font-semibold disabled:opacity-40",
-        filled ? "bg-[#371b3a] text-peach" : "border border-[#371b3a] bg-white text-[#371b3a]",
+        filled ? "bg-[#34223a] text-peach" : "border border-[#34223a] bg-white text-[#34223a]",
       )}
     >
       {children}

@@ -34,18 +34,18 @@ function QueueRow({
       className={cn(
         "flex h-full min-h-[58px] min-w-0 items-center gap-3 px-3.5 py-3.5",
         TODAY_CARD,
-        hot && "border-2 border-[#371b3a] bg-[#fbf3ec] shadow-[0_4px_14px_rgb(55_27_58_/_0.18)]",
+        hot && "border-2 border-[#34223a] bg-[#fbf3ec] shadow-[0_4px_14px_rgb(52_34_58_/_0.18)]",
       )}
     >
-      <Icon size={20} strokeWidth={1.7} className={cn("shrink-0", hot || accent || count > 0 ? "text-[#371b3a]" : "text-neutral-500")} />
+      <Icon size={20} strokeWidth={1.7} className={cn("shrink-0", hot || accent || count > 0 ? "text-[#34223a]" : "text-neutral-500")} />
       <p className="min-w-0 flex-1 truncate text-[16px] text-neutral-900">
         {label}
-        <span className={cn(hot ? "font-semibold text-[#371b3a]" : "text-neutral-400")}> · {count}</span>
+        <span className={cn(hot ? "font-semibold text-[#34223a]" : "text-neutral-400")}> · {count}</span>
       </p>
       <span
         className={cn(
           BADGE,
-          hot ? "h-8 min-w-8 bg-[#371b3a] text-[15px] text-peach" : count > 0 ? "bg-[#371b3a] text-peach" : "bg-[#f3e2d6] text-neutral-500",
+          hot ? "h-8 min-w-8 bg-[#34223a] text-[15px] text-peach" : count > 0 ? "bg-[#34223a] text-peach" : "bg-[#f2e1d6] text-neutral-500",
         )}
       >
         {count}
@@ -69,18 +69,18 @@ export function NewUncontactedSpotlight({ count, previewName }: { count: number;
       href={todayFocusHref("new")}
       data-today-control="home-new-uncontacted"
       data-today-home="new-uncontacted"
-      className="flex items-center gap-4 rounded-[20px] border-2 border-[#371b3a] bg-[#fbf3ec] px-4 py-4 shadow-[0_6px_18px_rgb(55_27_58_/_0.16)]"
+      className="flex items-center gap-4 rounded-[20px] border-2 border-[#34223a] bg-[#fbf3ec] px-4 py-4 shadow-[0_6px_18px_rgb(52_34_58_/_0.16)]"
     >
-      <div className="flex h-[64px] w-[64px] shrink-0 flex-col items-center justify-center rounded-[18px] bg-[#371b3a] text-peach shadow-[0_4px_10px_rgb(55_27_58_/_0.28)]">
+      <div className="flex h-[64px] w-[64px] shrink-0 flex-col items-center justify-center rounded-[18px] bg-[#34223a] text-peach shadow-[0_4px_10px_rgb(52_34_58_/_0.28)]">
         <p className="font-serif text-[28px] font-semibold leading-none">{count}</p>
         <p className="mt-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-white/80">New</p>
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#371b3a]">First touch</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#34223a]">First touch</p>
         <p className="mt-0.5 font-serif text-[22px] font-semibold leading-7 text-neutral-900">New / uncontacted</p>
         <p className="mt-0.5 truncate text-[14px] text-neutral-600">{subtitle}</p>
       </div>
-      <ChevronRight size={20} strokeWidth={1.75} className="shrink-0 text-[#371b3a]" />
+      <ChevronRight size={20} strokeWidth={1.75} className="shrink-0 text-[#34223a]" />
     </Link>
   );
 }
@@ -133,10 +133,10 @@ export function TodayQueues({
         className={cn("block px-3.5 py-3.5", TODAY_CARD)}
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#371b3a] text-peach shadow-[0_4px_10px_rgb(55_27_58_/_0.28)]">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#34223a] text-peach shadow-[0_4px_10px_rgb(52_34_58_/_0.28)]">
             <MessageCircle size={18} strokeWidth={1.6} fill="currentColor" />
           </div>
-          <p className={cn("min-w-0 flex-1 font-serif text-[18px] font-semibold", owedCount > 0 ? "text-[#371b3a]" : "text-neutral-700")}>
+          <p className={cn("min-w-0 flex-1 font-serif text-[18px] font-semibold", owedCount > 0 ? "text-[#34223a]" : "text-neutral-700")}>
             {owedCount === 0 ? "Inbox is clear" : `${owedCount} need${owedCount === 1 ? "s" : ""} a reply`}
           </p>
           <ChevronRight size={18} strokeWidth={1.75} className="shrink-0 text-neutral-300" />

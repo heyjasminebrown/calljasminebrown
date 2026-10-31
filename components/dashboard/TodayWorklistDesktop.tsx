@@ -98,7 +98,7 @@ export function TodayWorklistDesktop({
             className={cn(
               "flex h-11 shrink-0 items-center whitespace-nowrap rounded-full px-4 text-sm font-medium",
               active === chip.key
-                ? "bg-[#371b3a] text-peach shadow-[0_4px_10px_rgb(55_27_58_/_0.28)]"
+                ? "bg-[#34223a] text-peach shadow-[0_4px_10px_rgb(52_34_58_/_0.28)]"
                 : "border border-[#ddd7da] bg-[#fcfbfb] text-neutral-600",
             )}
           >

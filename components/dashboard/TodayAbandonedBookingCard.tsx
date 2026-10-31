@@ -43,7 +43,7 @@ export function TodayAbandonedBookingCard({ request }: { request: BookingRequest
       className={cn("flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6 lg:p-5", TODAY_CARD)}
     >
       <div className="flex min-w-0 items-start gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f6e4d6] font-serif text-[16px] font-semibold text-[#371b3a] lg:h-12 lg:w-12">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f5e6dc] font-serif text-[16px] font-semibold text-[#34223a] lg:h-12 lg:w-12">
           {initials(first, last)}
         </div>
         <div className="min-w-0">
@@ -59,7 +59,7 @@ export function TodayAbandonedBookingCard({ request }: { request: BookingRequest
           <Link
             href={messageHref}
             data-today-control="abandoned-booking-message"
-            className="inline-flex h-10 items-center rounded-xl bg-[#371b3a] px-3.5 text-[13px] font-semibold text-peach lg:h-11 lg:px-4 lg:text-[14px]"
+            className="inline-flex h-10 items-center rounded-xl bg-[#34223a] px-3.5 text-[13px] font-semibold text-peach lg:h-11 lg:px-4 lg:text-[14px]"
           >
             Follow up
           </Link>
@@ -67,7 +67,7 @@ export function TodayAbandonedBookingCard({ request }: { request: BookingRequest
           <Link
             href="/scheduling"
             data-today-control="abandoned-booking-open"
-            className="inline-flex h-10 items-center rounded-xl bg-[#371b3a] px-3.5 text-[13px] font-semibold text-peach lg:h-11 lg:px-4 lg:text-[14px]"
+            className="inline-flex h-10 items-center rounded-xl bg-[#34223a] px-3.5 text-[13px] font-semibold text-peach lg:h-11 lg:px-4 lg:text-[14px]"
           >
             Open Bookings
           </Link>

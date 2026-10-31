@@ -25,7 +25,7 @@ export function RecheckSpamRules() {
       onRun={run}
       result={
         error ? (
-          <span className="text-[#2a142c]">{error}</span>
+          <span className="text-[#291a2e]">{error}</span>
         ) : (
           status && <>Checked {status.checked}, moved {status.flaggedSpam} to spam.</>
         )

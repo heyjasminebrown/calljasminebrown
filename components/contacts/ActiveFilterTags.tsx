@@ -38,7 +38,7 @@ export function ActiveFilterTags({ stages, tags }: { stages: PipelineStage[]; ta
           if (list) next.set("list", list);
           apply(next);
         }}
-        className="text-[13px] font-medium text-[#371b3a]"
+        className="text-[13px] font-medium text-[#34223a]"
       >
         Clear all
       </button>

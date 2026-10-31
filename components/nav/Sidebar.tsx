@@ -69,7 +69,7 @@ export function Sidebar({ userEmail, counts = {} }: { userEmail?: string | null;
                 href={href}
                 className={cn(
                   "flex items-center gap-3 rounded-[11px] px-3 py-3 text-base font-medium",
-                  active ? "bg-[#f6e4d6] font-semibold text-brand-800" : "text-neutral-700 hover:bg-[#e3dfe1]/70",
+                  active ? "bg-[#f5e6dc] font-semibold text-brand-800" : "text-neutral-700 hover:bg-[#e3dfe1]/70",
                 )}
               >
                 <Icon size={19} className={active ? "text-brand-700" : "text-neutral-500"} />
@@ -104,7 +104,7 @@ export function Sidebar({ userEmail, counts = {} }: { userEmail?: string | null;
                     title={hint}
                     className={cn(
                       "flex items-center gap-3 rounded-[11px] px-3 py-2.5 text-[15px] font-medium",
-                      active ? "bg-[#f6e4d6] font-semibold text-brand-800" : "text-neutral-700 hover:bg-[#e3dfe1]/70",
+                      active ? "bg-[#f5e6dc] font-semibold text-brand-800" : "text-neutral-700 hover:bg-[#e3dfe1]/70",
                     )}
                   >
                     <Icon size={18} className={active ? "text-brand-700" : "text-neutral-500"} />

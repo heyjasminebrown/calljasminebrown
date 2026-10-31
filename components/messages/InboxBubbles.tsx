@@ -17,7 +17,7 @@ export function InboxBubbles({ messages }: { messages: SmsThreadMessage[] }) {
               <div
                 className={cn(
                   "whitespace-pre-wrap break-words rounded-[18px] px-4 py-3 text-[15px] leading-6 text-neutral-900",
-                  outbound ? "bg-[#f6e4d6]" : "border border-[#ddd7da] bg-white",
+                  outbound ? "bg-[#f5e6dc]" : "border border-[#ddd7da] bg-white",
                 )}
               >
                 {message.body}

@@ -31,7 +31,7 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (nex
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={cn("relative h-6 w-11 shrink-0 rounded-full transition-colors", checked ? "bg-[#371b3a]" : "bg-neutral-200")}
+        className={cn("relative h-6 w-11 shrink-0 rounded-full transition-colors", checked ? "bg-[#34223a]" : "bg-neutral-200")}
       >
         <span className={cn("absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-[left]", checked ? "left-5" : "left-0.5")} />
       </button>
@@ -119,7 +119,7 @@ export function ContactFiltersSheet({
     <div className={chrome}>
       <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[#ddd7da] px-5 py-4">
         <p className="font-serif text-xl font-semibold text-neutral-900">Filters</p>
-        <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-neutral-400 hover:bg-[#f6e4d6]" aria-label="Close filters">
+        <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-neutral-400 hover:bg-[#f5e6dc]" aria-label="Close filters">
           <X size={18} />
         </button>
       </div>
@@ -129,7 +129,7 @@ export function ContactFiltersSheet({
         <Section title="Source" flush={variant === "sheet"}>
           <div className="space-y-2">
             <label className="flex items-center gap-2.5 text-[14px] text-neutral-800">
-              <input type="radio" name="source" checked={!draft.source} onChange={() => set("source", "")} className="accent-[#371b3a]" />
+              <input type="radio" name="source" checked={!draft.source} onChange={() => set("source", "")} className="accent-[#34223a]" />
               All
             </label>
             {CONTACT_SOURCE_FILTERS.map((source) => (
@@ -139,7 +139,7 @@ export function ContactFiltersSheet({
                   name="source"
                   checked={draft.source === source.value}
                   onChange={() => set("source", source.value)}
-                  className="accent-[#371b3a]"
+                  className="accent-[#34223a]"
                 />
                 {source.label}
               </label>
@@ -155,7 +155,7 @@ export function ContactFiltersSheet({
                   type="checkbox"
                   checked={selectedStages.has(stage.id)}
                   onChange={() => toggleStage(stage.id)}
-                  className="h-4 w-4 rounded border-neutral-300 accent-[#371b3a]"
+                  className="h-4 w-4 rounded border-neutral-300 accent-[#34223a]"
                 />
                 {stage.name}
               </label>
@@ -200,7 +200,7 @@ export function ContactFiltersSheet({
                   name="gender"
                   checked={(draft.gender ?? "") === value}
                   onChange={() => set("gender", value)}
-                  className="accent-[#371b3a]"
+                  className="accent-[#34223a]"
                 />
                 {label}
               </label>
@@ -217,11 +217,11 @@ export function ContactFiltersSheet({
         <button
           type="button"
           onClick={reset}
-          className="rounded-xl border border-[#371b3a] bg-white px-4 py-2.5 text-[14px] font-semibold text-[#371b3a]"
+          className="rounded-xl border border-[#34223a] bg-white px-4 py-2.5 text-[14px] font-semibold text-[#34223a]"
         >
           Reset
         </button>
-        <button type="button" onClick={apply} className="rounded-xl bg-[#371b3a] px-4 py-2.5 text-[14px] font-semibold text-peach">
+        <button type="button" onClick={apply} className="rounded-xl bg-[#34223a] px-4 py-2.5 text-[14px] font-semibold text-peach">
           Apply
         </button>
       </div>

@@ -60,7 +60,7 @@ export function SmartListsRail({ segments }: { segments: ContactSegment[] }) {
       </div>
 
       <p className="mb-1.5 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[.06em] text-neutral-400">
-        <Zap size={12} className="text-[#371b3a]" /> Smart lists
+        <Zap size={12} className="text-[#34223a]" /> Smart lists
       </p>
       <div className="space-y-0.5">
         <RailButton active={smartView && !activeList} onClick={openNewSmart} icon={<Plus size={13} />}>
@@ -71,7 +71,7 @@ export function SmartListsRail({ segments }: { segments: ContactSegment[] }) {
             key={seg.id}
             active={activeList === seg.id}
             onClick={() => openSmart(seg)}
-            icon={<Zap size={13} className="text-[#371b3a]" />}
+            icon={<Zap size={13} className="text-[#34223a]" />}
           >
             {seg.name}
           </RailButton>
@@ -98,7 +98,7 @@ function RailButton({
       onClick={onClick}
       className={cn(
         "flex w-full items-center gap-2 rounded-[10px] px-2.5 py-2 text-left text-[13px] font-medium",
-        active ? "bg-[#f6e4d6] text-[#371b3a]" : "text-neutral-600 hover:bg-[#fbf3ec] hover:text-neutral-900",
+        active ? "bg-[#f5e6dc] text-[#34223a]" : "text-neutral-600 hover:bg-[#fbf3ec] hover:text-neutral-900",
       )}
     >
       {icon}

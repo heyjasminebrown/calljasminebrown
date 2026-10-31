@@ -24,7 +24,7 @@ export function MoreSheet({ open, onClose, counts }: { open: boolean; onClose: (
               onClick={onClose}
               className="flex min-h-[52px] items-center gap-3.5 border-b border-neutral-100 px-1 py-3 last:border-b-0 active:bg-neutral-50"
             >
-              <Icon size={20} className="shrink-0 text-[#371b3a]" />
+              <Icon size={20} className="shrink-0 text-[#34223a]" />
               <span className="flex-1 text-[17px] font-medium text-neutral-900">{label}</span>
               {count && (
                 <span className={count.waiting ? "text-[15px] font-semibold text-brand-600" : "text-[15px] text-neutral-400"}>

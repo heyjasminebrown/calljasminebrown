@@ -20,7 +20,7 @@ export function LogPill({ ownerId }: { ownerId: string }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Log activity"
-        className="fixed right-4 z-40 flex h-14 items-center gap-2 rounded-full bg-brand-600 px-[22px] text-[15px] font-semibold text-peach shadow-[0_10px_22px_rgba(55,27,58,0.32)] active:scale-95 lg:hidden"
+        className="fixed right-4 z-40 flex h-14 items-center gap-2 rounded-full bg-brand-600 px-[22px] text-[15px] font-semibold text-peach shadow-[0_10px_22px_rgba(52,34,58,0.32)] active:scale-95 lg:hidden"
         style={{ bottom: "calc(var(--app-bottom-nav) + 16px)" }}
       >
         <SquarePen size={19} /> Log
