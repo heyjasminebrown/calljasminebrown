@@ -153,8 +153,10 @@ sign-in seeds your pipeline stages and starter tags automatically (see
 4. Deploy, then add `https://your-app.vercel.app/auth/confirm` (and your custom domain's) to Supabase's redirect URLs.
 5. `vercel.json` only schedules cron jobs — it does not touch Vercel's own Deployment Protection or Firewall settings, which live in the Vercel dashboard. If login or `/book` ever 403s with a Vercel-branded block page (not this app's own UI), that's Deployment Protection or the Firewall, not this code — check **Settings → Deployment Protection** (Production must stay public) and **Settings → Firewall**.
 
-Gmail sync and scheduled sequence sends run every 15 minutes
-(`vercel.json`), which needs **Vercel Pro** — the free Hobby plan only
+Gmail sync, sequence sends, text blasts, and reply reminders run every
+15 minutes, and the prep sheet and booking reminders every 5 minutes
+(`vercel.json`). That needs **Vercel Pro** — on the free Hobby plan the
+deployment fails with a cron configuration error, because Hobby only
 allows daily cron jobs.
 
 ## Migrations
