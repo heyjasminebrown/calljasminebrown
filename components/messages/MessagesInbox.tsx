@@ -135,7 +135,7 @@ export function MessagesInbox({
           selectedId={null}
           seen={seen}
           pane={
-            <div className="flex h-full items-center justify-center rounded-[20px] border border-[#eadfd6] bg-white text-sm text-neutral-400">
+            <div className="flex h-full items-center justify-center rounded-[20px] border border-[#ddd7da] bg-white text-sm text-neutral-400">
               Select a thread
             </div>
           }
@@ -161,7 +161,7 @@ function FilterBar({ filter }: { filter: MessagesFilter }) {
             href={inboxHref({ filter: item.key })}
             className={cn(
               "rounded-full px-3.5 py-1.5 text-[13px] font-medium",
-              active ? "text-white" : "border border-[#eadfd6] bg-white text-neutral-700",
+              active ? "text-white" : "border border-[#ddd7da] bg-white text-neutral-700",
             )}
             style={active ? { backgroundColor: MESSAGES_TERRACOTTA } : undefined}
           >
@@ -185,7 +185,7 @@ function SearchField({
   shortcut?: boolean;
 }) {
   return (
-    <label className="flex h-10 min-w-[220px] items-center gap-2 rounded-full border border-[#eadfd6] bg-white px-3.5 text-neutral-400">
+    <label className="flex h-10 min-w-[220px] items-center gap-2 rounded-full border border-[#ddd7da] bg-white px-3.5 text-neutral-400">
       <Search size={16} />
       <input
         id={id}
@@ -233,7 +233,7 @@ function InboxChrome({
           <div className="pb-3">
             <FilterBar filter={filter} />
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto rounded-[20px] border border-[#eadfd6] bg-white py-1.5">
+          <div className="min-h-0 flex-1 overflow-y-auto rounded-[20px] border border-[#ddd7da] bg-white py-1.5">
             {threads.length === 0 ? (
               <p className="px-4 py-12 text-center text-sm text-neutral-400">
                 {filter === "needs" ? "Nothing needs a reply." : filter === "unread" ? "No unread threads." : "No SMS threads yet."}
@@ -276,7 +276,7 @@ function MobileList({
   seen: Record<string, string>;
 }) {
   return (
-    <div className="bg-[#F7F1E8] pb-4">
+    <div className="bg-[#ebeaeb] pb-4">
       <div className="flex items-start justify-between gap-3 px-4 pt-5 pb-3">
         <div>
           <h1 className="font-display text-[28px] font-semibold tracking-[-0.02em] text-neutral-900">Messages</h1>
@@ -299,7 +299,7 @@ function MobileList({
       <div className="px-4 pb-3">
         <FilterBar filter={filter} />
       </div>
-      <div className="divide-y divide-[#f0e8df] bg-white">
+      <div className="divide-y divide-[#e6e2e4] bg-white">
         {threads.length === 0 ? (
           <p className="px-4 py-12 text-center text-sm text-neutral-400">
             {filter === "needs" ? "Nothing needs a reply." : filter === "unread" ? "No unread threads." : "No SMS threads yet."}

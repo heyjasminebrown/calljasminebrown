@@ -26,7 +26,7 @@ export function WarmPreviewRow({
         <button
           type="button"
           onClick={() => openQuoCall(phone)}
-          className="shrink-0 rounded-[10px] border-0 bg-brand-600 px-3.5 py-2.5 text-sm font-semibold text-white"
+          className="shrink-0 rounded-[10px] border-0 bg-brand-600 px-3.5 py-2.5 text-sm font-semibold text-peach"
         >
           Call
         </button>

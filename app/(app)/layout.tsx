@@ -41,11 +41,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     // phone 5-tab bar stays; at 1024+ the sidebar is a real app chrome
     // and <main> is the only scroller (lg:h-dvh + overflow-hidden).
     <div className="flex min-h-dvh lg:h-dvh lg:overflow-hidden">
-      <Suspense fallback={<aside className="hidden w-[220px] shrink-0 border-r border-[#eadfd6] bg-[#f7f1ea] lg:flex" />}>
+      <Suspense fallback={<aside className="hidden w-[220px] shrink-0 border-r border-[#ddd7da] bg-[#ebeaeb] lg:flex" />}>
         <Sidebar userEmail={user?.email} counts={navCounts} />
       </Suspense>
       <div className="flex min-h-dvh min-w-0 flex-1 flex-col lg:h-dvh lg:overflow-hidden">
-        <main className="flex flex-1 flex-col bg-[#f7f1ea] pb-[calc(var(--app-bottom-nav)+12px)] lg:min-h-0 lg:overflow-y-auto lg:pb-8">{children}</main>
+        <main className="flex flex-1 flex-col bg-[#ebeaeb] pb-[calc(var(--app-bottom-nav)+12px)] lg:min-h-0 lg:overflow-y-auto lg:pb-8">{children}</main>
       </div>
       {/* Mobile's FAB slot is Today-only-Log now (LogPill below); New
           contact lives on the Contacts header. More is a flat sheet

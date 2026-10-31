@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { TODAY_CARD } from "@/components/dashboard/today-home-layout";
 import type { PipelineStage } from "@/types/database";
 
-const RING = ["#c45c4a", "#d4a08c", "#8a4a3c", "#e8cfc4", "#ac3826"];
+const RING = ["#371b3a", "#e7b696", "#5a3d5c", "#e7b696", "#2a142c"];
 
 export function TodayPipelineOverview({
   stages,
@@ -32,7 +32,7 @@ export function TodayPipelineOverview({
   const total = slices.reduce((sum, s) => sum + s.count, 0);
   const gradient =
     total === 0
-      ? "conic-gradient(#eadfd6 0deg 360deg)"
+      ? "conic-gradient(#ddd7da 0deg 360deg)"
       : `conic-gradient(${slices
           .reduce<{ acc: number; parts: string[] }>(
             (state, slice) => {
@@ -53,13 +53,13 @@ export function TodayPipelineOverview({
   return (
     <section data-today-home="pipeline" className={cn("h-full min-w-0 overflow-hidden p-4 sm:p-5", TODAY_CARD, className)}>
       <p className="flex items-center gap-2 text-[15px] font-semibold text-neutral-800">
-        <Clock size={16} strokeWidth={1.7} className="text-[#c45c4a]" />
+        <Clock size={16} strokeWidth={1.7} className="text-[#371b3a]" />
         Pipeline Overview
       </p>
       <div className={cn("mt-3 flex items-center gap-5", size !== "phone" ? "gap-8" : "md:gap-8")}>
         <Link href="/pipeline" aria-label={`${total} in pipeline`} className="relative shrink-0">
           <div className={cn("rounded-full", donut)} style={{ background: gradient }} />
-          <div className={cn("absolute inset-0 m-auto flex flex-col items-center justify-center rounded-full bg-[#fffbf8]", hole)}>
+          <div className={cn("absolute inset-0 m-auto flex flex-col items-center justify-center rounded-full bg-[#fcfbfb]", hole)}>
             <p className={cn("font-serif font-semibold leading-none text-neutral-900", size === "desktop" ? "text-[32px]" : "text-[22px] md:text-[32px]")}>
               {total}
             </p>

@@ -25,7 +25,7 @@ export function MissedVoicemailBackfill() {
       onRun={run}
       result={
         error ? (
-          <span className="text-[#ac3826]">{error}</span>
+          <span className="text-[#2a142c]">{error}</span>
         ) : (
           status && (
             <>

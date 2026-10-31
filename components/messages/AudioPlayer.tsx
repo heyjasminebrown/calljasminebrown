@@ -65,7 +65,7 @@ export function AudioPlayer({ src }: { src: string }) {
       <audio ref={audioRef} src={src} preload="metadata" />
       <button
         onClick={togglePlay}
-        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white hover:bg-brand-700"
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-600 text-peach hover:bg-brand-700"
         aria-label={playing ? "Pause" : "Play"}
       >
         {playing ? <Pause size={13} fill="currentColor" /> : <Play size={13} fill="currentColor" className="ml-0.5" />}

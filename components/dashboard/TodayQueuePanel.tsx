@@ -135,7 +135,7 @@ export function TodayQueuePanel({
                 data-today-control={`chip-${key}`}
                 className={cn(
                   "flex h-11 shrink-0 items-center whitespace-nowrap rounded-full px-3.5 text-[14px] font-medium",
-                  focus === key ? "bg-[#c45c4a] text-white shadow-[0_4px_10px_rgb(196_92_74_/_0.28)]" : "border border-[#eadfd6] bg-[#fffbf8] text-neutral-600",
+                  focus === key ? "bg-[#371b3a] text-peach shadow-[0_4px_10px_rgb(55_27_58_/_0.28)]" : "border border-[#ddd7da] bg-[#fcfbfb] text-neutral-600",
                 )}
               >
                 {TODAY_QUEUE_SHORT_LABELS[key]} {n}
@@ -145,13 +145,13 @@ export function TodayQueuePanel({
         </div>
 
         {focus === "registered" && groups.registered.length > 0 && (
-          <div className="mt-3 flex items-center gap-3 rounded-[16px] border border-[#eadfd6] bg-[#fffbf8] px-[18px] py-3.5 shadow-card">
+          <div className="mt-3 flex items-center gap-3 rounded-[16px] border border-[#ddd7da] bg-[#fcfbfb] px-[18px] py-3.5 shadow-card">
             <p className="min-w-0 flex-1 text-[15px] text-neutral-700">Registered for something and hasn&apos;t heard from you since.</p>
             <TextAllButton contactIds={groups.registered.map((p) => p.id)} label="Registered, no follow-up" />
           </div>
         )}
 
-        <div className="mt-3 overflow-hidden rounded-[16px] border border-[#eadfd6] bg-[#fffbf8] shadow-card">{body}</div>
+        <div className="mt-3 overflow-hidden rounded-[16px] border border-[#ddd7da] bg-[#fcfbfb] shadow-card">{body}</div>
 
         {focus === "registered" && groups.registered.length > 0 && (
           <p className="mt-2 px-1 text-[13px] text-neutral-400">

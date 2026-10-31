@@ -26,7 +26,7 @@ export function Section({
   const [open, setOpen] = useSectionOpen(sectionKey, defaultOpen, forceOpen);
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#eadfd6] bg-[#fffbf8] shadow-card">
+    <div className="overflow-hidden rounded-2xl border border-[#ddd7da] bg-[#fcfbfb] shadow-card">
       <div className="flex w-full items-center gap-2.5 px-[18px] py-4">
         <button type="button" onClick={() => setOpen(!open)} className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
           <span className="text-base font-semibold text-neutral-900">{title}</span>

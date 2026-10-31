@@ -66,7 +66,7 @@ export function InboxRow({
       ? [{ icon: CircleCheck, label: "Done", bg: "#292524", onClick: dismiss }]
       : [{ icon: StickyNote, label: "Log", bg: "#292524", onClick: () => setLogOpen(true) }]),
     ...(contact.phone ? [{ icon: Phone, label: "Call", bg: "#e7e5e4", onClick: () => openQuoCall(contact.phone!) }] : []),
-    { icon: EyeOff, label: "Hide", bg: "#ac3826", onClick: hide },
+    { icon: EyeOff, label: "Hide", bg: "#2a142c", onClick: hide },
   ];
 
   return (

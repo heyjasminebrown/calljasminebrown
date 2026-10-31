@@ -20,7 +20,7 @@ export function FilterChip({
       onClick={onToggle}
       className={cn(
         "inline-flex h-[45px] shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-[15px] text-[15px] font-medium",
-        selected ? "bg-brand-600 font-semibold text-white" : "border border-neutral-200 text-neutral-700",
+        selected ? "bg-brand-600 font-semibold text-peach" : "border border-neutral-200 text-neutral-700",
         className,
       )}
     >

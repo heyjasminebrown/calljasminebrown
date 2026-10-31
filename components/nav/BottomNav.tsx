@@ -16,7 +16,7 @@ export function BottomNav({ counts = {}, userEmail }: { counts?: NavCounts; user
 
   return (
     <>
-      <nav className={onSmsThread ? "hidden" : "safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-[#eadfd6] bg-[#f7f1ea]/95 backdrop-blur lg:hidden"}>
+      <nav className={onSmsThread ? "hidden" : "safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-[#ddd7da] bg-[#ebeaeb]/95 backdrop-blur lg:hidden"}>
         <ul className="flex items-stretch justify-around">
           {MOBILE_NAV_ITEMS.map((item) => {
             if (item.kind === "more") {
@@ -27,14 +27,14 @@ export function BottomNav({ counts = {}, userEmail }: { counts?: NavCounts; user
                     type="button"
                     onClick={() => setMoreOpen(true)}
                     className={cn(
-                      "flex h-full min-h-[66px] w-full flex-col items-center justify-center py-2 text-[12.5px] font-medium active:bg-[#efe6dc]",
-                      moreActive ? "font-semibold text-[#c45c4a]" : "text-neutral-400",
+                      "flex h-full min-h-[66px] w-full flex-col items-center justify-center py-2 text-[12.5px] font-medium active:bg-[#e3dfe1]",
+                      moreActive ? "font-semibold text-[#371b3a]" : "text-neutral-400",
                     )}
                   >
                     <span
                       className={cn(
                         "flex min-w-[56px] flex-col items-center gap-[5px] rounded-[14px] px-2.5 py-1.5",
-                        moreActive && "bg-[#f3e4dc]",
+                        moreActive && "bg-[#f6e4d6]",
                       )}
                     >
                       <item.icon size={25} strokeWidth={moreActive ? 2.3 : 1.8} />
@@ -54,14 +54,14 @@ export function BottomNav({ counts = {}, userEmail }: { counts?: NavCounts; user
                 <Link
                   href={item.href}
                   className={cn(
-                    "relative flex h-full min-h-[66px] flex-col items-center justify-center gap-[5px] py-2 text-[12.5px] font-medium active:bg-[#efe6dc]",
-                    active ? "font-semibold text-[#c45c4a]" : "text-neutral-400",
+                    "relative flex h-full min-h-[66px] flex-col items-center justify-center gap-[5px] py-2 text-[12.5px] font-medium active:bg-[#e3dfe1]",
+                    active ? "font-semibold text-[#371b3a]" : "text-neutral-400",
                   )}
                 >
                   <span
                     className={cn(
                       "relative flex min-w-[56px] flex-col items-center gap-[5px] rounded-[14px] px-2.5 py-1.5",
-                      active && "bg-[#f3e4dc]",
+                      active && "bg-[#f6e4d6]",
                     )}
                   >
                     <item.icon
@@ -70,7 +70,7 @@ export function BottomNav({ counts = {}, userEmail }: { counts?: NavCounts; user
                       className={active && fillActive ? "fill-current" : undefined}
                     />
                     {count && count.value > 0 && (
-                      <span className="absolute right-0 top-0 flex h-[19px] min-w-[19px] items-center justify-center rounded-full bg-[#c45c4a] px-1 text-[11px] font-semibold text-white">
+                      <span className="absolute right-0 top-0 flex h-[19px] min-w-[19px] items-center justify-center rounded-full bg-[#371b3a] px-1 text-[11px] font-semibold text-peach">
                         {count.value}
                       </span>
                     )}

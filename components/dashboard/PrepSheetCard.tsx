@@ -35,7 +35,7 @@ export function PrepSheetCard({ id, payload }: { id: string; payload: PrepSheetP
     <div className="overflow-hidden rounded-2xl border border-[#ebe9e7] bg-white">
       <div className="flex items-center gap-2.5 bg-[#1c1917] px-[18px] py-4">
         <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#eea095]">Notification · 30 minutes out</p>
+          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#a893aa]">Notification · 30 minutes out</p>
           <p className="mt-1 text-lg font-semibold text-white">
             {payload.eventTitle} with {payload.contactName} at {time}
             {payload.location ? ` — ${payload.location}` : ""}

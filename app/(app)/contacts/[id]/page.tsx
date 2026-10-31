@@ -101,7 +101,7 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
         <ChevronLeft size={18} /> Contacts
       </Link>
       <div className="flex flex-wrap items-start gap-[18px]">
-        <div className="flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-full bg-[#f3e4dc] text-xl font-semibold text-brand-700">
+        <div className="flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-full bg-[#f6e4d6] text-xl font-semibold text-brand-700">
           {initials(contact.first_name, contact.last_name)}
         </div>
         <div className="min-w-0 flex-1">
@@ -121,12 +121,12 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
             </p>
           )}
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="flex h-[36px] items-center gap-1.5 rounded-full bg-[#f3e4dc] px-3 text-[14px] font-medium text-brand-700">
+            <span className="flex h-[36px] items-center gap-1.5 rounded-full bg-[#f6e4d6] px-3 text-[14px] font-medium text-brand-700">
               <Leaf size={14} strokeWidth={2} />
               {stage?.name ?? "No stage"}
             </span>
             {contact.lead_source && (
-              <span className="flex h-[36px] items-center gap-1.5 rounded-full border border-[#eadfd6] bg-[#fffbf8] px-3 text-[14px] font-medium text-neutral-600">
+              <span className="flex h-[36px] items-center gap-1.5 rounded-full border border-[#ddd7da] bg-[#fcfbfb] px-3 text-[14px] font-medium text-neutral-600">
                 <CalendarDays size={14} strokeWidth={1.8} className="text-brand-700" />
                 Source: {contact.lead_source}
               </span>
@@ -136,7 +136,7 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
               .map((ct) => (
                 <span
                   key={ct.tags!.id}
-                  className="flex h-[36px] items-center rounded-full border border-[#eadfd6] bg-[#fffbf8] px-3 text-[14px] font-medium text-brand-700"
+                  className="flex h-[36px] items-center rounded-full border border-[#ddd7da] bg-[#fcfbfb] px-3 text-[14px] font-medium text-brand-700"
                 >
                   {ct.tags!.name}
                 </span>
@@ -242,7 +242,7 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
             </div>
           </Section>
 
-          <div className="flex items-center gap-2 border-t border-[#eadfd6] pt-5">
+          <div className="flex items-center gap-2 border-t border-[#ddd7da] pt-5">
             <MergeContactButton contactId={contact.id} contactName={fullName(contact)} candidates={mergeCandidates} />
             <ArchiveButton contactId={contact.id} archived={contact.archived} />
           </div>

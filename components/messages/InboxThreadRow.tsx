@@ -61,7 +61,7 @@ export function InboxThreadRow({
             )}
           </div>
           {thread.needsReply && (
-            <span className="mt-2 inline-flex rounded-full border border-[#eadfd6] bg-white px-2.5 py-0.5 text-[12px] font-medium text-[#C45C3E]">
+            <span className="mt-2 inline-flex rounded-full border border-[#ddd7da] bg-white px-2.5 py-0.5 text-[12px] font-medium text-[#371b3a]">
               Needs reply
             </span>
           )}
@@ -86,7 +86,7 @@ export function InboxThreadRow({
           <p className="shrink-0 text-[13px] text-neutral-400">{inboxRelativeTime(thread.occurredAt)}</p>
         </div>
         {thread.needsReply && (
-          <span className="mt-1 inline-flex rounded-full border border-[#eadfd6] bg-white px-2.5 py-0.5 text-[12px] font-medium text-[#C45C3E]">
+          <span className="mt-1 inline-flex rounded-full border border-[#ddd7da] bg-white px-2.5 py-0.5 text-[12px] font-medium text-[#371b3a]">
             Needs reply
           </span>
         )}

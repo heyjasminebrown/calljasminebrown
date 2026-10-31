@@ -109,7 +109,7 @@ export function WorklistGroup({
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[14px] font-semibold text-neutral-600">
                 {initials(person.name.split(" ")[0] ?? "", person.name.split(" ").slice(1).join(" "))}
               </div>
-              <Link href={`/contacts/${person.id}`} data-contact-open={person.id} className="min-w-0 flex-1 rounded-[10px] hover:bg-[#f7f1ea]">
+              <Link href={`/contacts/${person.id}`} data-contact-open={person.id} className="min-w-0 flex-1 rounded-[10px] hover:bg-[#ebeaeb]">
                 <p className="truncate text-[16px] font-semibold leading-5 text-neutral-900 sm:text-[17px] sm:leading-6">{person.name}</p>
                 <p className={`truncate text-[14px] leading-5 sm:text-[15px] ${person.late ? "font-medium text-[#b91c1c]" : "text-neutral-500"}`}>
                   {person.meta}

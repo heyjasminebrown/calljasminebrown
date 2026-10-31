@@ -57,7 +57,7 @@ export function TextAndNextDialer({ leads }: { leads: TextAndNextLead[] }) {
       <div className="flex items-center gap-2.5">
         <h2 className="text-[15px] font-semibold text-neutral-900">New / Uncontacted</h2>
         {total > 0 && (
-          <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[#c45c4a] px-2 text-[12px] font-semibold text-white">
+          <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[#371b3a] px-2 text-[12px] font-semibold text-peach">
             {queue.length}
           </span>
         )}
@@ -71,7 +71,7 @@ export function TextAndNextDialer({ leads }: { leads: TextAndNextLead[] }) {
         <div className="mt-4 grid min-w-0 gap-4 lg:mt-5 lg:grid-cols-2 lg:gap-6 xl:gap-10">
           <div className="min-w-0">
             <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f3e4dc] font-serif text-[18px] font-semibold text-[#c45c4a] lg:h-14 lg:w-14 lg:text-[22px]">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f6e4d6] font-serif text-[18px] font-semibold text-[#371b3a] lg:h-14 lg:w-14 lg:text-[22px]">
                 {initials(current.firstName, current.lastName)}
               </div>
               <div className="min-w-0 flex-1">
@@ -79,16 +79,16 @@ export function TextAndNextDialer({ leads }: { leads: TextAndNextLead[] }) {
                   <p className="truncate font-serif text-[18px] font-semibold leading-6 text-neutral-900 lg:text-[22px] lg:leading-7">
                     {current.name}
                   </p>
-                  <span className="rounded-full bg-[#f3e4dc] px-2.5 py-0.5 text-[12px] font-medium text-[#c45c4a]">
+                  <span className="rounded-full bg-[#f6e4d6] px-2.5 py-0.5 text-[12px] font-medium text-[#371b3a]">
                     {current.sourceChip}
                   </span>
                 </div>
                 <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-neutral-500 lg:text-[14px]">
                   <span className="inline-flex items-center gap-1.5">
-                    <Phone size={14} strokeWidth={1.75} className="text-[#c45c4a]" />
+                    <Phone size={14} strokeWidth={1.75} className="text-[#371b3a]" />
                     {current.phone ? formatPhone(current.phone) : "No phone on file"}
                   </span>
-                  <span className="text-[#c45c4a]">·</span>
+                  <span className="text-[#371b3a]">·</span>
                   <span>{leadAgeLabel(current.leadDate)}</span>
                 </p>
               </div>
@@ -101,7 +101,7 @@ export function TextAndNextDialer({ leads }: { leads: TextAndNextLead[] }) {
 
           <div className="min-w-0">
             <p className="mb-2.5 hidden items-center gap-2 text-[15px] font-semibold text-neutral-800 lg:flex">
-              <MessageCircle size={16} strokeWidth={1.7} className="text-[#c45c4a]" />
+              <MessageCircle size={16} strokeWidth={1.7} className="text-[#371b3a]" />
               Text &amp; Next
             </p>
             <textarea
@@ -110,7 +110,7 @@ export function TextAndNextDialer({ leads }: { leads: TextAndNextLead[] }) {
               onChange={(e) => setDraft(e.target.value)}
               rows={4}
               data-today-control="text-next-draft"
-              className="min-h-[88px] w-full resize-none rounded-[14px] border border-[#eadfd6] bg-[#fffdfb] px-3.5 py-3 text-[14px] leading-6 text-neutral-800 outline-none focus:border-[#c45c4a]/50 focus:ring-2 focus:ring-[#c45c4a]/15 lg:min-h-[112px]"
+              className="min-h-[88px] w-full resize-none rounded-[14px] border border-[#ddd7da] bg-[#fdfcfc] px-3.5 py-3 text-[14px] leading-6 text-neutral-800 outline-none focus:border-[#371b3a]/50 focus:ring-2 focus:ring-[#371b3a]/15 lg:min-h-[112px]"
             />
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <button
@@ -118,7 +118,7 @@ export function TextAndNextDialer({ leads }: { leads: TextAndNextLead[] }) {
                 data-today-control="send-and-next"
                 onClick={() => void sendAndNext()}
                 disabled={!current.phone || sending || !body.trim()}
-                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-[#c45c4a] px-3.5 text-[13px] font-semibold text-white shadow-[0_4px_10px_rgb(196_92_74_/_0.28)] disabled:opacity-50 lg:h-11 lg:px-4 lg:text-[14px]"
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-[#371b3a] px-3.5 text-[13px] font-semibold text-peach shadow-[0_4px_10px_rgb(55_27_58_/_0.28)] disabled:opacity-50 lg:h-11 lg:px-4 lg:text-[14px]"
               >
                 {sending ? "Sending…" : "Send & next"}
                 {!sending && <ArrowRight size={15} />}
@@ -128,12 +128,12 @@ export function TextAndNextDialer({ leads }: { leads: TextAndNextLead[] }) {
                 data-today-control="skip-lead"
                 onClick={skip}
                 disabled={sending}
-                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-[#eadfd6] bg-[#fffbf8] px-3 text-[13px] font-semibold text-neutral-700 disabled:opacity-50 lg:h-11 lg:px-3.5 lg:text-[14px]"
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-[#ddd7da] bg-[#fcfbfb] px-3 text-[13px] font-semibold text-neutral-700 disabled:opacity-50 lg:h-11 lg:px-3.5 lg:text-[14px]"
               >
                 <SkipForward size={14} />
                 Skip
               </button>
-              <Link href="/settings#text-templates" data-today-control="edit-template" className="ml-auto text-[13px] font-medium text-[#c45c4a]">
+              <Link href="/settings#text-templates" data-today-control="edit-template" className="ml-auto text-[13px] font-medium text-[#371b3a]">
                 Edit template
               </Link>
             </div>
@@ -142,9 +142,9 @@ export function TextAndNextDialer({ leads }: { leads: TextAndNextLead[] }) {
               <p className="text-[13px] text-neutral-400">
                 {position} of {total}
               </p>
-              <div className="h-1 w-16 overflow-hidden rounded-full bg-[#eadfd6] lg:w-24">
+              <div className="h-1 w-16 overflow-hidden rounded-full bg-[#ddd7da] lg:w-24">
                 <div
-                  className="h-full rounded-full bg-[#c45c4a]"
+                  className="h-full rounded-full bg-[#371b3a]"
                   style={{ width: `${total === 0 ? 0 : (position / total) * 100}%` }}
                 />
               </div>

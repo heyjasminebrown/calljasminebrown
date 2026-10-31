@@ -136,18 +136,18 @@ export function SmartListBuilder({
   const mobile = variant === "mobile";
 
   return (
-    <section className={cn("overflow-hidden rounded-[16px] border border-[#eadfd6] bg-white", mobile && "rounded-[14px]")}>
-      <div className="border-b border-[#eadfd6] px-4 py-3">
+    <section className={cn("overflow-hidden rounded-[16px] border border-[#ddd7da] bg-white", mobile && "rounded-[14px]")}>
+      <div className="border-b border-[#ddd7da] px-4 py-3">
         <p className="text-[12px] font-semibold uppercase tracking-[.06em] text-neutral-400">Rules</p>
       </div>
-      <div className="divide-y divide-[#f3e4dc]">
+      <div className="divide-y divide-[#f6e4d6]">
         {rules.map((rule, index) => (
           <div key={rule.id} className={cn("grid items-center gap-2 px-4 py-3", mobile ? "grid-cols-1" : "grid-cols-[72px_minmax(0,1.2fr)_minmax(0,1fr)_auto]")}>
-            <span className="text-[12px] font-semibold uppercase tracking-[.06em] text-[#c45c4a]">{index === 0 ? "If" : "And"}</span>
+            <span className="text-[12px] font-semibold uppercase tracking-[.06em] text-[#371b3a]">{index === 0 ? "If" : "And"}</span>
             <select
               value={rule.field}
               onChange={(e) => updateRule(rule.id, { field: e.target.value as SmartListRuleField })}
-              className="rounded-[10px] border border-[#eadfd6] bg-[#fffdfb] px-2.5 py-2 text-[13px] text-neutral-800"
+              className="rounded-[10px] border border-[#ddd7da] bg-[#fdfcfc] px-2.5 py-2 text-[13px] text-neutral-800"
             >
               {FIELD_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -169,12 +169,12 @@ export function SmartListBuilder({
         ))}
       </div>
       <div className="px-4 py-2.5">
-        <button type="button" onClick={addRule} className="inline-flex items-center gap-1 text-[13px] font-medium text-[#c45c4a]">
+        <button type="button" onClick={addRule} className="inline-flex items-center gap-1 text-[13px] font-medium text-[#371b3a]">
           <Plus size={14} /> Add AND condition
         </button>
       </div>
 
-      <div className="border-t border-[#eadfd6] px-4 py-4">
+      <div className="border-t border-[#ddd7da] px-4 py-4">
         <p className="font-serif text-[18px] font-semibold text-neutral-900">
           Match count: {contacts.length} contact{contacts.length === 1 ? "" : "s"}
         </p>
@@ -191,9 +191,9 @@ export function SmartListBuilder({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Smart list name"
-              className="h-10 min-w-[180px] flex-1 rounded-[10px] border border-[#eadfd6] px-3 text-[14px] text-neutral-900"
+              className="h-10 min-w-[180px] flex-1 rounded-[10px] border border-[#ddd7da] px-3 text-[14px] text-neutral-900"
             />
-            <button type="submit" disabled={!name.trim()} className="text-[13px] font-semibold text-[#c45c4a] disabled:opacity-40">
+            <button type="submit" disabled={!name.trim()} className="text-[13px] font-semibold text-[#371b3a] disabled:opacity-40">
               Save
             </button>
             <button type="button" onClick={() => setSaving(false)} className="text-[13px] text-neutral-400">
@@ -241,7 +241,7 @@ function RuleValue({
           value={rule.value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="14"
-          className="w-full rounded-[10px] border border-[#eadfd6] bg-[#fffdfb] px-2.5 py-2 text-[13px] text-neutral-800"
+          className="w-full rounded-[10px] border border-[#ddd7da] bg-[#fdfcfc] px-2.5 py-2 text-[13px] text-neutral-800"
         />
         <span className="shrink-0 text-[12px] text-neutral-400">days</span>
       </div>
@@ -253,7 +253,7 @@ function RuleValue({
       <select
         value={rule.value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-[10px] border border-[#eadfd6] bg-[#fffdfb] px-2.5 py-2 text-[13px] text-neutral-800"
+        className="rounded-[10px] border border-[#ddd7da] bg-[#fdfcfc] px-2.5 py-2 text-[13px] text-neutral-800"
       >
         <option value="">Any stage</option>
         {stages.map((stage) => (
@@ -269,7 +269,7 @@ function RuleValue({
     <select
       value={rule.value}
       onChange={(e) => onChange(e.target.value)}
-      className="rounded-[10px] border border-[#eadfd6] bg-[#fffdfb] px-2.5 py-2 text-[13px] text-neutral-800"
+      className="rounded-[10px] border border-[#ddd7da] bg-[#fdfcfc] px-2.5 py-2 text-[13px] text-neutral-800"
     >
       <option value="">Any tag or list</option>
       {tags.length > 0 && (
@@ -312,7 +312,7 @@ function ActionButton({
       disabled={disabled}
       className={cn(
         "rounded-xl px-3 py-2.5 text-[14px] font-semibold disabled:opacity-40",
-        filled ? "bg-[#c45c4a] text-white" : "border border-[#c45c4a] bg-white text-[#c45c4a]",
+        filled ? "bg-[#371b3a] text-peach" : "border border-[#371b3a] bg-white text-[#371b3a]",
       )}
     >
       {children}

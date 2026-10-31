@@ -84,14 +84,14 @@ export function ConversationRow({
               type="button"
               onClick={handleCallBack}
               disabled={!contact.phone}
-              className="inline-flex items-center gap-1.5 rounded-[10px] border-0 bg-brand-600 px-3.5 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-[10px] border-0 bg-brand-600 px-3.5 py-2.5 text-sm font-semibold text-peach disabled:opacity-40"
             >
               <Phone size={15} /> Call back
             </button>
           ) : (
             <Link
               href={threadHref(contact.id, { filter, hidden })}
-              className="inline-flex items-center gap-1.5 rounded-[10px] border-0 bg-brand-600 px-3.5 py-2.5 text-sm font-semibold text-white"
+              className="inline-flex items-center gap-1.5 rounded-[10px] border-0 bg-brand-600 px-3.5 py-2.5 text-sm font-semibold text-peach"
             >
               <MessageSquare size={15} /> Reply
             </Link>

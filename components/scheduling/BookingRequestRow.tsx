@@ -72,7 +72,7 @@ export function BookingRequestRow({ request }: { request: BookingRequestWithCont
             type="button"
             onClick={approve}
             disabled={busy !== null}
-            className="rounded-[10px] bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            className="rounded-[10px] bg-brand-600 px-3.5 py-2 text-sm font-semibold text-peach disabled:opacity-50"
           >
             {busy === "approve" ? "…" : "Approve"}
           </button>

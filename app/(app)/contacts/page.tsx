@@ -72,13 +72,13 @@ export default async function ContactsPage({ searchParams }: { searchParams: Pro
       {/* Desktop list uses the full main column at lg+, not a phone-width
           max-w-3xl. Mobile PeopleMobile is lg:hidden so the two never stack. */}
       <div className="mx-auto hidden w-full max-w-[1400px] px-8 lg:block">
-      <div className="sticky top-0 z-10 bg-[#f7f1ea] pt-8 pb-3">
+      <div className="sticky top-0 z-10 bg-[#ebeaeb] pt-8 pb-3">
         <div className="flex items-start justify-between gap-3">
           <div>
             <h1
               className={
                 smartView
-                  ? "font-serif text-[32px] font-semibold leading-9 tracking-[-0.03em] text-[#c45c4a]"
+                  ? "font-serif text-[32px] font-semibold leading-9 tracking-[-0.03em] text-[#371b3a]"
                   : "font-display text-[32px] font-semibold leading-9 tracking-[-0.03em] text-neutral-900"
               }
             >
@@ -101,7 +101,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Pro
             {user && <BulkImportContactsButton tags={tags} ownerId={user.id} />}
             <Link
               href="/contacts/new"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-3 py-1.5 text-sm font-medium text-peach hover:bg-brand-700"
             >
               <Plus size={15} /> New contact
             </Link>

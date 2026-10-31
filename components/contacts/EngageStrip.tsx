@@ -31,7 +31,7 @@ export function EngageStrip({
   const router = useRouter();
 
   return (
-    <div className={cn("rounded-[16px] border border-[#f0e4df] bg-[#fdf6f3]", sticky && "sticky top-0 z-20")}>
+    <div className={cn("rounded-[16px] border border-[#f3e2d6] bg-[#fbf3ec]", sticky && "sticky top-0 z-20")}>
       <p className="pt-2 text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-700">Engage</p>
       <div className="grid grid-cols-6 px-1 pb-1">
         <button type="button" onClick={() => phone && openQuoCall(phone)} disabled={!phone} className={itemClass}>

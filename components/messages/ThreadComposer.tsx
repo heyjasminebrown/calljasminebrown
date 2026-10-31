@@ -37,7 +37,7 @@ export function ThreadComposer({
   }, [initialBody, contactId]);
 
   const chrome =
-    "fixed inset-x-0 z-50 border-t border-[#eadfd6] bg-[#fffbf8]/95 px-3 py-2.5 backdrop-blur lg:sticky lg:bottom-0 lg:bg-[#fffbf8]/95";
+    "fixed inset-x-0 z-50 border-t border-[#ddd7da] bg-[#fcfbfb]/95 px-3 py-2.5 backdrop-blur lg:sticky lg:bottom-0 lg:bg-[#fcfbfb]/95";
 
   if (!phone) {
     return (
@@ -104,7 +104,7 @@ export function ThreadComposer({
           type="submit"
           disabled={sending || !body.trim()}
           aria-label="Send"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white disabled:opacity-40"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-600 text-peach disabled:opacity-40"
         >
           <Send size={16} />
         </button>

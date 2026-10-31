@@ -101,7 +101,7 @@ export function SendMessageCard({
           <button
             type="submit"
             disabled={sending || !body.trim() || (channel === "email" && !subject.trim())}
-            className="shrink-0 rounded-[11px] bg-brand-600 p-3.5 text-white disabled:opacity-50"
+            className="shrink-0 rounded-[11px] bg-brand-600 p-3.5 text-peach disabled:opacity-50"
           >
             <Send size={16} />
           </button>

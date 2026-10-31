@@ -31,7 +31,7 @@ export function TodayTodosCard({ tasks }: { tasks: WorklistTask[] }) {
   return (
     <section data-today-home="todos" className={cn("overflow-hidden", TODAY_CARD)}>
       <div className="flex items-center gap-2 px-4 pt-4 sm:px-5">
-        <ListTodo size={16} strokeWidth={1.7} className="text-[#c45c4a]" />
+        <ListTodo size={16} strokeWidth={1.7} className="text-[#371b3a]" />
         <h2 className="text-[15px] font-semibold text-neutral-900">To Dos</h2>
       </div>
       {error && <p className="px-5 pt-2 text-[13px] text-red-600">{error}</p>}
@@ -44,7 +44,7 @@ export function TodayTodosCard({ tasks }: { tasks: WorklistTask[] }) {
             return (
               <li
                 key={task.id}
-                className={cn("flex items-center gap-3 px-4 py-3.5 sm:px-5", i > 0 && "border-t border-[#eadfd6]/80")}
+                className={cn("flex items-center gap-3 px-4 py-3.5 sm:px-5", i > 0 && "border-t border-[#ddd7da]/80")}
               >
                 <button
                   type="button"
@@ -57,7 +57,7 @@ export function TodayTodosCard({ tasks }: { tasks: WorklistTask[] }) {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[15px] text-neutral-800">{task.title}</p>
                 </div>
-                {due && <span className="shrink-0 text-[13px] font-medium text-[#c45c4a]">{due === "Today" ? "Due today" : due}</span>}
+                {due && <span className="shrink-0 text-[13px] font-medium text-[#371b3a]">{due === "Today" ? "Due today" : due}</span>}
               </li>
             );
           })}

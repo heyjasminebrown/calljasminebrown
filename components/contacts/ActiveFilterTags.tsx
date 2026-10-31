@@ -24,7 +24,7 @@ export function ActiveFilterTags({ stages, tags }: { stages: PipelineStage[]; ta
           key={chip.key}
           type="button"
           onClick={() => apply(removeActiveFilter(searchParams, chip.key))}
-          className="inline-flex items-center gap-1 rounded-full border border-[#eadfd6] bg-[#fffbf8] py-1 pl-3 pr-2 text-[13px] font-medium text-neutral-700"
+          className="inline-flex items-center gap-1 rounded-full border border-[#ddd7da] bg-[#fcfbfb] py-1 pl-3 pr-2 text-[13px] font-medium text-neutral-700"
         >
           {chip.label}
           <X size={12} className="text-neutral-400" />
@@ -38,7 +38,7 @@ export function ActiveFilterTags({ stages, tags }: { stages: PipelineStage[]; ta
           if (list) next.set("list", list);
           apply(next);
         }}
-        className="text-[13px] font-medium text-[#c45c4a]"
+        className="text-[13px] font-medium text-[#371b3a]"
       >
         Clear all
       </button>

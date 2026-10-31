@@ -8,10 +8,11 @@
      Fixed/sticky chrome (Engage strip, thread composer, bulk bar, Log pill)
      must sit above this, not the old 64px `bottom-16`. */
   --app-bottom-nav: calc(66px + max(env(safe-area-inset-bottom), 10px));
-  --paper: #f7f1ea;
-  --paper-card: #fffbf8;
-  --paper-line: #eadfd6;
-  --terracotta: #c45c4a;
+  --paper: #ebeaeb;
+  --paper-card: #fcfbfb;
+  --paper-line: #ddd7da;
+  --plum: #371b3a;
+  --peach: #e7b696;
 }
 
 html {
@@ -19,7 +20,7 @@ html {
 }
 
 body {
-  @apply bg-[#f7f1ea] text-neutral-900;
+  @apply bg-[#ebeaeb] text-neutral-900;
 }
 
 /* Display serif: Fraunces at poster optical size so greetings and names

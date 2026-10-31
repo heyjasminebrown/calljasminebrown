@@ -11,7 +11,7 @@ export function ChatBubble({ activity }: { activity: Activity }) {
         <div
           className={cn(
             "whitespace-pre-wrap break-words rounded-[20px] px-3.5 py-2 text-base leading-[23px] md:rounded-2xl md:text-sm md:leading-normal",
-            outbound ? "rounded-br-md bg-brand-600 text-white" : "rounded-bl-md bg-neutral-100 text-neutral-900",
+            outbound ? "rounded-br-md bg-brand-600 text-peach" : "rounded-bl-md bg-neutral-100 text-neutral-900",
           )}
         >
           {activity.body}

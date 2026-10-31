@@ -27,12 +27,12 @@ export function Sidebar({ userEmail, counts = {} }: { userEmail?: string | null;
   const countFor = countForCounts(counts);
 
   return (
-    <aside className="hidden w-[220px] shrink-0 flex-col border-r border-[#eadfd6] bg-[#f7f1ea] px-3 py-[22px] lg:flex">
+    <aside className="hidden w-[220px] shrink-0 flex-col border-r border-[#ddd7da] bg-[#ebeaeb] px-3 py-[22px] lg:flex">
       <div className="flex items-center gap-2.5 px-2.5 pb-[22px]">
         {/* Swap the file at OWNER_HEADSHOT_SRC (lib/brand/identity.ts) for
             your own headshot. A 1:1 object-cover + zoom keeps a square
             source image's face centered in the circle. */}
-        <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full ring-1 ring-[#eadfd6]">
+        <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full ring-1 ring-[#ddd7da]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={OWNER_HEADSHOT_SRC}
@@ -52,7 +52,7 @@ export function Sidebar({ userEmail, counts = {} }: { userEmail?: string | null;
       <button
         type="button"
         onClick={() => setQuickAddOpen(true)}
-        className="mb-[22px] flex w-full items-center gap-2.5 rounded-[11px] bg-brand-600 px-3.5 py-3 text-[15px] font-semibold text-white"
+        className="mb-[22px] flex w-full items-center gap-2.5 rounded-[11px] bg-brand-600 px-3.5 py-3 text-[15px] font-semibold text-peach"
       >
         <Plus size={17} /> Quick add
       </button>
@@ -69,7 +69,7 @@ export function Sidebar({ userEmail, counts = {} }: { userEmail?: string | null;
                 href={href}
                 className={cn(
                   "flex items-center gap-3 rounded-[11px] px-3 py-3 text-base font-medium",
-                  active ? "bg-[#f3e4dc] font-semibold text-brand-800" : "text-neutral-700 hover:bg-[#efe6dc]/70",
+                  active ? "bg-[#f6e4d6] font-semibold text-brand-800" : "text-neutral-700 hover:bg-[#e3dfe1]/70",
                 )}
               >
                 <Icon size={19} className={active ? "text-brand-700" : "text-neutral-500"} />
@@ -104,7 +104,7 @@ export function Sidebar({ userEmail, counts = {} }: { userEmail?: string | null;
                     title={hint}
                     className={cn(
                       "flex items-center gap-3 rounded-[11px] px-3 py-2.5 text-[15px] font-medium",
-                      active ? "bg-[#f3e4dc] font-semibold text-brand-800" : "text-neutral-700 hover:bg-[#efe6dc]/70",
+                      active ? "bg-[#f6e4d6] font-semibold text-brand-800" : "text-neutral-700 hover:bg-[#e3dfe1]/70",
                     )}
                   >
                     <Icon size={18} className={active ? "text-brand-700" : "text-neutral-500"} />

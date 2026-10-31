@@ -1,5 +1,5 @@
 .bk {
-  background: #faf7f2;
+  background: #ebeaeb;
   color: #6b6560;
   font-family: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
   font-weight: 300;
@@ -18,7 +18,7 @@
 .bk-head svg {
   width: 22px;
   height: 22px;
-  color: #c4955a;
+  color: #371b3a;
   flex-shrink: 0;
 }
 .bk-head h1 {
@@ -33,7 +33,7 @@
 .bk-head h1 em {
   font-style: italic;
   font-weight: 300;
-  color: #c4955a;
+  color: #371b3a;
 }
 .bk-head p {
   margin: 2px 0 0;
@@ -78,8 +78,8 @@
   color: #1c1917;
 }
 .bk-steps .done {
-  border-color: #c4955a;
-  color: #8b6535;
+  border-color: #371b3a;
+  color: #371b3a;
 }
 .bk-card {
   background: #fff;
@@ -259,7 +259,7 @@
   height: 4px;
   margin-left: -2px;
   border-radius: 50%;
-  background: #c4955a;
+  background: #371b3a;
 }
 .bk-days button.today::before {
   content: "";
@@ -275,7 +275,7 @@
   color: #fff;
 }
 .bk-days button.sel::after {
-  background: #e8d5b5;
+  background: #e7b696;
 }
 .bk-slots {
   flex: 1;
@@ -372,12 +372,12 @@
   width: 52px;
   height: 52px;
   margin: 0 auto;
-  border: 1px solid #c4955a;
+  border: 1px solid #371b3a;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #c4955a;
+  color: #371b3a;
 }
 .bk-done h2 {
   margin: 20px 0 0;
@@ -389,7 +389,7 @@
 .bk-done h2 em {
   font-style: italic;
   font-weight: 300;
-  color: #c4955a;
+  color: #371b3a;
 }
 .bk-done p {
   margin: 10px auto 0;
@@ -400,12 +400,12 @@
 .bk-error {
   margin: 0 0 12px;
   font-size: 14px;
-  color: #8b6535;
+  color: #371b3a;
 }
 .bk-sheet {
   padding: 0;
   min-height: 0;
-  background: #faf7f2;
+  background: #ebeaeb;
 }
 .bk-sheet .bk-col {
   max-width: none;

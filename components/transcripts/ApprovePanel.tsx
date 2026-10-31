@@ -401,7 +401,7 @@ export function ApprovePanel({
                     type="button"
                     onClick={sendRecap}
                     disabled={recapSending || !recapBody.trim()}
-                    className="mt-2.5 rounded-[10px] bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                    className="mt-2.5 rounded-[10px] bg-brand-600 px-3.5 py-2 text-sm font-semibold text-peach disabled:opacity-50"
                   >
                     {recapSending ? "Sending…" : "Send"}
                   </button>
@@ -421,7 +421,7 @@ export function ApprovePanel({
           type="button"
           onClick={saveAll}
           disabled={saving}
-          className="rounded-[10px] bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+          className="rounded-[10px] bg-brand-600 px-4 py-2.5 text-sm font-semibold text-peach disabled:opacity-50"
         >
           {saving ? "Saving…" : `Save all ${proposals.length}`}
         </button>

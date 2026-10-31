@@ -120,11 +120,11 @@ export function PeopleMobile({
               setSelecting(false);
               setSelected(new Set());
             }}
-            className="text-[16px] font-semibold text-[#c45c4a]"
+            className="text-[16px] font-semibold text-[#371b3a]"
           >
             Cancel
           </button>
-          <p className="text-[16px] font-semibold text-[#c45c4a]">{selected.size} selected</p>
+          <p className="text-[16px] font-semibold text-[#371b3a]">{selected.size} selected</p>
         </div>
         <div className="mb-4">
           <ContactsBulkBar
@@ -166,7 +166,7 @@ export function PeopleMobile({
           <CountScopeNote current="contacts" />
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/contacts/new" aria-label="New contact" className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-600 text-white">
+          <Link href="/contacts/new" aria-label="New contact" className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-600 text-peach">
             <Plus size={20} />
           </Link>
         </div>
@@ -187,7 +187,7 @@ export function PeopleMobile({
         onClick={() => setFiltersOpen(true)}
         className={cn(
           "mb-3 flex h-11 w-full items-center justify-center gap-2 rounded-[11px] text-[15px] font-semibold",
-          activeFilterCount > 0 ? "bg-[#c45c4a] text-white" : "border border-neutral-200 bg-white text-neutral-800",
+          activeFilterCount > 0 ? "bg-[#371b3a] text-peach" : "border border-neutral-200 bg-white text-neutral-800",
         )}
       >
         <SlidersHorizontal size={16} />
@@ -226,7 +226,7 @@ export function PeopleMobile({
               setSelected(new Set());
             } else setSelecting(true);
           }}
-          className="shrink-0 text-[14px] font-semibold text-[#c45c4a]"
+          className="shrink-0 text-[14px] font-semibold text-[#371b3a]"
         >
           {selecting ? "Cancel" : "Select"}
         </button>

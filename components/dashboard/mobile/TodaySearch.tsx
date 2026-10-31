@@ -50,27 +50,27 @@ export function TodaySearch({ contacts, variant }: { contacts: ContactOption[]; 
         }}
         placeholder="Search contacts..."
         aria-label="Search contacts"
-        className="h-11 w-full rounded-full border border-[#eadfd6] bg-[#fffbf8] pl-10 pr-14 text-[15px] text-neutral-900 shadow-card placeholder:text-neutral-400"
+        className="h-11 w-full rounded-full border border-[#ddd7da] bg-[#fcfbfb] pl-10 pr-14 text-[15px] text-neutral-900 shadow-card placeholder:text-neutral-400"
       />
-      <kbd className="pointer-events-none absolute right-3.5 top-1/2 hidden -translate-y-1/2 rounded-md border border-[#eadfd6] bg-white px-1.5 py-0.5 text-[11px] font-medium text-neutral-400 sm:inline">
+      <kbd className="pointer-events-none absolute right-3.5 top-1/2 hidden -translate-y-1/2 rounded-md border border-[#ddd7da] bg-white px-1.5 py-0.5 text-[11px] font-medium text-neutral-400 sm:inline">
         ⌘K
       </kbd>
       {open && query.trim() && (
         <div
-          className="absolute right-0 top-[calc(100%+8px)] z-30 w-[min(100%,24rem)] overflow-hidden rounded-[16px] border border-[#eadfd6] bg-[#fffbf8] shadow-card"
+          className="absolute right-0 top-[calc(100%+8px)] z-30 w-[min(100%,24rem)] overflow-hidden rounded-[16px] border border-[#ddd7da] bg-[#fcfbfb] shadow-card"
           onMouseDown={(e) => e.preventDefault()}
         >
           {results.length === 0 ? (
             <p className="px-4 py-3 text-[14px] text-neutral-400">No matches</p>
           ) : (
-            <div className="divide-y divide-[#eadfd6] max-h-80 overflow-y-auto">
+            <div className="divide-y divide-[#ddd7da] max-h-80 overflow-y-auto">
               {results.map((c) => (
                 <ListRow
                   key={c.id}
                   href={`/contacts/${c.id}`}
                   avatar={{ firstName: c.first_name, lastName: c.last_name }}
                   name={`${c.first_name} ${c.last_name}`}
-                  className="bg-[#fffbf8]"
+                  className="bg-[#fcfbfb]"
                 />
               ))}
             </div>
@@ -86,7 +86,7 @@ export function TodaySearch({ contacts, variant }: { contacts: ContactOption[]; 
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Search"
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#eadfd6] bg-[#fffbf8] text-neutral-500 shadow-card"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#ddd7da] bg-[#fcfbfb] text-neutral-500 shadow-card"
       >
         <Search size={19} />
       </button>

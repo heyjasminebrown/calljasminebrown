@@ -149,7 +149,7 @@ export function NewLeadCard({
           onClick={sendAndNext}
           disabled={!contact.phone || sending || !draft.trim()}
           className={cn(
-            "flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand-600 font-semibold text-white disabled:opacity-50",
+            "flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand-600 font-semibold text-peach disabled:opacity-50",
             layout === "desktop" ? "h-[54px] text-[15px]" : "h-14 text-[15px]",
           )}
         >

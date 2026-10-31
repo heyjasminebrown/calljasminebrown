@@ -103,7 +103,7 @@ export function DraftMessageRow({
               type="button"
               onClick={handleSend}
               disabled={sending || !message.trim()}
-              className="rounded-[10px] bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              className="rounded-[10px] bg-brand-600 px-3.5 py-2 text-sm font-semibold text-peach disabled:opacity-50"
             >
               {sending ? "Sending…" : "Send"}
             </button>

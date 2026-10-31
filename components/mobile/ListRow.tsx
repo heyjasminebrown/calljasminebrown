@@ -57,7 +57,7 @@ export function ListRow({
           aria-label={trailingAction["aria-label"]}
           className={cn(
             "flex h-12 w-12 shrink-0 items-center justify-center rounded-full",
-            trailingAction.variant === "primary" ? "bg-brand-600 text-white" : "border border-neutral-200 bg-white text-neutral-600",
+            trailingAction.variant === "primary" ? "bg-brand-600 text-peach" : "border border-neutral-200 bg-white text-neutral-600",
           )}
         >
           <trailingAction.icon size={20} />

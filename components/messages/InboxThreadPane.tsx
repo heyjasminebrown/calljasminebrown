@@ -77,10 +77,10 @@ export function InboxThreadPane({
 
   if (layout === "mobile") {
     return (
-      <div className="flex min-h-dvh flex-col bg-[#F7F1E8]">
-        <div className="sticky top-0 z-10 border-b border-[#eadfd6] bg-[#F7F1E8]/95 px-3 py-3 backdrop-blur">
+      <div className="flex min-h-dvh flex-col bg-[#ebeaeb]">
+        <div className="sticky top-0 z-10 border-b border-[#ddd7da] bg-[#ebeaeb]/95 px-3 py-3 backdrop-blur">
           <div className="flex items-center justify-between gap-3">
-            <Link href={backHref} className="inline-flex items-center gap-1 text-[15px] font-medium text-[#C45C3E]">
+            <Link href={backHref} className="inline-flex items-center gap-1 text-[15px] font-medium text-[#371b3a]">
               <ArrowLeft size={18} />
               Messages
             </Link>
@@ -109,8 +109,8 @@ export function InboxThreadPane({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[20px] border border-[#eadfd6] bg-white">
-      <div className="shrink-0 border-b border-[#eadfd6] px-5 py-4">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[20px] border border-[#ddd7da] bg-white">
+      <div className="shrink-0 border-b border-[#ddd7da] px-5 py-4">
         <div className="flex min-w-0 items-start gap-3">
           <div
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[15px] font-semibold text-white"

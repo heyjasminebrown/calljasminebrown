@@ -125,7 +125,7 @@ export function ContactRow({
           {expanded ? <ChevronDown size={17} /> : <ChevronRight size={17} />}
         </button>
 
-        <Link href={`/contacts/${contact.id}`} data-contact-open={contact.id} className="flex min-w-0 flex-1 items-center gap-3.5 rounded-[12px] px-1 py-0.5 hover:bg-[#f7f1ea]">
+        <Link href={`/contacts/${contact.id}`} data-contact-open={contact.id} className="flex min-w-0 flex-1 items-center gap-3.5 rounded-[12px] px-1 py-0.5 hover:bg-[#ebeaeb]">
           <RowIdentity contact={contact} meta={meta} noPhoneBg={!hasPhone} />
           <ChevronRight size={18} className="shrink-0 text-neutral-300" />
         </Link>

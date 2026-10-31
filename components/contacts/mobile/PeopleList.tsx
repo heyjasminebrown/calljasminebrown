@@ -25,14 +25,14 @@ function rowMeta(contact: ContactWithRelations, lastActivityLabel: string | unde
   if (!contact.phone) {
     return (
       <span className="flex items-center gap-1.5">
-        {source && <span className="rounded-full bg-[#f3e4dc] px-2 py-0.5 text-[11px] font-medium text-[#c45c4a]">{source}</span>}
+        {source && <span className="rounded-full bg-[#f6e4d6] px-2 py-0.5 text-[11px] font-medium text-[#371b3a]">{source}</span>}
         <PhoneOff size={14} className="shrink-0 text-neutral-400" /> No phone number · email only
       </span>
     );
   }
   return (
     <span className="flex min-w-0 items-center gap-1.5">
-      {source && <span className="shrink-0 rounded-full bg-[#f3e4dc] px-2 py-0.5 text-[11px] font-medium text-[#c45c4a]">{source}</span>}
+      {source && <span className="shrink-0 rounded-full bg-[#f6e4d6] px-2 py-0.5 text-[11px] font-medium text-[#371b3a]">{source}</span>}
       <span className="truncate">{[CONTACT_TYPE_LABELS[contact.contact_type], formatPhone(contact.phone), lastActivityLabel].filter(Boolean).join(" · ")}</span>
     </span>
   );
@@ -55,7 +55,7 @@ function SelectRow({
         aria-hidden
         className={cn(
           "mt-0.5 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-2",
-          checked ? "border-[#c45c4a] bg-[#c45c4a] text-white" : "border-[#c45c4a] bg-white",
+          checked ? "border-[#371b3a] bg-[#371b3a] text-peach" : "border-[#371b3a] bg-white",
         )}
       >
         {checked && <Check size={13} strokeWidth={3} />}
@@ -63,7 +63,7 @@ function SelectRow({
       <span className="min-w-0">
         <span className="block truncate text-[17px] font-semibold leading-[22px] text-neutral-900">{fullName(contact)}</span>
         {source && (
-          <span className="mt-1 inline-flex rounded-full bg-[#f3e4dc] px-2 py-0.5 text-[11px] font-medium text-[#c45c4a]">{source}</span>
+          <span className="mt-1 inline-flex rounded-full bg-[#f6e4d6] px-2 py-0.5 text-[11px] font-medium text-[#371b3a]">{source}</span>
         )}
         {phone && <span className="mt-1 block text-[14px] leading-[20px] text-neutral-400">{phone}</span>}
       </span>
@@ -145,7 +145,7 @@ export function PeopleList({
                   ? [{ icon: MessageSquareText, label: "Text", bg: "#e7e5e4", onClick: () => router.push(`/messages/${contact.id}`) }]
                   : []),
                 { icon: StickyNote, label: "Log", bg: "#292524", onClick: () => setLogContact({ id: contact.id, name }) },
-                { icon: Clock, label: "Snooze", bg: "#ac3826", onClick: () => snooze(contact.id) },
+                { icon: Clock, label: "Snooze", bg: "#2a142c", onClick: () => snooze(contact.id) },
               ];
               const href = `/contacts/${contact.id}`;
               return (

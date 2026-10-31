@@ -45,7 +45,7 @@ export function RecentThreadPanel({ contactId }: { contactId: string }) {
               <div
                 key={i}
                 className={`max-w-[85%] rounded-2xl px-3 py-2 text-[13px] leading-[18px] ${
-                  item.direction === "inbound" ? "mr-auto bg-neutral-100 text-neutral-800" : "ml-auto bg-brand-600 text-white"
+                  item.direction === "inbound" ? "mr-auto bg-neutral-100 text-neutral-800" : "ml-auto bg-brand-600 text-peach"
                 }`}
               >
                 <p className="whitespace-pre-wrap">{item.body}</p>

@@ -36,7 +36,7 @@ export function InboxComposer({
 
   if (!phone) {
     return (
-      <div className="border-t border-[#eadfd6] bg-white px-4 py-3 text-center text-xs text-neutral-400">
+      <div className="border-t border-[#ddd7da] bg-white px-4 py-3 text-center text-xs text-neutral-400">
         This contact has no phone number on file.
       </div>
     );
@@ -69,8 +69,8 @@ export function InboxComposer({
     <div
       className={
         sticky
-          ? "fixed inset-x-0 bottom-0 z-50 border-t border-[#eadfd6] bg-white px-4 py-3"
-          : "border-t border-[#eadfd6] bg-white px-4 py-3"
+          ? "fixed inset-x-0 bottom-0 z-50 border-t border-[#ddd7da] bg-white px-4 py-3"
+          : "border-t border-[#ddd7da] bg-white px-4 py-3"
       }
       style={bottom != null ? { bottom } : undefined}
     >
@@ -80,7 +80,7 @@ export function InboxComposer({
           onChange={(e) => setBody(e.target.value)}
           placeholder="Reply…"
           autoComplete="off"
-          className="h-11 min-w-0 flex-1 rounded-full border border-[#eadfd6] bg-white px-4 text-[15px] text-neutral-900 placeholder:text-neutral-400 focus:border-[#C45C3E] focus:outline-none focus:ring-2 focus:ring-[#C45C3E]/15"
+          className="h-11 min-w-0 flex-1 rounded-full border border-[#ddd7da] bg-white px-4 text-[15px] text-neutral-900 placeholder:text-neutral-400 focus:border-[#371b3a] focus:outline-none focus:ring-2 focus:ring-[#371b3a]/15"
         />
         <button
           type="submit"

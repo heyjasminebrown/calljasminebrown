@@ -16,9 +16,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#FAF7F2",
+  themeColor: "#ebeaeb",
 };
 
 export default function BookLayout({ children }: { children: React.ReactNode }) {
-  return <div className="min-h-dvh bg-[#FAF7F2]">{children}</div>;
+  return <div className="min-h-dvh bg-[#ebeaeb]">{children}</div>;
 }

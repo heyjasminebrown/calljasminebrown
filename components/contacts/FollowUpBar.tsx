@@ -44,7 +44,7 @@ export function FollowUpBar({ contactId, nextFollowUpAt }: { contactId: string; 
   }
 
   return (
-    <div className="flex items-center gap-2 rounded-[16px] border border-[#eadfd6] bg-[#fffbf8] px-3.5 py-3 shadow-card">
+    <div className="flex items-center gap-2 rounded-[16px] border border-[#ddd7da] bg-[#fcfbfb] px-3.5 py-3 shadow-card">
       <Calendar size={18} className={overdue ? "text-[#b91c1c]" : "text-brand-700"} />
       <div className="min-w-0 flex-1">
         <p className="text-[12px] font-semibold uppercase tracking-[0.04em] text-neutral-400">Next follow-up</p>

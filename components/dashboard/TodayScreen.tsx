@@ -34,14 +34,14 @@ export function TodayScreen({
   const parsedFocus = parseTodayFocus(focus);
 
   return (
-    <div className="relative min-h-full overflow-x-hidden bg-[#f7f1ea]">
+    <div className="relative min-h-full overflow-x-hidden bg-[#ebeaeb]">
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-[#e8cfc4]/45 blur-3xl"
+        className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-[#e7b696]/45 blur-3xl"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#f3e6dc]/70 to-transparent"
+        className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#f6e4d6]/70 to-transparent"
       />
 
       <div className="relative overflow-x-hidden px-5 py-5 lg:hidden">

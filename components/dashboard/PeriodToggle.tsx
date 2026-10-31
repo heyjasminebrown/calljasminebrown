@@ -11,7 +11,7 @@ export function PeriodToggle({ period, basePath = "/" }: { period: Period; baseP
           href={`${basePath}?period=${p}`}
           className={cn(
             "rounded-full px-3 py-1.5 capitalize",
-            period === p ? "bg-brand-600 text-white" : "text-neutral-500",
+            period === p ? "bg-brand-600 text-peach" : "text-neutral-500",
           )}
         >
           {p}

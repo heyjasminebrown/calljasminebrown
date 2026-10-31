@@ -41,7 +41,7 @@ function LoginForm() {
   }
 
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-[#f7f1ea] px-4">
+    <main className="flex min-h-dvh items-center justify-center bg-[#ebeaeb] px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <BrandWordmark size="lg" className="inline-block" />
@@ -55,7 +55,7 @@ function LoginForm() {
         )}
 
         {status === "sent" ? (
-          <div className="rounded-2xl border border-[#eadfd6] bg-[#fffbf8] p-6 text-center shadow-card">
+          <div className="rounded-2xl border border-[#ddd7da] bg-[#fcfbfb] p-6 text-center shadow-card">
             <p className="text-sm text-neutral-700">
               Check <span className="font-medium">{email}</span> for a sign-in link. It expires in about an hour.
             </p>
@@ -68,7 +68,7 @@ function LoginForm() {
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="rounded-2xl border border-[#eadfd6] bg-[#fffbf8] p-6 shadow-card">
+          <form onSubmit={handleSubmit} className="rounded-2xl border border-[#ddd7da] bg-[#fcfbfb] p-6 shadow-card">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
@@ -96,7 +96,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <main className="flex min-h-dvh items-center justify-center bg-[#f7f1ea] px-4">
+        <main className="flex min-h-dvh items-center justify-center bg-[#ebeaeb] px-4">
           <p className="text-sm text-neutral-500">Loading…</p>
         </main>
       }

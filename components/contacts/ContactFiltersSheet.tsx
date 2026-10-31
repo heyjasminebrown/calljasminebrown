@@ -15,7 +15,7 @@ import { CONTACT_SOURCE_FILTERS, sourceFilterByValue } from "@/lib/crm/contact-s
 
 function Section({ title, children, flush }: { title: string; children: React.ReactNode; flush?: boolean }) {
   return (
-    <div className={cn("space-y-2.5", !flush && "border-b border-[#eadfd6] pb-4 last:border-b-0")}>
+    <div className={cn("space-y-2.5", !flush && "border-b border-[#ddd7da] pb-4 last:border-b-0")}>
       <p className="text-[12px] font-semibold uppercase tracking-[.06em] text-neutral-400">{title}</p>
       {children}
     </div>
@@ -31,7 +31,7 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (nex
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={cn("relative h-6 w-11 shrink-0 rounded-full transition-colors", checked ? "bg-[#c45c4a]" : "bg-neutral-200")}
+        className={cn("relative h-6 w-11 shrink-0 rounded-full transition-colors", checked ? "bg-[#371b3a]" : "bg-neutral-200")}
       >
         <span className={cn("absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-[left]", checked ? "left-5" : "left-0.5")} />
       </button>
@@ -112,24 +112,24 @@ export function ContactFiltersSheet({
 
   const chrome =
     variant === "panel"
-      ? "flex h-full w-full max-w-none flex-col border-l border-[#eadfd6] bg-[#fffbf8]"
-      : "flex max-h-[90vh] w-full max-w-lg flex-col rounded-t-2xl bg-[#fffbf8] shadow-xl sm:rounded-2xl";
+      ? "flex h-full w-full max-w-none flex-col border-l border-[#ddd7da] bg-[#fcfbfb]"
+      : "flex max-h-[90vh] w-full max-w-lg flex-col rounded-t-2xl bg-[#fcfbfb] shadow-xl sm:rounded-2xl";
 
   const body = (
     <div className={chrome}>
-      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[#eadfd6] px-5 py-4">
+      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[#ddd7da] px-5 py-4">
         <p className="font-serif text-xl font-semibold text-neutral-900">Filters</p>
-        <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-neutral-400 hover:bg-[#f3e4dc]" aria-label="Close filters">
+        <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-neutral-400 hover:bg-[#f6e4d6]" aria-label="Close filters">
           <X size={18} />
         </button>
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
-        <div className={variant === "sheet" ? "grid grid-cols-2 gap-4 border-b border-[#eadfd6] pb-4" : "contents"}>
+        <div className={variant === "sheet" ? "grid grid-cols-2 gap-4 border-b border-[#ddd7da] pb-4" : "contents"}>
         <Section title="Source" flush={variant === "sheet"}>
           <div className="space-y-2">
             <label className="flex items-center gap-2.5 text-[14px] text-neutral-800">
-              <input type="radio" name="source" checked={!draft.source} onChange={() => set("source", "")} className="accent-[#c45c4a]" />
+              <input type="radio" name="source" checked={!draft.source} onChange={() => set("source", "")} className="accent-[#371b3a]" />
               All
             </label>
             {CONTACT_SOURCE_FILTERS.map((source) => (
@@ -139,7 +139,7 @@ export function ContactFiltersSheet({
                   name="source"
                   checked={draft.source === source.value}
                   onChange={() => set("source", source.value)}
-                  className="accent-[#c45c4a]"
+                  className="accent-[#371b3a]"
                 />
                 {source.label}
               </label>
@@ -155,7 +155,7 @@ export function ContactFiltersSheet({
                   type="checkbox"
                   checked={selectedStages.has(stage.id)}
                   onChange={() => toggleStage(stage.id)}
-                  className="h-4 w-4 rounded border-neutral-300 accent-[#c45c4a]"
+                  className="h-4 w-4 rounded border-neutral-300 accent-[#371b3a]"
                 />
                 {stage.name}
               </label>
@@ -200,7 +200,7 @@ export function ContactFiltersSheet({
                   name="gender"
                   checked={(draft.gender ?? "") === value}
                   onChange={() => set("gender", value)}
-                  className="accent-[#c45c4a]"
+                  className="accent-[#371b3a]"
                 />
                 {label}
               </label>
@@ -213,15 +213,15 @@ export function ContactFiltersSheet({
         </Section>
       </div>
 
-      <div className="grid shrink-0 grid-cols-2 gap-2 border-t border-[#eadfd6] px-5 py-4">
+      <div className="grid shrink-0 grid-cols-2 gap-2 border-t border-[#ddd7da] px-5 py-4">
         <button
           type="button"
           onClick={reset}
-          className="rounded-xl border border-[#c45c4a] bg-white px-4 py-2.5 text-[14px] font-semibold text-[#c45c4a]"
+          className="rounded-xl border border-[#371b3a] bg-white px-4 py-2.5 text-[14px] font-semibold text-[#371b3a]"
         >
           Reset
         </button>
-        <button type="button" onClick={apply} className="rounded-xl bg-[#c45c4a] px-4 py-2.5 text-[14px] font-semibold text-white">
+        <button type="button" onClick={apply} className="rounded-xl bg-[#371b3a] px-4 py-2.5 text-[14px] font-semibold text-peach">
           Apply
         </button>
       </div>

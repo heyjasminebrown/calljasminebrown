@@ -28,7 +28,7 @@ export function SpamInboxRow({
 
   const actions = [
     { icon: RotateCcw, label: "Not spam", bg: "#e7e5e4", onClick: async () => { await markNotSpam(contact.id); onCleared(); } },
-    { icon: Trash2, label: "Delete", bg: "#ac3826", onClick: async () => { await archiveSpam(contact.id); onCleared(); } },
+    { icon: Trash2, label: "Delete", bg: "#2a142c", onClick: async () => { await archiveSpam(contact.id); onCleared(); } },
   ];
 
   return (

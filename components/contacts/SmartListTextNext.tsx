@@ -55,13 +55,13 @@ export function SmartListTextNext({
 
   return (
     <aside className="sticky top-[88px] hidden h-[calc(100dvh-110px)] w-[300px] shrink-0 self-start overflow-hidden lg:block">
-      <div className="flex h-full flex-col border-l border-[#eadfd6] bg-[#fffbf8]">
-        <div className="flex items-center justify-between gap-3 border-b border-[#eadfd6] px-5 py-4">
+      <div className="flex h-full flex-col border-l border-[#ddd7da] bg-[#fcfbfb]">
+        <div className="flex items-center justify-between gap-3 border-b border-[#ddd7da] px-5 py-4">
           <div className="flex min-w-0 items-center gap-2">
-            <Sun size={16} className="shrink-0 text-[#c45c4a]" />
+            <Sun size={16} className="shrink-0 text-[#371b3a]" />
             <p className="truncate font-serif text-lg font-semibold text-neutral-900">Today · Do next</p>
           </div>
-          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-neutral-400 hover:bg-[#f3e4dc]" aria-label="Close Text & Next">
+          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-neutral-400 hover:bg-[#f6e4d6]" aria-label="Close Text & Next">
             <X size={16} />
           </button>
         </div>
@@ -77,7 +77,7 @@ export function SmartListTextNext({
           ) : (
             <>
               <div className="mt-5 flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f3e4dc] text-[12px] font-semibold text-[#c45c4a]">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f6e4d6] text-[12px] font-semibold text-[#371b3a]">
                   {initials(current.firstName, current.lastName)}
                 </span>
                 <div className="min-w-0">
@@ -91,19 +91,19 @@ export function SmartListTextNext({
                 value={body}
                 onChange={(e) => setDraft(e.target.value)}
                 rows={6}
-                className="w-full resize-none rounded-[14px] border border-[#eadfd6] bg-[#fffdfb] px-3.5 py-3 text-[14px] leading-6 text-neutral-800 outline-none focus:border-[#c45c4a]/50 focus:ring-2 focus:ring-[#c45c4a]/15"
+                className="w-full resize-none rounded-[14px] border border-[#ddd7da] bg-[#fdfcfc] px-3.5 py-3 text-[14px] leading-6 text-neutral-800 outline-none focus:border-[#371b3a]/50 focus:ring-2 focus:ring-[#371b3a]/15"
               />
               {error && <p className="mt-2 text-[13px] text-red-600">{error}</p>}
             </>
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-2 border-t border-[#eadfd6] px-5 py-4">
+        <div className="grid grid-cols-2 gap-2 border-t border-[#ddd7da] px-5 py-4">
           <button
             type="button"
             onClick={() => current && hide(current.id)}
             disabled={!current}
-            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#eadfd6] bg-white px-3 py-2.5 text-[13px] font-semibold text-neutral-600 disabled:opacity-40"
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#ddd7da] bg-white px-3 py-2.5 text-[13px] font-semibold text-neutral-600 disabled:opacity-40"
           >
             <Clock size={14} /> Snooze
           </button>
@@ -111,7 +111,7 @@ export function SmartListTextNext({
             type="button"
             onClick={() => void sendAndNext()}
             disabled={!current?.phone || sending || !body.trim()}
-            className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#c45c4a] px-3 py-2.5 text-[13px] font-semibold text-white disabled:opacity-40"
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#371b3a] px-3 py-2.5 text-[13px] font-semibold text-peach disabled:opacity-40"
           >
             {sending ? "Sending…" : "Next"}
             {!sending && <ArrowRight size={14} />}
@@ -120,7 +120,7 @@ export function SmartListTextNext({
             type="button"
             onClick={() => current && hide(current.id)}
             disabled={!current}
-            className={cn("col-span-2 inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#eadfd6] bg-white px-3 py-2.5 text-[13px] font-semibold text-neutral-600 disabled:opacity-40")}
+            className={cn("col-span-2 inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#ddd7da] bg-white px-3 py-2.5 text-[13px] font-semibold text-neutral-600 disabled:opacity-40")}
           >
             <X size={14} /> Dismiss
           </button>

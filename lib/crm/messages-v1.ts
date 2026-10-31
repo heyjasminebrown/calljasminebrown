@@ -17,8 +17,8 @@ type SmsConversationSource = {
   recentInboundSmsAt: string[];
 };
 
-export const MESSAGES_CREAM = "#F7F1E8";
-export const MESSAGES_TERRACOTTA = "#C45C3E";
+export const MESSAGES_CREAM = "#ebeaeb";
+export const MESSAGES_TERRACOTTA = "#371b3a";
 
 export type MessagesFilter = "needs" | "unread" | "all";
 

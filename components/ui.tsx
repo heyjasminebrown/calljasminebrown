@@ -15,7 +15,7 @@ export const Button = forwardRef<
       size === "sm" && "px-3 py-1.5 text-sm",
       size === "md" && "px-4 py-2.5 text-sm",
       size === "lg" && "px-5 py-3.5 text-base",
-      variant === "primary" && "bg-brand-600 text-white hover:bg-brand-700",
+      variant === "primary" && "bg-brand-600 text-peach hover:bg-brand-700",
       variant === "secondary" && "bg-white text-neutral-800 border border-neutral-200 hover:bg-neutral-50",
       variant === "ghost" && "text-neutral-700 hover:bg-neutral-100",
       variant === "danger" && "bg-red-50 text-red-700 hover:bg-red-100",
@@ -80,7 +80,7 @@ export function Label({ className, ...props }: React.LabelHTMLAttributes<HTMLLab
 }
 
 export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("rounded-2xl border border-[#eadfd6] bg-[#fffbf8] p-4 shadow-card", className)} {...props} />;
+  return <div className={cn("rounded-2xl border border-[#ddd7da] bg-[#fcfbfb] p-4 shadow-card", className)} {...props} />;
 }
 
 // No colour as decoration (Phase 1 rule) - plain stone, same treatment
