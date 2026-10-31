@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
         phone: call.counterpartNumber,
         leadSource: "Quo (auto-created from call)",
       });
-      if (!contact) console.error("Quo call: no contact matched or created", { counterpart: call.counterpartNumber, raw: body });
+      if (!contact) console.error("Quo call: no contact matched or created", { counterpart: call.counterpartNumber, raw: JSON.stringify(body) });
       if (contact) {
         const spamCheck = await checkCallForSpam(admin, OWNER_ID, call);
 
@@ -199,7 +199,7 @@ export async function POST(request: NextRequest) {
         phone: msg.counterpartNumber,
         leadSource: "Quo (auto-created from text)",
       });
-      if (!contact) console.error("Quo text: no contact matched or created", { counterpart: msg.counterpartNumber, raw: body });
+      if (!contact) console.error("Quo text: no contact matched or created", { counterpart: msg.counterpartNumber, raw: JSON.stringify(body) });
       else console.log("Quo text logged on contact", contact.id, contact.wasCreated ? "(new contact)" : "");
       if (contact) {
         const activity = await upsertActivity(admin, OWNER_ID, contact.id, "quo", "quo_message_id", msg.quoMessageId, {

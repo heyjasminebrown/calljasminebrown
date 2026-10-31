@@ -10,12 +10,6 @@ function asString(v: unknown): string | null {
   return typeof v === "string" ? v : null;
 }
 
-function firstOf(v: unknown): string | null {
-  if (typeof v === "string") return v;
-  if (Array.isArray(v) && typeof v[0] === "string") return v[0];
-  return null;
-}
-
 export type ParsedQuoCall = {
   quoCallId: string | null;
   direction: "inbound" | "outbound" | "none";
@@ -38,9 +32,24 @@ export type ParsedQuoMessage = {
   occurredAt: string;
 };
 
+// Older webhook payloads put the record at data.object; API version
+// 2026-03-30 (seen on a real message.received delivery) moved it to
+// data.resource, alongside data.context and data.links.
 function unwrap(body: AnyRecord): AnyRecord {
   const data = body.data as AnyRecord | undefined;
-  return (data?.object as AnyRecord) ?? data ?? body;
+  return (data?.resource as AnyRecord) ?? (data?.object as AnyRecord) ?? data ?? body;
+}
+
+// A phone number given as a plain string, the first of a list, or an
+// object wrapping it ({ phoneNumber } / { number } / { value }).
+function phoneOf(v: unknown): string | null {
+  if (typeof v === "string") return v;
+  if (Array.isArray(v)) return phoneOf(v[0]);
+  if (v && typeof v === "object") {
+    const o = v as AnyRecord;
+    return phoneOf(o.phoneNumber ?? o.number ?? o.value ?? o.e164);
+  }
+  return null;
 }
 
 function rawDirection(obj: AnyRecord): "inbound" | "outbound" | "none" {
@@ -53,8 +62,8 @@ function rawDirection(obj: AnyRecord): "inbound" | "outbound" | "none" {
 export function parseQuoCall(body: AnyRecord): ParsedQuoCall {
   const obj = unwrap(body);
   const direction = rawDirection(obj);
-  const from = asString(obj.from) ?? firstOf((obj.participants as AnyRecord | undefined)?.from);
-  const to = asString(obj.to) ?? firstOf(obj.to) ?? firstOf((obj.participants as AnyRecord | undefined)?.to);
+  const from = phoneOf(obj.from) ?? phoneOf((obj.participants as AnyRecord | undefined)?.from);
+  const to = phoneOf(obj.to) ?? phoneOf((obj.participants as AnyRecord | undefined)?.to);
   const media = obj.media as AnyRecord[] | undefined;
   const recording = obj.recording as AnyRecord | undefined;
   // For a call that goes to voicemail, Quo delivers the recording +
@@ -119,15 +128,15 @@ function parseTranscript(transcript: unknown): string | null {
 export function parseQuoMessage(body: AnyRecord): ParsedQuoMessage {
   const obj = unwrap(body);
   const direction = rawDirection(obj);
-  const from = asString(obj.from);
-  const to = asString(obj.to) ?? firstOf(obj.to);
+  const from = phoneOf(obj.from);
+  const to = phoneOf(obj.to);
 
   return {
     quoMessageId: asString(obj.id),
     direction,
     counterpartNumber: direction === "outbound" ? to : from,
     ownNumber: direction === "outbound" ? from : to,
-    text: asString(obj.text) ?? asString(obj.body),
+    text: asString(obj.text) ?? asString(obj.body) ?? asString(obj.content),
     occurredAt: asString(obj.createdAt) ?? new Date().toISOString(),
   };
 }
