@@ -3,6 +3,39 @@ import { phonesMatch } from "@/lib/phone";
 import { syncContactToQuo } from "@/lib/quo/sync-contact";
 import { hasPlaceholderName } from "@/lib/crm/merge-fields";
 
+export type MatchCandidate = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+  secondary_email: string | null;
+  phone: string | null;
+  secondary_phone: string | null;
+  quo_contact_id: string | null;
+};
+
+const MATCH_COLUMNS = "id, first_name, last_name, email, secondary_email, phone, secondary_phone, quo_contact_id";
+const PAGE_SIZE = 1000;
+
+// Every non-archived contact, paged - a single select is capped at 1000
+// rows by Supabase, which silently hid anyone past that from matching and
+// let them be re-created as duplicates.
+export async function loadMatchCandidates(client: SupabaseClient, ownerId: string): Promise<MatchCandidate[]> {
+  const all: MatchCandidate[] = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data, error } = await client
+      .from("contacts")
+      .select(MATCH_COLUMNS)
+      .eq("owner_id", ownerId)
+      .eq("archived", false)
+      .order("id")
+      .range(from, from + PAGE_SIZE - 1);
+    if (error) throw new Error(`Couldn't load contacts to check for duplicates: ${error.message}`);
+    all.push(...((data ?? []) as MatchCandidate[]));
+    if (!data || data.length < PAGE_SIZE) return all;
+  }
+}
+
 // Shared across integrations (Quo, Calendly, Eventbrite, Jotform): find an
 // existing contact by email and/or phone, or create a bare one so nothing
 // gets lost. Matching by either field means a contact created from one
@@ -31,6 +64,10 @@ export async function findOrCreateContact(
     // big CSV. Skip it there; the one-time backfill button in Settings
     // catches every contact this leaves un-synced.
     skipQuoSync?: boolean;
+    // Bulk import loads the contact list once and passes it in, instead of
+    // re-reading every contact for every row. Newly created contacts are
+    // appended so later rows in the same import match them.
+    candidates?: MatchCandidate[];
   },
 ): Promise<{ id: string; wasCreated: boolean } | null> {
   const email = input.email?.trim().toLowerCase() || null;
@@ -38,13 +75,9 @@ export async function findOrCreateContact(
   const phone = input.phone?.trim() || null;
   if (!email && !phone) return null;
 
-  const { data: candidates } = await admin
-    .from("contacts")
-    .select("id, first_name, last_name, email, secondary_email, phone, secondary_phone, quo_contact_id")
-    .eq("owner_id", ownerId)
-    .eq("archived", false);
+  const candidates = input.candidates ?? (await loadMatchCandidates(admin, ownerId));
 
-  const match = (candidates ?? []).find((c) => {
+  const match = candidates.find((c) => {
     const emailMatch = email && [c.email, c.secondary_email].some((e) => e && e.trim().toLowerCase() === email);
     const phoneMatch = phone && (phonesMatch(c.phone, phone) || phonesMatch(c.secondary_phone, phone));
     return emailMatch || phoneMatch;
@@ -92,10 +125,14 @@ export async function findOrCreateContact(
       stage_id: firstStage?.id ?? null,
       ...(input.leadDate ? { lead_date: input.leadDate } : {}),
     })
-    .select("id")
+    .select(MATCH_COLUMNS)
     .single();
 
-  if (error || !created) return null;
+  if (error || !created) {
+    if (error) console.error("findOrCreateContact insert failed", error.message);
+    return null;
+  }
+  input.candidates?.push(created as MatchCandidate);
 
   if (phone && !input.skipQuoSync) {
     await syncContactToQuo(admin, {
@@ -134,6 +171,7 @@ async function enrichContact(
 
   if (Object.keys(patch).length > 0) {
     await admin.from("contacts").update(patch).eq("id", contact.id);
+    Object.assign(contact, patch);
   }
 }
 

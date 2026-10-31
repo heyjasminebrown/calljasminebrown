@@ -11,6 +11,7 @@ import { parseBulkContacts, type ParsedContactRow } from "@/lib/crm/bulk-import-
 import type { Tag } from "@/types/database";
 
 const TEMPLATE = "First Name\tLast Name\tEmail\tPhone\tDate";
+const IMPORT_BATCH_SIZE = 50;
 
 export function BulkImportContactsModal({
   tags,
@@ -32,6 +33,7 @@ export function BulkImportContactsModal({
   const [leadSource, setLeadSource] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<{ created: number; matched: number; failed: number } | null>(null);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -70,13 +72,35 @@ export function BulkImportContactsModal({
     setSaving(true);
     setError("");
     const tagName = tags.find((t) => t.id === tagId)?.name ?? null;
-    const outcome = await bulkImportContacts(validRows, tagName, leadSource.trim() || "CSV import");
-    setSaving(false);
-    if (!outcome.ok) {
-      setError(outcome.error);
+    const totals = { created: 0, matched: 0, failed: 0 };
+    let done = 0;
+    setProgress(0);
+    try {
+      // Batches keep each server call short (serverless time limit) and
+      // let the button show real progress instead of a frozen "Importing…".
+      for (let i = 0; i < validRows.length; i += IMPORT_BATCH_SIZE) {
+        const batch = validRows.slice(i, i + IMPORT_BATCH_SIZE);
+        const outcome = await bulkImportContacts(batch, tagName, leadSource.trim() || "CSV import");
+        if (!outcome.ok) throw new Error(outcome.error);
+        totals.created += outcome.created;
+        totals.matched += outcome.matched;
+        totals.failed += outcome.failed;
+        done += batch.length;
+        setProgress(done);
+      }
+    } catch (e) {
+      const reason = e instanceof Error ? e.message : "Something went wrong";
+      setError(
+        done > 0
+          ? `Stopped after ${done} of ${validRows.length} rows: ${reason}. Importing the same file again is safe - existing contacts are matched, not duplicated.`
+          : `Import failed: ${reason}`,
+      );
+      setSaving(false);
+      router.refresh();
       return;
     }
-    setResult({ created: outcome.created, matched: outcome.matched, failed: outcome.failed });
+    setSaving(false);
+    setResult(totals);
     router.refresh();
   }
 
@@ -233,7 +257,7 @@ export function BulkImportContactsModal({
 
             <div className="flex gap-3">
               <Button onClick={handleImport} disabled={saving || validRows.length === 0} className="flex-1">
-                {saving ? "Importing…" : `Import ${validRows.length} contact${validRows.length === 1 ? "" : "s"}`}
+                {saving ? `Importing… ${progress} of ${validRows.length}` : `Import ${validRows.length} contact${validRows.length === 1 ? "" : "s"}`}
               </Button>
               <Button variant="secondary" onClick={() => setParsed(null)} disabled={saving}>
                 Back

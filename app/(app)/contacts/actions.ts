@@ -6,7 +6,7 @@ import { sendQuoText } from "@/lib/quo/send-message";
 import { sendGmailMessage, textToHtml } from "@/lib/google/send-email";
 import { upsertActivity } from "@/lib/crm/activities";
 import { updateEngagementTag } from "@/lib/crm/engagement";
-import { findOrCreateContact, addTagByName } from "@/lib/crm/find-or-create-contact";
+import { findOrCreateContact, addTagByName, loadMatchCandidates } from "@/lib/crm/find-or-create-contact";
 import { syncContactToQuo } from "@/lib/quo/sync-contact";
 import { listGranolaNoteIds, fetchGranolaNote } from "@/lib/granola/client";
 import { processGranolaNote } from "@/lib/granola/process-note";
@@ -121,17 +121,25 @@ export async function bulkImportContacts(rows: ParsedContactRow[], tagName: stri
   } = await supabase.auth.getUser();
   if (!user) return { ok: false as const, error: "Not signed in" };
 
-  const admin = createAdminClient();
+  // The signed-in user's own client (row-level security scopes it to their
+  // contacts), not the service-role admin client - importing shouldn't
+  // depend on SUPABASE_SERVICE_ROLE_KEY, which is only needed for webhooks.
+  // The modal sends rows in batches, so each call stays well inside the
+  // serverless time limit.
+  let candidates;
+  try {
+    candidates = await loadMatchCandidates(supabase, user.id);
+  } catch (e) {
+    return { ok: false as const, error: e instanceof Error ? e.message : "Couldn't load contacts" };
+  }
   let created = 0;
   let matched = 0;
   let failed = 0;
 
-  // Sequential, not Promise.all - findOrCreateContact re-reads the full
-  // contact list each call to check for a match, so running these
-  // concurrently risks two rows for the same person both missing each
-  // other and creating duplicates.
+  // Sequential, not Promise.all - two rows for the same person must not
+  // both miss each other and create duplicates.
   for (const row of rows) {
-    const result = await findOrCreateContact(admin, user.id, {
+    const result = await findOrCreateContact(supabase, user.id, {
       email: row.email,
       secondaryEmail: row.secondaryEmail,
       phone: row.phone,
@@ -140,6 +148,7 @@ export async function bulkImportContacts(rows: ParsedContactRow[], tagName: stri
       leadSource,
       leadDate: row.leadDate,
       skipQuoSync: true,
+      candidates,
     });
     if (!result) {
       failed++;
@@ -147,7 +156,7 @@ export async function bulkImportContacts(rows: ParsedContactRow[], tagName: stri
     }
     if (result.wasCreated) created++;
     else matched++;
-    if (tagName) await addTagByName(admin, user.id, result.id, tagName);
+    if (tagName) await addTagByName(supabase, user.id, result.id, tagName);
   }
 
   return { ok: true as const, created, matched, failed };
