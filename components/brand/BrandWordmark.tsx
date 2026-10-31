@@ -18,15 +18,7 @@ export function BrandWordmark({
         className,
       )}
     >
-      {APP_NAME}{" "}
-      <span
-        className={cn(
-          "align-middle font-sans font-semibold uppercase tracking-[0.18em] text-brand-600/75",
-          size === "lg" ? "text-[11px]" : size === "sm" ? "text-[9px]" : "text-[10px]",
-        )}
-      >
-        CRM
-      </span>
+      {APP_NAME}
     </p>
   );
 }
