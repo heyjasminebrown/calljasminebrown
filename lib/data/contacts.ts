@@ -112,8 +112,6 @@ export type ContactListFilters = {
   stageId?: string;
   tagIds?: string[];
   type?: string;
-  timeline?: string;
-  representing?: string;
   leadSource?: string;
   stageIds?: string[];
   gender?: "women" | "men" | "unknown";
@@ -174,8 +172,6 @@ export async function listContacts(filters: ContactListFilters) {
   // type and source are comma-separated lists (Filters uses checkboxes); a
   // contact matches if it has any of the checked values.
   if (filters.type) query = query.in("relationship_type", filters.type.split(",").filter(Boolean));
-  if (filters.timeline) query = query.eq("timeline", filters.timeline);
-  if (filters.representing) query = query.eq("representing", filters.representing);
   // Source buckets are matched in JS — lead_source is free text.
   if (filters.hasPhone) query = query.not("phone", "is", null);
   // Empty-string phones are not "missing" at SQL null-check time; JS
@@ -339,8 +335,6 @@ function hasRestrictiveFilters(filters: ContactListFilters): boolean {
       filters.gender ||
       filters.tagIds?.length ||
       filters.type ||
-      filters.timeline ||
-      filters.representing ||
       filters.leadSource ||
       filters.hasPhone ||
       filters.missingPhone ||

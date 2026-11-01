@@ -56,7 +56,6 @@ export default async function MessageThreadPage({
     lastName: contact.last_name ?? "",
     phone: contact.phone,
     stageName: contact.pipeline_stages?.name ?? null,
-    representing: contact.representing ?? null,
     messages,
     draft: draft || firstTouchBody,
   };

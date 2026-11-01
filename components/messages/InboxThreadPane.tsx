@@ -9,13 +9,9 @@ import { InboxComposer } from "@/components/messages/InboxComposer";
 import { ScrollToBottomOnLoad } from "@/components/messages/ScrollToBottomOnLoad";
 import { openQuoCall } from "@/lib/quo/call-link";
 import { formatInboxPhone, threadDisplayName, MESSAGES_TERRACOTTA, type OpenSmsThread } from "@/lib/crm/messages-v1";
-import { REPRESENTING_LABELS } from "@/lib/utils";
 
-function StageChips({ stageName, representing }: { stageName: string | null; representing: OpenSmsThread["representing"] }) {
-  const chips = [
-    representing ? REPRESENTING_LABELS[representing] : null,
-    stageName,
-  ].filter((chip): chip is string => !!chip);
+function StageChips({ stageName }: { stageName: string | null }) {
+  const chips = [stageName].filter((chip): chip is string => !!chip);
 
   if (chips.length === 0) return null;
 
@@ -89,7 +85,7 @@ export function InboxThreadPane({
           <p className="mt-2 truncate text-[18px] font-semibold text-neutral-900">{name}</p>
           {phoneLabel && <p className="mt-0.5 truncate text-[13px] text-neutral-400">{phoneLabel}</p>}
           <div className="mt-2">
-            <StageChips stageName={thread.stageName} representing={thread.representing} />
+            <StageChips stageName={thread.stageName} />
           </div>
         </div>
         <div className="flex-1 px-4 py-5 pb-36">
@@ -125,7 +121,7 @@ export function InboxThreadPane({
             </div>
             {phoneLabel && <p className="mt-0.5 text-[13px] text-neutral-400">{phoneLabel}</p>}
             <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-              <StageChips stageName={thread.stageName} representing={thread.representing} />
+              <StageChips stageName={thread.stageName} />
               <ThreadActions phone={thread.phone} contactId={thread.contactId} />
             </div>
           </div>

@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import { Pencil, X, Check } from "lucide-react";
-import { TIMELINE_LABELS, formatCurrency } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import type { ProposedChange, PipelineStage } from "@/types/database";
 
 const FIELD_LABELS: Record<string, string> = {
   budget: "Budget",
-  timeline: "Timeline",
   areas_of_interest: "Areas of interest",
   decision_maker: "Decision maker",
   objection: "Objection",
@@ -40,11 +39,6 @@ function describe(p: ProposedChange, stages: PipelineStage[]) {
       const c = current as { min: number | null; max: number | null } | null;
       const was = c?.min || c?.max ? `${formatCurrency(c.min)}-${formatCurrency(c.max)}` : "was blank";
       return { proposed, meta: `· ${was}` };
-    }
-    case "timeline": {
-      const v = value as { timeline: string };
-      const c = current as { timeline: string } | null;
-      return { proposed: TIMELINE_LABELS[v.timeline] ?? v.timeline, meta: c ? `· was ${TIMELINE_LABELS[c.timeline] ?? c.timeline}` : "" };
     }
     case "areas_of_interest": {
       const v = value as { area: string };

@@ -54,7 +54,6 @@ export function SuggestionQueueCard({
           contactStageId={row.contactStageId}
           contactName={row.contactName}
           contactCreatedAt={row.contactCreatedAt}
-          representing={row.representing}
           stages={stages}
           tags={tags}
           showContactName

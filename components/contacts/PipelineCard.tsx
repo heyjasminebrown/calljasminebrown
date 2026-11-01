@@ -40,7 +40,6 @@ export function PipelineCard({
         stages={stages}
         contactName={fullName(contact)}
         contactCreatedAt={contact.created_at}
-        representing={contact.representing}
       />
     </div>
   );

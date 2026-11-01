@@ -103,7 +103,6 @@ export function OverviewTab({
                 contactStageId={contact.stage_id}
                 contactName={`${contact.first_name} ${contact.last_name}`.trim()}
                 contactCreatedAt={contact.created_at}
-                representing={contact.representing}
                 stages={stages}
                 tags={tags}
               />

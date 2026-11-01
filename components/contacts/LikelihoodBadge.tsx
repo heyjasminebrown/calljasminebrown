@@ -11,7 +11,7 @@ export function LikelihoodBadge({ likelihood }: { likelihood: Likelihood | null 
   const { label, color } = CONFIG[likelihood];
   return (
     <span
-      title="Likelihood to close, based on stage, timeline, and engagement"
+      title="Likelihood to close, based on stage and engagement"
       className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold"
       style={{ backgroundColor: `${color}1a`, color }}
     >

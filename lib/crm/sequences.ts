@@ -154,7 +154,6 @@ async function processBroadcastSequence(admin: SupabaseClient, ownerId: string, 
     targetTagIds: sequence.target_tag_ids,
     excludeTagIds: sequence.exclude_tag_ids,
     excludeStageIds: sequence.exclude_stage_ids,
-    excludeTimelines: sequence.exclude_timelines,
     memberIds,
   });
 

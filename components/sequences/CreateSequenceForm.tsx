@@ -20,7 +20,7 @@ import type { Tag, PipelineStage } from "@/types/database";
 
 type CreateType = "broadcast" | "drip" | "batch";
 
-const EMPTY_CRITERIA: AudienceCriteria = { targetTagIds: [], excludeTagIds: [], excludeStageIds: [], excludeTimelines: [] };
+const EMPTY_CRITERIA: AudienceCriteria = { targetTagIds: [], excludeTagIds: [], excludeStageIds: [] };
 
 export function CreateSequenceForm({ tags, stages, ownerId }: { tags: Tag[]; stages: PipelineStage[]; ownerId: string }) {
   const router = useRouter();

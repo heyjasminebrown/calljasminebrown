@@ -16,8 +16,6 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { Conversation } from "@/lib/data/messages";
 
-const REPRESENTING_LABEL: Record<string, string> = { buyer: "buyer", seller: "seller", both: "buyer & seller" };
-
 export function InboxRow({
   conversation,
   ownerId,
@@ -47,7 +45,7 @@ export function InboxRow({
   else if (displayActivity.type === "text" && displayActivity.direction === "outbound") preview = `You: ${preview}`;
 
   const stage = contact.pipeline_stages;
-  const contextLine = [stage?.name, contact.representing ? REPRESENTING_LABEL[contact.representing] : null].filter(Boolean).join(" · ");
+  const contextLine = stage?.name ?? "";
 
   async function hide() {
     const supabase = createClient();

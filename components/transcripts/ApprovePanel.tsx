@@ -11,7 +11,7 @@ import { ApproveRow } from "@/components/transcripts/ApproveRow";
 import { sendEmailToContact } from "@/app/(app)/contacts/actions";
 import { relativeTime } from "@/lib/format-time";
 import { initials } from "@/lib/utils";
-import type { MeetingTranscript, ProposedChange, PipelineStage, Representing, DealSide } from "@/types/database";
+import type { MeetingTranscript, ProposedChange, PipelineStage, DealSide } from "@/types/database";
 
 // "memo" has no live source wired to it - Granola covers the voice-memo
 // case too (its phone app captures in-person and phone calls), so every
@@ -39,7 +39,6 @@ export function ApprovePanel({
   ownerId,
   contactStageId,
   contactCreatedAt,
-  representing,
   stages,
 }: {
   transcript: MeetingTranscript;
@@ -49,7 +48,6 @@ export function ApprovePanel({
   ownerId: string;
   contactStageId: string | null;
   contactCreatedAt: string;
-  representing: Representing | null;
   stages: PipelineStage[];
 }) {
   const router = useRouter();
@@ -152,12 +150,6 @@ export function ApprovePanel({
       case "budget": {
         const v = p.proposed_value as { min: number | null; max: number | null };
         const { error } = await supabase.from("contacts").update({ budget_min: v.min, budget_max: v.max }).eq("id", contactId);
-        if (error) return { ok: false, error: error.message };
-        break;
-      }
-      case "timeline": {
-        const v = p.proposed_value as { timeline: string };
-        const { error } = await supabase.from("contacts").update({ timeline: v.timeline }).eq("id", contactId);
         if (error) return { ok: false, error: error.message };
         break;
       }
@@ -450,7 +442,7 @@ export function ApprovePanel({
           dealId={dealModal.id}
           contactName={contactName}
           defaultLeadStartedAt={contactCreatedAt}
-          defaultSide={(representing === "buyer" || representing === "seller" ? representing : null) as DealSide | null}
+          defaultSide={null}
           mode={dealModal.mode ?? "celebrate"}
           onClose={() => setDealModal(null)}
         />

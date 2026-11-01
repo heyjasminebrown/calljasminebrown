@@ -9,7 +9,7 @@ export { inboxOwedCount } from "@/lib/crm/message-owed";
 
 type ContactSummary = Pick<
   ContactWithRelations,
-  "id" | "first_name" | "last_name" | "phone" | "contact_type" | "timeline" | "representing" | "pipeline_stages" | "contact_tags" | "archived" | "spam"
+  "id" | "first_name" | "last_name" | "phone" | "contact_type" | "pipeline_stages" | "contact_tags" | "archived" | "spam"
 >;
 
 export type Conversation = {
@@ -49,7 +49,7 @@ export async function listConversations(opts?: { hidden?: boolean; spam?: boolea
   let query = supabase
     .from("activities")
     .select(
-      "*, contacts!inner(id, first_name, last_name, phone, contact_type, timeline, representing, archived, spam, pipeline_stages(*), contact_tags(tags(*)))",
+      "*, contacts!inner(id, first_name, last_name, phone, contact_type, archived, spam, pipeline_stages(*), contact_tags(tags(*)))",
     )
     .eq("contacts.archived", !!opts?.hidden)
     .in("type", ["call", "text"])
@@ -85,7 +85,7 @@ export async function listConversations(opts?: { hidden?: boolean; spam?: boolea
     const { data: stubs } = await supabase
       .from("activities")
       .select(
-        "*, contacts!inner(id, first_name, last_name, phone, contact_type, timeline, representing, archived, spam, pipeline_stages(*), contact_tags(tags(*)))",
+        "*, contacts!inner(id, first_name, last_name, phone, contact_type, archived, spam, pipeline_stages(*), contact_tags(tags(*)))",
       )
       .eq("contacts.archived", false)
       .eq("contacts.spam", false)

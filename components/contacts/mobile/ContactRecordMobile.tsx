@@ -88,7 +88,7 @@ export function ContactRecordMobile({
           <div className="min-w-0 flex-1">
             <p className="font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] text-neutral-900">{name}</p>
             <p className="mt-1.5 text-[15px] text-neutral-500">
-              {[formatPhone(contact.phone), contact.representing ? `${contact.representing} side` : null].filter(Boolean).join(" · ") || "No contact info"}
+              {formatPhone(contact.phone) || "No contact info"}
             </p>
           </div>
         </div>
@@ -224,7 +224,6 @@ export function ContactRecordMobile({
         currentTagIds={contact.contact_tags.filter((ct) => ct.tags).map((ct) => ct.tags!.id)}
         contactName={name}
         contactCreatedAt={contact.created_at}
-        representing={contact.representing}
       />
       <LogSheet
         open={logOpen}

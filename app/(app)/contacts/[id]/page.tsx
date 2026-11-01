@@ -109,13 +109,7 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
           <p className="mt-1.5 text-base leading-6 text-neutral-600">
             {[formatPhone(contact.phone), contact.email].filter(Boolean).join(" · ") || "No contact info on file"}
           </p>
-          {(contact.representing || likelihood) && (
-            <p className="mt-1 text-base leading-6 text-neutral-600">
-              {[contact.representing ? `${contact.representing} side` : null, likelihood ? `likelihood ${likelihood}` : null]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
-          )}
+          {likelihood && <p className="mt-1 text-base leading-6 text-neutral-600">likelihood {likelihood}</p>}
           {contact.last_event_name && (
             <p className="mt-1 text-base leading-6 text-neutral-500">
               Last event: {contact.last_event_name}
@@ -181,7 +175,6 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
               ownerId={contact.owner_id}
               contactStageId={contact.stage_id}
               contactCreatedAt={contact.created_at}
-              representing={contact.representing}
               stages={stages}
             />
           )}
@@ -197,7 +190,6 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
                   contactStageId={contact.stage_id}
                   contactName={fullName(contact)}
                   contactCreatedAt={contact.created_at}
-                  representing={contact.representing}
                   stages={stages}
                   tags={tags}
                 />

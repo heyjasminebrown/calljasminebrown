@@ -11,7 +11,7 @@ import { syncContactToQuoAction } from "@/app/(app)/contacts/actions";
 import { applyStageChange } from "@/lib/crm/stage-transition";
 import { contactSchema, type ContactFormValues } from "@/lib/validation/contact";
 import { Button, Input, Label, Select, Textarea, Card } from "@/components/ui";
-import { RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, DEFAULT_RELATIONSHIP_TYPE, DEFAULT_STAGE_NAME, TIMELINE_LABELS, REPRESENTING_LABELS, LEAD_SOURCES, cn, fullName, formatPhone } from "@/lib/utils";
+import { RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, DEFAULT_RELATIONSHIP_TYPE, DEFAULT_STAGE_NAME, LEAD_SOURCES, cn, fullName, formatPhone } from "@/lib/utils";
 import { phonesMatch } from "@/lib/phone";
 import { dateInputToAppIso, isoToDateInput } from "@/lib/format-time";
 import type { ContactWithRelations, PipelineStage, Tag } from "@/types/database";
@@ -58,14 +58,10 @@ export function ContactForm({
           secondary_email: contact.secondary_email ?? "",
           contact_type: contact.contact_type,
           relationship_type: contact.relationship_type,
-          representing: contact.representing,
-          listing_address: contact.listing_address ?? "",
-          listing_timeline: contact.listing_timeline,
           stage_id: contact.stage_id,
           lead_source: contact.lead_source ?? "",
           lead_date: isoToDateInput(contact.lead_date),
           referral_fee: contact.referral_fee ?? undefined,
-          timeline: contact.timeline,
           next_follow_up_at: isoToDateInput(contact.next_follow_up_at),
           birthday: contact.birthday ?? "",
           address_line1: contact.address_line1 ?? "",
@@ -78,14 +74,10 @@ export function ContactForm({
       : {
           contact_type: defaultContactType ?? "other",
           relationship_type: DEFAULT_RELATIONSHIP_TYPE,
-          representing: "buyer",
-          timeline: "unknown",
           stage_id: (stages.find((s) => s.name === DEFAULT_STAGE_NAME) ?? stages[0])?.id ?? null,
         },
   });
 
-  const representing = watch("representing");
-  const showListingFields = representing === "seller" || representing === "both";
   const agentTag = tags.find((t) => t.name === "Agent");
   const showReferralFee = agentTag != null && selectedTagIds.includes(agentTag.id);
 
@@ -134,15 +126,11 @@ export function ContactForm({
       secondary_email: values.secondary_email || null,
       contact_type: values.contact_type,
       relationship_type: values.relationship_type,
-      representing: values.representing || null,
-      listing_address: values.listing_address || null,
-      listing_timeline: values.listing_timeline || null,
       lead_source: values.lead_source || null,
       // Never sent as null - the column is not-null (defaults to
       // created_at/now()). Omitting it on create lets the DB default apply;
       // on edit it just leaves whatever was already there untouched.
       ...(values.lead_date ? { lead_date: dateInputToAppIso(values.lead_date) } : {}),
-      timeline: values.timeline,
       next_follow_up_at: values.next_follow_up_at ? dateInputToAppIso(values.next_follow_up_at) : null,
       birthday: values.birthday || null,
       address_line1: values.address_line1 || null,
@@ -313,27 +301,14 @@ export function ContactForm({
             </Select>
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div>
-            <Label htmlFor="representing">Representing</Label>
-            <Select id="representing" {...register("representing")}>
-              <option value="">Not applicable</option>
-              {Object.entries(REPRESENTING_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="lead_source">Lead source</Label>
-            <Input id="lead_source" list="lead-sources" {...register("lead_source")} />
-            <datalist id="lead-sources">
-              {LEAD_SOURCES.map((s) => (
-                <option key={s} value={s} />
-              ))}
-            </datalist>
-          </div>
+        <div>
+          <Label htmlFor="lead_source">Lead source</Label>
+          <Input id="lead_source" list="lead-sources" {...register("lead_source")} />
+          <datalist id="lead-sources">
+            {LEAD_SOURCES.map((s) => (
+              <option key={s} value={s} />
+            ))}
+          </datalist>
         </div>
         <div>
           <Label htmlFor="lead_date">Lead date</Label>
@@ -345,41 +320,10 @@ export function ContactForm({
           </p>
         </div>
         <div>
-          <Label htmlFor="timeline">Timeline</Label>
-          <Select id="timeline" {...register("timeline")}>
-            {Object.entries(TIMELINE_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div>
           <Label htmlFor="next_follow_up_at">Next follow-up</Label>
           <Input id="next_follow_up_at" type="date" {...register("next_follow_up_at")} />
         </div>
       </Card>
-
-      {showListingFields && (
-        <Card className="space-y-4">
-          <h2 className="text-sm font-semibold text-neutral-700">Listing details</h2>
-          <div>
-            <Label htmlFor="listing_address">Listing address</Label>
-            <Input id="listing_address" {...register("listing_address")} placeholder="What are they selling?" />
-          </div>
-          <div>
-            <Label htmlFor="listing_timeline">Listing timeline</Label>
-            <Select id="listing_timeline" {...register("listing_timeline")}>
-              <option value="">Unknown</option>
-              {Object.entries(TIMELINE_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </Select>
-          </div>
-        </Card>
-      )}
 
       <Card className="space-y-4">
         <h2 className="text-sm font-semibold text-neutral-700">Address</h2>

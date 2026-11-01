@@ -18,7 +18,6 @@ export function SequenceSettingsPanel({
   targetTagIds,
   excludeTagIds,
   excludeStageIds,
-  excludeTimelines,
   tags,
   stages,
 }: {
@@ -30,13 +29,12 @@ export function SequenceSettingsPanel({
   targetTagIds: string[];
   excludeTagIds: string[];
   excludeStageIds: string[];
-  excludeTimelines: string[];
   tags: Tag[];
   stages: PipelineStage[];
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [criteria, setCriteria] = useState<AudienceCriteria>({ targetTagIds, excludeTagIds, excludeStageIds, excludeTimelines });
+  const [criteria, setCriteria] = useState<AudienceCriteria>({ targetTagIds, excludeTagIds, excludeStageIds });
   const [duplicating, setDuplicating] = useState(false);
 
   async function saveField(patch: Record<string, unknown>) {
@@ -51,7 +49,6 @@ export function SequenceSettingsPanel({
       target_tag_ids: next.targetTagIds,
       exclude_tag_ids: next.excludeTagIds,
       exclude_stage_ids: next.excludeStageIds,
-      exclude_timelines: next.excludeTimelines,
       // A batch's frozen audience was captured under the OLD tags - clear
       // it so the next send re-freezes off the tags she just picked,
       // instead of quietly still going out to the original snapshot.

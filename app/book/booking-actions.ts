@@ -6,8 +6,7 @@ import { findOrCreateContact } from "@/lib/crm/find-or-create-contact";
 import { upsertActivity } from "@/lib/crm/activities";
 import { notifyNewLead } from "@/lib/push/send-push";
 import { BOOKING_CONTACT_TYPE_OPTIONS } from "@/lib/crm/booking-form-options";
-import { TIMELINE_LABELS } from "@/lib/utils";
-import type { SchedulingSettings, WeeklyHours, BookingContactType, Timeline } from "@/types/database";
+import type { SchedulingSettings, WeeklyHours, BookingContactType } from "@/types/database";
 
 // Public, unauthenticated by design - shared by both /book (generic, no
 // slug) and /book/[slug] (contact-prefilled) - every action here goes
@@ -152,13 +151,13 @@ export async function selectBookingSlot(sessionId: string, startsAt: string): Pr
   return { ok: true };
 }
 
-// Step 3: who they are, timeline, notes, questions. Moves the session to
+// Step 3: who they are, notes, questions. Moves the session to
 // 'pending' - ready for her review - enriches the contact record right
 // away (not gated on her approving), and notifies her with the full
 // picture so she has everything she needs before deciding.
 export async function submitBookingDetails(
   sessionId: string,
-  input: { contactType: BookingContactType | null; timeline: Timeline | null; questions: string },
+  input: { contactType: BookingContactType | null; questions: string },
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   if (!OWNER_ID) return { ok: false, error: "server not configured" };
   const admin = createAdminClient();
@@ -173,7 +172,6 @@ export async function submitBookingDetails(
     .from("booking_requests")
     .update({
       contact_type: input.contactType,
-      timeline: input.timeline,
       questions,
       stage: "pending",
       submitted_at: new Date().toISOString(),
@@ -184,14 +182,13 @@ export async function submitBookingDetails(
   if (session.contact_id) {
     await enrichContactFromBooking(admin, OWNER_ID, session.contact_id, sessionId, {
       contactType: input.contactType,
-      timeline: input.timeline,
       questions,
     });
   }
 
   const contactTypeLabel = BOOKING_CONTACT_TYPE_OPTIONS.find((o) => o.value === input.contactType)?.label;
   const when = new Date(session.starts_at).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
-  const bodyParts = [when, contactTypeLabel, input.timeline ? TIMELINE_LABELS[input.timeline] : null].filter(Boolean);
+  const bodyParts = [when, contactTypeLabel].filter(Boolean);
 
   await notifyNewLead(admin, OWNER_ID, {
     title: session.visitor_name,
@@ -212,16 +209,12 @@ async function enrichContactFromBooking(
   ownerId: string,
   contactId: string,
   sessionId: string,
-  input: { contactType: BookingContactType | null; timeline: Timeline | null; questions: string | null },
+  input: { contactType: BookingContactType | null; questions: string | null },
 ) {
-  const { data: contact } = await admin.from("contacts").select("contact_type, timeline, representing").eq("id", contactId).maybeSingle();
+  const { data: contact } = await admin.from("contacts").select("contact_type").eq("id", contactId).maybeSingle();
   if (contact) {
     const patch: Record<string, unknown> = {};
     if (input.contactType && contact.contact_type === "other") patch.contact_type = input.contactType;
-    if (input.timeline && contact.timeline === "unknown") patch.timeline = input.timeline;
-    if (!contact.representing && (input.contactType === "buyer" || input.contactType === "seller" || input.contactType === "both")) {
-      patch.representing = input.contactType;
-    }
     if (Object.keys(patch).length > 0) {
       await admin.from("contacts").update(patch).eq("id", contactId);
     }

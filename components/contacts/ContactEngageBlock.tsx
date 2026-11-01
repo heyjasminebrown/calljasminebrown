@@ -52,7 +52,6 @@ export function ContactEngageBlock({
         currentTagIds={contact.contact_tags.filter((ct) => ct.tags).map((ct) => ct.tags!.id)}
         contactName={name}
         contactCreatedAt={contact.created_at}
-        representing={contact.representing}
       />
       <LogSheet open={logOpen} onClose={() => setLogOpen(false)} ownerId={ownerId} contactId={contact.id} contactName={name} initialType="note" />
       {taskOpen && <QuickAddMenu initialMode="task" initialContactId={contact.id} onClose={() => setTaskOpen(false)} />}

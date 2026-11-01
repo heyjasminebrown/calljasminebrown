@@ -22,15 +22,6 @@ export type ContactType =
 // contact tagged "Agent" by default, no separate value stored for it.
 export type RecruitStage = "introduced" | "connected_with_lead" | "joined" | "fee_received" | "not_moving_forward";
 
-export type Timeline =
-  | "asap"
-  | "1_3_months"
-  | "3_6_months"
-  | "6_12_months"
-  | "12_plus_months"
-  | "just_browsing"
-  | "unknown";
-
 export type ActivityType =
   | "call"
   | "text"
@@ -63,8 +54,6 @@ export type ActivitySource =
   | "system";
 
 export type TaskPriority = "low" | "medium" | "high";
-
-export type Representing = "buyer" | "seller" | "both";
 
 export type PropertyType = "primary_residence" | "house_hack" | "investment" | "co_living" | "other";
 
@@ -108,8 +97,6 @@ export interface ContactFilterState {
   tag?: string;
   tags?: string;
   type?: string;
-  timeline?: string;
-  representing?: string;
   phone?: string;
   sort?: string;
   kind?: string;
@@ -176,15 +163,11 @@ export interface Contact {
   // Set by a DB trigger the first time the contact becomes a Client.
   client_converted_at: string | null;
   client_converted_from: RelationshipType | null;
-  representing: Representing | null;
-  listing_address: string | null;
-  listing_timeline: Timeline | null;
   stage_id: string | null;
   lead_source: string | null;
   budget_min: number | null;
   budget_max: number | null;
   areas_of_interest: string[];
-  timeline: Timeline;
   next_follow_up_at: string | null;
   birthday: string | null;
   address_line1: string | null;
@@ -540,7 +523,7 @@ export interface MeetingTranscript {
   created_at: string;
 }
 
-export type ProposedField = "budget" | "timeline" | "areas_of_interest" | "decision_maker" | "objection" | "note" | "task" | "stage" | "showing" | "tag";
+export type ProposedField = "budget" | "areas_of_interest" | "decision_maker" | "objection" | "note" | "task" | "stage" | "showing" | "tag";
 export type ProposedChangeStatus = "pending" | "accepted" | "rejected";
 
 export interface ProposedChange {
@@ -638,7 +621,6 @@ export interface AiInsight {
   summary: string;
   suggested_action: string | null;
   suggested_stage_id: string | null;
-  suggested_timeline: Timeline | null;
   suggested_tag_ids: string[] | null;
   confidence: number | null;
   dismissed: boolean;
@@ -731,7 +713,6 @@ export interface EmailSequence {
   target_tag_ids: string[]; // any of these tags = in the audience
   exclude_tag_ids: string[];
   exclude_stage_ids: string[];
-  exclude_timelines: Timeline[];
   description: string | null;
   active: boolean;
   created_at: string;
@@ -917,7 +898,6 @@ export interface BookingRequest {
   ends_at: string | null;
   stage: BookingRequestStage;
   contact_type: BookingContactType | null;
-  timeline: Timeline | null;
   questions: string | null;
   google_event_id: string | null;
   created_at: string;

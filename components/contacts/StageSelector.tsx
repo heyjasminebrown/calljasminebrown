@@ -7,7 +7,7 @@ import { Select } from "@/components/ui";
 import { applyStageChange, type DealModalMode, type PendingDealSummary } from "@/lib/crm/stage-transition";
 import { DealCelebrationModal } from "@/components/contacts/DealCelebrationModal";
 import { PendingDealCleanupModal } from "@/components/contacts/PendingDealCleanupModal";
-import type { DealSide, PipelineStage, Representing } from "@/types/database";
+import type { DealSide, PipelineStage } from "@/types/database";
 
 export function StageSelector({
   contactId,
@@ -16,7 +16,6 @@ export function StageSelector({
   stages,
   contactName,
   contactCreatedAt,
-  representing,
 }: {
   contactId: string;
   ownerId: string;
@@ -24,7 +23,6 @@ export function StageSelector({
   stages: PipelineStage[];
   contactName?: string;
   contactCreatedAt?: string;
-  representing?: Representing | null;
 }) {
   const router = useRouter();
   const [value, setValue] = useState(currentStageId ?? "");
@@ -81,7 +79,7 @@ export function StageSelector({
           dealId={dealModal.id}
           contactName={contactName ?? "This contact"}
           defaultLeadStartedAt={contactCreatedAt ?? null}
-          defaultSide={(representing === "buyer" || representing === "seller" ? representing : null) as DealSide | null}
+          defaultSide={null}
           mode={dealModal.mode ?? "celebrate"}
           onClose={() => setDealModal(null)}
         />

@@ -122,16 +122,6 @@ export function shortenUrl(url: string) {
   }
 }
 
-export const TIMELINE_LABELS: Record<string, string> = {
-  asap: "ASAP",
-  "1_3_months": "1–3 months",
-  "3_6_months": "3–6 months",
-  "6_12_months": "6–12 months",
-  "12_plus_months": "12+ months",
-  just_browsing: "Just browsing",
-  unknown: "Unknown",
-};
-
 // The contact's one primary relationship (shown as "Type"). Independent of
 // Stage; extra designations go on tags.
 export const RELATIONSHIP_TYPE_LABELS: Record<RelationshipType, string> = {
@@ -193,18 +183,6 @@ export const CONTACT_TYPE_LABELS: Record<string, string> = {
   attendee: "Attendee",
   agent: "Agent",
   other: "Other",
-};
-
-export const REPRESENTING_LABELS: Record<string, string> = {
-  buyer: "Buyer",
-  seller: "Seller",
-  both: "Buy/Sell",
-};
-
-export const REPRESENTING_COLORS: Record<string, string> = {
-  buyer: "#3b82f6",
-  seller: "#a855f7",
-  both: "#f97316",
 };
 
 export const PROPERTY_TYPE_LABELS: Record<string, string> = {

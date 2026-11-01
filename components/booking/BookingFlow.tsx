@@ -8,11 +8,10 @@ import { CalendarGridView } from "@/components/booking/CalendarGridView";
 import { ListView } from "@/components/booking/ListView";
 import { BookingSteps } from "@/components/booking/BookingSteps";
 import { BOOKING_CONTACT_TYPE_OPTIONS } from "@/lib/crm/booking-form-options";
-import { TIMELINE_LABELS } from "@/lib/utils";
 import { APP_TIMEZONE } from "@/lib/format-time";
 import { OWNER_FIRST_NAME } from "@/lib/brand/identity";
 import type { Slot } from "@/lib/crm/booking-availability";
-import type { BookingContactType, Timeline } from "@/types/database";
+import type { BookingContactType } from "@/types/database";
 import "./booking.css";
 
 type Step = "info" | "time" | "details" | "done";
@@ -72,7 +71,6 @@ export function BookingFlow({
   const [email, setEmail] = useState("");
   const [selectedSlot, setSelectedSlot] = useState<string | null>(fixtureStep === "details" || fixtureStep === "done" ? sampleSlots[2]?.startAt ?? null : null);
   const [contactType, setContactType] = useState<BookingContactType | "">("");
-  const [timeline, setTimeline] = useState<Timeline | "">("");
   const [questions, setQuestions] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
@@ -138,7 +136,6 @@ export function BookingFlow({
     setError("");
     const result = await submitBookingDetails(sessionId, {
       contactType: contactType || null,
-      timeline: timeline || null,
       questions,
     });
     setSubmitting(false);
@@ -277,21 +274,6 @@ export function BookingFlow({
                         );
                       })}
                     </div>
-                  </div>
-                  <div className="bk-field">
-                    <label htmlFor="book-timeline">
-                      Timeline <small>(optional)</small>
-                    </label>
-                    <select id="book-timeline" value={timeline} onChange={(e) => setTimeline(e.target.value as Timeline | "")}>
-                      <option value="">Not sure yet</option>
-                      {Object.entries(TIMELINE_LABELS)
-                        .filter(([value]) => value !== "unknown")
-                        .map(([value, label]) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ))}
-                    </select>
                   </div>
                   <div className="bk-field">
                     <label htmlFor="book-questions">

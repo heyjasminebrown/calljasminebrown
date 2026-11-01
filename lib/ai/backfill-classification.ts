@@ -48,7 +48,7 @@ const SIGNAL_TOOL: ClassifierTool = {
       has_signal: {
         type: "boolean",
         description:
-          "True if this reveals something genuinely worth a heads-up - a new timeline/budget/concern, a stage-worthy update. False if it's just a restatement of a plain conversational close or acknowledgment with no real signal (e.g. someone said thanks, confirmed a time works, said goodnight).",
+          "True if this reveals something genuinely worth a heads-up - a new budget/concern, a stage-worthy update. False if it's just a restatement of a plain conversational close or acknowledgment with no real signal (e.g. someone said thanks, confirmed a time works, said goodnight).",
       },
     },
     required: ["has_signal"],

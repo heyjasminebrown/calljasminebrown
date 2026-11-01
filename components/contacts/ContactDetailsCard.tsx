@@ -58,13 +58,9 @@ export function ContactDetailsCard({
       secondary_email: contact.secondary_email ?? "",
       contact_type: contact.contact_type,
       relationship_type: contact.relationship_type,
-      representing: contact.representing,
-      listing_address: contact.listing_address ?? "",
-      listing_timeline: contact.listing_timeline,
       stage_id: contact.stage_id,
       lead_source: contact.lead_source ?? "",
       lead_date: isoToDateInput(contact.lead_date),
-      timeline: contact.timeline,
       next_follow_up_at: isoToDateInput(contact.next_follow_up_at),
       birthday: contact.birthday ?? "",
       referred_by: contact.referred_by ?? "",
@@ -107,12 +103,8 @@ export function ContactDetailsCard({
       secondary_email: values.secondary_email || null,
       contact_type: values.contact_type,
       relationship_type: values.relationship_type,
-      representing: values.representing || null,
-      listing_address: values.listing_address || null,
-      listing_timeline: values.listing_timeline || null,
       lead_source: values.lead_source || null,
       ...(values.lead_date ? { lead_date: dateInputToAppIso(values.lead_date) } : {}),
-      timeline: values.timeline,
       next_follow_up_at: values.next_follow_up_at ? dateInputToAppIso(values.next_follow_up_at) : null,
       birthday: values.birthday || null,
       referred_by: values.referred_by || null,
@@ -320,7 +312,7 @@ export function ContactDetailsCard({
           dealId={dealModal.id}
           contactName={`${contact.first_name} ${contact.last_name}`.trim()}
           defaultLeadStartedAt={contact.created_at}
-          defaultSide={(contact.representing === "buyer" || contact.representing === "seller" ? contact.representing : null) as DealSide | null}
+          defaultSide={null}
           mode={dealModal.mode ?? "celebrate"}
           onClose={clearDealModal}
         />

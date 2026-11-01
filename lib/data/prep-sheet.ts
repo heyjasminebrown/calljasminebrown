@@ -24,16 +24,6 @@ export type PrepSheetPayload = {
   firstActivityAt: string | null;
 };
 
-const TIMELINE_LABELS: Record<string, string> = {
-  asap: "ASAP",
-  "1_3_months": "1-3 months",
-  "3_6_months": "3-6 months",
-  "6_12_months": "6-12 months",
-  "12_plus_months": "12+ months",
-  just_browsing: "Just browsing",
-  unknown: "Unknown",
-};
-
 function formatBudget(min: number | null, max: number | null): string | null {
   if (!min && !max) return null;
   const fmt = (n: number) => `$${Math.round(n).toLocaleString()}`;
@@ -51,7 +41,7 @@ export async function buildPrepSheet(
 ): Promise<PrepSheetPayload | null> {
   const { data: contact } = await admin
     .from("contacts")
-    .select("id, first_name, last_name, phone, budget_min, budget_max, timeline, areas_of_interest, representing, notes, last_event_name, last_event_at")
+    .select("id, first_name, last_name, phone, budget_min, budget_max, areas_of_interest, notes, last_event_name, last_event_at")
     .eq("id", contactId)
     .eq("owner_id", ownerId)
     .maybeSingle();
@@ -97,9 +87,7 @@ export async function buildPrepSheet(
   const budget = formatBudget(contact.budget_min, contact.budget_max);
   const whatTheyreAfter = [
     budget ? { label: "Budget", value: budget } : null,
-    contact.timeline ? { label: "Timeline", value: TIMELINE_LABELS[contact.timeline] ?? contact.timeline } : null,
     contact.areas_of_interest && contact.areas_of_interest.length > 0 ? { label: "Areas", value: contact.areas_of_interest.join(", ") } : null,
-    contact.representing ? { label: "Representing", value: contact.representing === "both" ? "Buyer & seller" : contact.representing } : null,
   ].filter((v): v is { label: string; value: string } => !!v);
 
   const activityLabel = (a: { type: string; direction: string; body: string | null }) => {
@@ -131,9 +119,7 @@ export async function buildPrepSheet(
     worthAsking: generateWorthAskingQuestions({
       budgetMin: contact.budget_min,
       budgetMax: contact.budget_max,
-      timeline: contact.timeline,
       areasOfInterest: contact.areas_of_interest,
-      representing: contact.representing,
       notes: contact.notes,
     }),
     totalActivityCount: (activities ?? []).length,

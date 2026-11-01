@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronRight, ChevronDown, Phone, MessageSquareText, MoreHorizontal, PhoneOff, Plus, ChevronRight as ArrowRight } from "lucide-react";
-import { fullName, formatPhone, initials, RELATIONSHIP_TYPE_LABELS, TIMELINE_LABELS, relationshipTypeColor } from "@/lib/utils";
+import { fullName, formatPhone, initials, RELATIONSHIP_TYPE_LABELS, relationshipTypeColor } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { openQuoCall } from "@/lib/quo/call-link";
 import { StageSelector } from "@/components/contacts/StageSelector";
@@ -40,7 +40,6 @@ export function ContactRow({
   const [moreOpen, setMoreOpen] = useState(false);
   const [confirmingArchive, setConfirmingArchive] = useState(false);
   const [followUpAt, setFollowUpAt] = useState(isoToDateInput(contact.next_follow_up_at));
-  const [timeline, setTimeline] = useState(contact.timeline);
   const [phoneDraft, setPhoneDraft] = useState(contact.phone ?? "");
   const [savingPhone, setSavingPhone] = useState(false);
   const [rowError, setRowError] = useState<string | null>(null);
@@ -80,17 +79,6 @@ export function ContactRow({
     router.refresh();
   }
 
-  async function saveTimeline(value: string) {
-    setRowError(null);
-    const supabase = createClient();
-    const { error } = await supabase.from("contacts").update({ timeline: value }).eq("id", contact.id);
-    if (error) {
-      setRowError(error.message);
-      return;
-    }
-    setTimeline(value as typeof contact.timeline);
-    router.refresh();
-  }
 
   // Same action toggles both ways - archiving had no undo anywhere in the
   // app, so viewing the archived list (?archived=archived) via the People
@@ -251,11 +239,11 @@ export function ContactRow({
               </button>
             </form>
           )}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <p className="text-sm text-neutral-500">Stage</p>
               <div className="mt-1.5">
-                <StageSelector contactId={contact.id} ownerId={ownerId} currentStageId={contact.stage_id} stages={stages} contactName={fullName(contact)} contactCreatedAt={contact.created_at} representing={contact.representing} />
+                <StageSelector contactId={contact.id} ownerId={ownerId} currentStageId={contact.stage_id} stages={stages} contactName={fullName(contact)} contactCreatedAt={contact.created_at} />
               </div>
             </div>
             <div>
@@ -267,21 +255,11 @@ export function ContactRow({
                 className="mt-1.5 w-full rounded-[10px] border border-neutral-200 bg-white px-3 py-2.5 text-[15px] text-neutral-900"
               />
             </div>
-            <div>
-              <p className="text-sm text-neutral-500">Timeline</p>
-              <Select value={timeline} onChange={(e) => saveTimeline(e.target.value)} className="mt-1.5">
-                {Object.entries(TIMELINE_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </Select>
-            </div>
           </div>
 
           <p className="mt-4 text-[15px] leading-[23px] text-neutral-700">
             <ColorDot color={relationshipTypeColor(contact.relationship_type)} className="mr-1.5 align-middle" />
-            {[RELATIONSHIP_TYPE_LABELS[contact.relationship_type], contact.representing ? `${contact.representing} side` : null].filter(Boolean).join(" · ")}
+            {RELATIONSHIP_TYPE_LABELS[contact.relationship_type]}
             {contact.notes ? ` — ${contact.notes}` : ""}
           </p>
 

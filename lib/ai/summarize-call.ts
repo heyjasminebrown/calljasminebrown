@@ -77,7 +77,6 @@ ${transcript}
 // unchanged, since a text message doesn't carry enough content for most of
 // these fields to make sense.
 
-const TIMELINE_VALUES = ["asap", "1_3_months", "3_6_months", "6_12_months", "12_plus_months", "just_browsing", "unknown"] as const;
 
 // Below this, an item is dropped before it's ever returned - "dropped
 // rather than shown" per the design brief, not filtered client-side.
@@ -102,9 +101,9 @@ const EXTRACTION_TOOL = {
           properties: {
             field: {
               type: "string",
-              enum: ["budget", "timeline", "areas_of_interest", "decision_maker", "objection", "note", "task", "stage", "showing", "tag"],
+              enum: ["budget", "areas_of_interest", "decision_maker", "objection", "note", "task", "stage", "showing", "tag"],
               description:
-                "budget: a range or ceiling was stated. timeline: buying/selling timeframe. areas_of_interest: a neighborhood/area they're interested in (one per proposal, never replaces existing areas). decision_maker: who else is involved in the decision and what they control. objection: a concern or hesitation, captured close to verbatim. note: anything else worth keeping on the record that doesn't fit another field (pre-approval details, property type, bedroom/must-have preferences, etc). task: something the agent committed to doing, with a due date if one was stated or clearly implied. stage: only when the pipeline stage should clearly change - omit rather than guess. showing: the agent showed this person a specific property in person - use the property's address as the text. tag: the conversation clearly justifies one of the provided existing tag names (e.g. they mention getting licensed and wanting to join the team -> \"Agent\") - text_value must exactly match a name from the provided tag list, never a new name.",
+                "budget: a range or ceiling was stated. areas_of_interest: a neighborhood/area they're interested in (one per proposal, never replaces existing areas). decision_maker: who else is involved in the decision and what they control. objection: a concern or hesitation, captured close to verbatim. note: anything else worth keeping on the record that doesn't fit another field (pre-approval details, property type, bedroom/must-have preferences, etc). task: something the agent committed to doing, with a due date if one was stated or clearly implied. stage: only when the pipeline stage should clearly change - omit rather than guess. showing: the agent showed this person a specific property in person - use the property's address as the text. tag: the conversation clearly justifies one of the provided existing tag names (e.g. they mention getting licensed and wanting to join the team -> \"Agent\") - text_value must exactly match a name from the provided tag list, never a new name.",
             },
             text_value: {
               type: ["string", "null"],
@@ -113,7 +112,6 @@ const EXTRACTION_TOOL = {
             },
             budget_min: { type: ["number", "null"] },
             budget_max: { type: ["number", "null"] },
-            timeline_value: { type: ["string", "null"], enum: [...TIMELINE_VALUES, null] },
             task_title: { type: ["string", "null"] },
             task_due_date: { type: ["string", "null"], description: "ISO date (YYYY-MM-DD) if a due date was stated or clearly implied, else null." },
             stage_name: { type: ["string", "null"], description: "Must exactly match one of the provided available stage names." },
@@ -135,7 +133,6 @@ export type RawProposal = {
   text_value: string | null;
   budget_min: number | null;
   budget_max: number | null;
-  timeline_value: string | null;
   task_title: string | null;
   task_due_date: string | null;
   stage_name: string | null;
@@ -151,7 +148,6 @@ export type TranscriptContext = {
   contactName: string;
   currentBudgetMin: number | null;
   currentBudgetMax: number | null;
-  currentTimeline: string;
   currentAreasOfInterest: string[];
   currentStageName: string;
   availableStageNames: string[];
@@ -184,7 +180,6 @@ export async function extractFromTranscript(transcript: string, context: Transcr
 
 What's already on ${context.contactName}'s record:
 - Budget: ${budgetLine}
-- Timeline: ${context.currentTimeline}
 - Areas of interest: ${context.currentAreasOfInterest.join(", ") || "none on file"}
 - Pipeline stage: ${context.currentStageName}
 ${context.participantNames?.length ? `- Other people on this call/meeting: ${context.participantNames.join(", ")}` : ""}

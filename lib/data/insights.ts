@@ -7,7 +7,7 @@ import { getWarmRanking, type WarmContact } from "@/lib/data/warm";
 import { isDismissedWithin } from "@/lib/crm/dismissed-insights";
 import { fullName } from "@/lib/utils";
 import { relativeTime } from "@/lib/format-time";
-import type { AiInsight, Deal, Representing } from "@/types/database";
+import type { AiInsight, Deal } from "@/types/database";
 
 const DISMISS_WINDOW_DAYS = 30;
 const TWO_YEARS_MS = 2 * 365 * 24 * 60 * 60 * 1000;
@@ -17,7 +17,6 @@ export type SuggestionRow = {
   contactName: string;
   contactStageId: string | null;
   contactCreatedAt: string;
-  representing: Representing | null;
   insight: AiInsight;
   // Older undismissed insights for this same contact, folded into this one
   // row - applying or dismissing the row resolves these too, so a contact
@@ -44,14 +43,14 @@ export async function getSuggestionQueue(): Promise<SuggestionQueue> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("ai_insights")
-    .select("*, contacts!inner(id, first_name, last_name, stage_id, created_at, representing, archived, known_personally)")
+    .select("*, contacts!inner(id, first_name, last_name, stage_id, created_at, archived, known_personally)")
     .eq("dismissed", false)
     .eq("contacts.archived", false)
     .eq("contacts.known_personally", false)
     .order("created_at", { ascending: false });
 
   type JoinedRow = AiInsight & {
-    contacts: { id: string; first_name: string; last_name: string; stage_id: string | null; created_at: string; representing: Representing | null };
+    contacts: { id: string; first_name: string; last_name: string; stage_id: string | null; created_at: string };
   };
 
   const byContact = new Map<string, JoinedRow[]>();
@@ -74,7 +73,6 @@ export async function getSuggestionQueue(): Promise<SuggestionQueue> {
       contactName: fullName(contacts),
       contactStageId: contacts.stage_id,
       contactCreatedAt: contacts.created_at,
-      representing: contacts.representing,
       insight: insight as AiInsight,
       extraInsightIds: rest.map((r) => r.id),
       meta: rest.length > 0 ? `from ${list.length} messages` : null,
@@ -83,7 +81,7 @@ export async function getSuggestionQueue(): Promise<SuggestionQueue> {
   rows.sort((a, b) => b.insight.created_at.localeCompare(a.insight.created_at));
 
   const stageMoveOnlyContactIds = rows
-    .filter((r) => r.insight.suggested_stage_id && !r.insight.suggested_timeline && !(r.insight.suggested_tag_ids && r.insight.suggested_tag_ids.length > 0))
+    .filter((r) => r.insight.suggested_stage_id && !(r.insight.suggested_tag_ids && r.insight.suggested_tag_ids.length > 0))
     .map((r) => r.contactId);
 
   return {

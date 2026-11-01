@@ -93,7 +93,6 @@ type ExtractionContact = {
   last_name: string;
   budget_min: number | null;
   budget_max: number | null;
-  timeline: string;
   areas_of_interest: string[];
   stage_id: string | null;
   decision_maker: string | null;
@@ -113,10 +112,6 @@ function normalizeProposal(
     case "budget":
       proposedValue = { min: p.budget_min, max: p.budget_max };
       currentValue = contact.budget_min || contact.budget_max ? { min: contact.budget_min, max: contact.budget_max } : null;
-      break;
-    case "timeline":
-      proposedValue = { timeline: p.timeline_value };
-      currentValue = { timeline: contact.timeline };
       break;
     case "areas_of_interest":
       proposedValue = { area: p.text_value };
@@ -179,7 +174,7 @@ export async function runExtraction(
   const [{ data: contact }, { data: stages }, { data: tags }, { data: transcriptRow }] = await Promise.all([
     admin
       .from("contacts")
-      .select("first_name, last_name, budget_min, budget_max, timeline, areas_of_interest, stage_id, decision_maker, objection, known_personally")
+      .select("first_name, last_name, budget_min, budget_max, areas_of_interest, stage_id, decision_maker, objection, known_personally")
       .eq("id", contactId)
       .maybeSingle(),
     admin.from("pipeline_stages").select("id, name").eq("owner_id", ownerId).order("sort_order", { ascending: true }),
@@ -208,7 +203,6 @@ export async function runExtraction(
     contactName: `${contact.first_name} ${contact.last_name}`.trim(),
     currentBudgetMin: contact.budget_min,
     currentBudgetMax: contact.budget_max,
-    currentTimeline: contact.timeline,
     currentAreasOfInterest: contact.areas_of_interest ?? [],
     currentStageName,
     availableStageNames: stageList.map((s) => s.name),

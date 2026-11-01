@@ -4,12 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { TIMELINE_LABELS } from "@/lib/utils";
 import { applyStageChange, type DealModalMode, type PendingDealSummary } from "@/lib/crm/stage-transition";
 import { DealCelebrationModal } from "@/components/contacts/DealCelebrationModal";
 import { PendingDealCleanupModal } from "@/components/contacts/PendingDealCleanupModal";
 import { cn } from "@/lib/utils";
-import type { AiInsight, DealSide, PipelineStage, Representing, Tag } from "@/types/database";
+import type { AiInsight, DealSide, PipelineStage, Tag } from "@/types/database";
 
 // Row-shaped AI-insight display, replacing AiInsightCard's standalone
 // card shape - used both on a contact's own Suggested card (one insight,
@@ -24,7 +23,6 @@ export function SuggestedRow({
   contactStageId,
   contactName,
   contactCreatedAt,
-  representing,
   stages,
   tags,
   showContactName = false,
@@ -38,7 +36,6 @@ export function SuggestedRow({
   contactStageId: string | null;
   contactName: string;
   contactCreatedAt: string;
-  representing: Representing | null;
   stages: PipelineStage[];
   tags: Tag[];
   showContactName?: boolean;
@@ -60,8 +57,7 @@ export function SuggestedRow({
   const suggestedStage = stages.find((s) => s.id === insight.suggested_stage_id);
   const currentStage = stages.find((s) => s.id === contactStageId);
   const suggestedTags = (insight.suggested_tag_ids ?? []).map((id) => tags.find((t) => t.id === id)).filter((t): t is Tag => Boolean(t));
-  const hasStageOrTimeline = !!suggestedStage || !!insight.suggested_timeline;
-  const hasApplyTarget = hasStageOrTimeline || suggestedTags.length > 0;
+  const hasApplyTarget = !!suggestedStage || suggestedTags.length > 0;
 
   async function resolveExtras(supabase: ReturnType<typeof createClient>) {
     if (extraInsightIds.length === 0) return;
@@ -101,14 +97,6 @@ export function SuggestedRow({
       }
       if (dealId && dealMode) setDealModal({ id: dealId, mode: dealMode });
       if (pendingAtRisk) setPendingCleanup(pendingAtRisk);
-    }
-    if (insight.suggested_timeline) {
-      const { error: timelineError } = await supabase.from("contacts").update({ timeline: insight.suggested_timeline }).eq("id", contactId);
-      if (timelineError) {
-        setBusy(false);
-        setError(timelineError.message);
-        return;
-      }
     }
     if (suggestedTags.length > 0) {
       const { error: tagError } = await supabase
@@ -180,7 +168,6 @@ export function SuggestedRow({
 
   const suggestionLine = [
     suggestedStage ? `Move to ${suggestedStage.name}` : null,
-    insight.suggested_timeline ? `Timeline: ${TIMELINE_LABELS[insight.suggested_timeline]}` : null,
     suggestedTags.length > 0 ? `Tag: ${suggestedTags.map((t) => t.name).join(", ")}` : null,
   ]
     .filter(Boolean)
@@ -247,7 +234,7 @@ export function SuggestedRow({
           dealId={dealModal.id}
           contactName={contactName}
           defaultLeadStartedAt={contactCreatedAt}
-          defaultSide={(representing === "buyer" || representing === "seller" ? representing : null) as DealSide | null}
+          defaultSide={null}
           mode={dealModal.mode ?? "celebrate"}
           onClose={() => setDealModal(null)}
         />

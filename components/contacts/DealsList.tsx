@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { formatLocal } from "@/lib/format-time";
 import { DealCelebrationModal } from "@/components/contacts/DealCelebrationModal";
 import { X, Pencil, Plus } from "lucide-react";
-import type { Deal, DealSide, Representing } from "@/types/database";
+import type { Deal, DealSide } from "@/types/database";
 
 // Deals are otherwise append-only by design (see stage-transition.ts) so
 // a repeat closer's history survives cycling back to active - this is the
@@ -20,14 +20,12 @@ export function DealsList({
   ownerId,
   contactName,
   contactCreatedAt,
-  representing,
 }: {
   deals: Deal[];
   contactId: string;
   ownerId: string;
   contactName: string;
   contactCreatedAt: string;
-  representing: Representing | null;
 }) {
   const router = useRouter();
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
@@ -50,9 +48,7 @@ export function DealsList({
     router.refresh();
   }
 
-  const defaultSide = (representing === "buyer" || representing === "seller" ? representing : null) as
-    | DealSide
-    | null;
+  const defaultSide: DealSide | null = null;
   const wonCount = deals.filter((d) => d.status === "won").length;
 
   return (

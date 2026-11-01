@@ -4,11 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@/components/ui";
-import { RepresentingBadge } from "@/components/contacts/RepresentingBadge";
 import { LikelihoodBadge } from "@/components/contacts/LikelihoodBadge";
 import { SnoozeMenu } from "@/components/contacts/SnoozeMenu";
 import { computeLikelihood } from "@/lib/crm/likelihood";
-import { formatCurrency, TIMELINE_LABELS, stageColor } from "@/lib/utils";
+import { formatCurrency, stageColor } from "@/lib/utils";
 import { formatLocal, isFollowUpOverdue } from "@/lib/format-time";
 import { clearFollowUp, snoozeFollowUp } from "@/app/(app)/today-actions";
 import { CalendarClock, Check, Bell, Plus, ChevronRight } from "lucide-react";
@@ -51,13 +50,7 @@ export function ContactContextBar({ contact, stages }: { contact: ContactWithRel
             {stage.name}
           </Badge>
         )}
-        <RepresentingBadge representing={contact.representing} />
         <LikelihoodBadge likelihood={likelihood} />
-        {contact.timeline && contact.timeline !== "unknown" && (
-          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] text-neutral-600">
-            {TIMELINE_LABELS[contact.timeline]}
-          </span>
-        )}
         {contact.contact_tags
           .filter((ct) => ct.tags)
           .map((ct) => (

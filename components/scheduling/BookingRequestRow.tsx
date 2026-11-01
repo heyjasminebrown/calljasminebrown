@@ -7,7 +7,6 @@ import { formatInTimeZone } from "date-fns-tz";
 import { approveBooking } from "@/app/(app)/scheduling/actions";
 import { ProposeNewTimeModal } from "@/components/scheduling/ProposeNewTimeModal";
 import { BOOKING_CONTACT_TYPE_OPTIONS } from "@/lib/crm/booking-form-options";
-import { TIMELINE_LABELS } from "@/lib/utils";
 import { APP_TIMEZONE } from "@/lib/format-time";
 import type { BookingRequestWithContact } from "@/lib/data/scheduling";
 
@@ -27,7 +26,7 @@ export function BookingRequestRow({ request }: { request: BookingRequestWithCont
   }
 
   const contactTypeLabel = BOOKING_CONTACT_TYPE_OPTIONS.find((o) => o.value === request.contact_type)?.label;
-  const hasDetails = Boolean(contactTypeLabel || request.timeline || request.questions);
+  const hasDetails = Boolean(contactTypeLabel || request.questions);
 
   return (
     <div className="border-b border-neutral-100 px-4 py-3.5 last:border-b-0">
@@ -46,11 +45,7 @@ export function BookingRequestRow({ request }: { request: BookingRequestWithCont
             {request.starts_at && formatInTimeZone(request.starts_at, APP_TIMEZONE, "EEE, MMM d 'at' h:mm a")} · {request.visitor_phone}
             {request.visitor_email ? ` · ${request.visitor_email}` : ""}
           </p>
-          {(contactTypeLabel || request.timeline) && (
-            <p className="mt-1 text-sm text-neutral-600">
-              {[contactTypeLabel, request.timeline ? TIMELINE_LABELS[request.timeline] : null].filter(Boolean).join(" · ")}
-            </p>
-          )}
+          {contactTypeLabel && <p className="mt-1 text-sm text-neutral-600">{contactTypeLabel}</p>}
           {request.questions && (
             <p className="mt-1 text-sm text-neutral-600">
               <span className="font-medium text-neutral-500">Questions:</span> {request.questions}

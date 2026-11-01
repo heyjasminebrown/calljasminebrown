@@ -109,7 +109,6 @@ export async function createSequence(input: {
       target_tag_ids: input.criteria.targetTagIds,
       exclude_tag_ids: input.criteria.excludeTagIds,
       exclude_stage_ids: input.criteria.excludeStageIds,
-      exclude_timelines: input.criteria.excludeTimelines,
       snapshot_contact_ids: snapshotContactIds,
     })
     .select("id")
@@ -238,7 +237,6 @@ export async function checkAudienceOverlap(candidateContactIds: string[], exclud
     targetTagIds: sequence.target_tag_ids,
     excludeTagIds: sequence.exclude_tag_ids,
     excludeStageIds: sequence.exclude_stage_ids,
-    excludeTimelines: sequence.exclude_timelines,
     memberIds: sequence.type === "batch" ? (sequence.snapshot_contact_ids ?? undefined) : undefined,
   });
   const otherIds = new Set(eligible.map((c) => c.id));
@@ -289,7 +287,6 @@ export async function createNonOpenerFollowup(sequenceId: string): Promise<{ ok:
       target_tag_ids: [],
       exclude_tag_ids: [],
       exclude_stage_ids: [],
-      exclude_timelines: [],
       snapshot_contact_ids: nonOpenerIds,
     })
     .select("id")
@@ -334,7 +331,6 @@ export async function duplicateSequence(sequenceId: string) {
       target_tag_ids: original.target_tag_ids,
       exclude_tag_ids: original.exclude_tag_ids,
       exclude_stage_ids: original.exclude_stage_ids,
-      exclude_timelines: original.exclude_timelines,
       description: original.description,
       active: false,
     })
@@ -393,7 +389,6 @@ export async function getCampaignReportData(sequenceId: string): Promise<Campaig
           targetTagIds: sequence.target_tag_ids,
           excludeTagIds: sequence.exclude_tag_ids,
           excludeStageIds: sequence.exclude_stage_ids,
-          excludeTimelines: sequence.exclude_timelines,
           memberIds: sequence.type === "batch" ? (sequence.snapshot_contact_ids ?? undefined) : undefined,
         })
       : Promise.resolve([]),

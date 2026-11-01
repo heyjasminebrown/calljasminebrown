@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useApplyStageChange } from "@/lib/hooks/useApplyStageChange";
 import { DealCelebrationModal } from "@/components/contacts/DealCelebrationModal";
 import { PendingDealCleanupModal } from "@/components/contacts/PendingDealCleanupModal";
-import type { DealSide, PipelineStage, Representing } from "@/types/database";
+import type { DealSide, PipelineStage } from "@/types/database";
 
 // The Move to... menu is the only way to change a contact's stage from
 // Pipeline now that the per-card <select> is gone (drag-and-drop was
@@ -20,7 +20,6 @@ export function MoveToMenu({
   stages,
   contactName,
   contactCreatedAt,
-  representing,
 }: {
   contactId: string;
   ownerId: string;
@@ -28,7 +27,6 @@ export function MoveToMenu({
   stages: PipelineStage[];
   contactName: string;
   contactCreatedAt: string;
-  representing: Representing | null;
 }) {
   const [open, setOpen] = useState(false);
   const { move: applyMove, busy, dealModal, pendingCleanup, clearDealModal, clearPendingCleanup } = useApplyStageChange(ownerId);
@@ -93,7 +91,7 @@ export function MoveToMenu({
           dealId={dealModal.id}
           contactName={contactName}
           defaultLeadStartedAt={contactCreatedAt}
-          defaultSide={(representing === "buyer" || representing === "seller" ? representing : null) as DealSide | null}
+          defaultSide={null}
           mode={dealModal.mode ?? "celebrate"}
           onClose={clearDealModal}
         />

@@ -8,7 +8,6 @@ type SmsConversationSource = {
     first_name: string;
     last_name?: string | null;
     phone: string | null;
-    representing?: "buyer" | "seller" | "both" | null;
     pipeline_stages?: { name: string | null } | null;
   };
   lastSms: Activity | null;
@@ -28,7 +27,6 @@ export type SmsInboxThread = {
   lastName: string;
   phone: string | null;
   stageName: string | null;
-  representing: "buyer" | "seller" | "both" | null;
   preview: string;
   occurredAt: string;
   lastInboundAt: string | null;
@@ -49,7 +47,6 @@ export type OpenSmsThread = {
   lastName: string;
   phone: string | null;
   stageName: string | null;
-  representing: "buyer" | "seller" | "both" | null;
   messages: SmsThreadMessage[];
   draft?: string;
 };
@@ -101,7 +98,6 @@ export function toSmsInboxThreads(conversations: SmsConversationSource[]): SmsIn
         lastName: conversation.contact.last_name ?? "",
         phone: conversation.contact.phone,
         stageName: conversation.contact.pipeline_stages?.name ?? null,
-        representing: conversation.contact.representing ?? null,
         preview: (last.body ?? "").replace(/\s+/g, " ").trim() || "SMS",
         occurredAt: last.occurred_at,
         lastInboundAt: conversation.lastInboundSmsAt,

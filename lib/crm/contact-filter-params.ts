@@ -27,8 +27,6 @@ export type ContactFilterParams = {
   stageId?: string;
   tagIds?: string[];
   type?: string;
-  timeline?: string;
-  representing?: string;
   leadSource?: string;
   stageIds?: string[];
   gender?: ContactGender;
@@ -78,8 +76,6 @@ export function parseContactFilterParams(sp: URLSearchParams): ContactFilterPara
     stageIds,
     tagIds: sp.get("tags") ? sp.get("tags")!.split(",").filter(Boolean) : undefined,
     type: sp.get("type") ?? undefined,
-    timeline: sp.get("timeline") ?? undefined,
-    representing: sp.get("representing") ?? undefined,
     leadSource: sp.get("source") ?? undefined,
     gender: parseContactGender(sp.get("gender")),
     hasPhone: phone === "1",
@@ -113,7 +109,7 @@ export function parseContactFilterParams(sp: URLSearchParams): ContactFilterPara
 }
 
 export const SHEET_PARAM_KEYS = [
-  "stage", "type", "tags", "source", "timeline", "representing", "likelihood",
+  "stage", "type", "tags", "source", "likelihood",
   "phone", "email", "followup", "notes", "newSince", "leadFrom", "leadTo",
   "event", "regEvent", "gender", "city", "state", "birthdayMonth", "minBudget", "archived", "quoSync", "group",
 ] as const;

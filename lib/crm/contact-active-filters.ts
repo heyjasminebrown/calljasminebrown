@@ -17,8 +17,6 @@ const PARAM_LABELS: Record<string, string> = {
   stage: "Stage",
   type: "Type",
   tags: "Tag",
-  timeline: "Timeline",
-  representing: "Side",
   likelihood: "Likelihood",
   phone: "Phone",
   email: "Email",

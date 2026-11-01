@@ -10,7 +10,7 @@ import { DealCelebrationModal } from "@/components/contacts/DealCelebrationModal
 import { PendingDealCleanupModal } from "@/components/contacts/PendingDealCleanupModal";
 import { Button, Input } from "@/components/ui";
 import { cn } from "@/lib/utils";
-import type { DealSide, PipelineStage, Representing, Tag } from "@/types/database";
+import type { DealSide, PipelineStage, Tag } from "@/types/database";
 
 const FOLLOW_UP_OPTIONS: { label: string; days: number }[] = [
   { label: "Tomorrow", days: 1 },
@@ -39,7 +39,6 @@ export function StageTagsSheet({
   currentTagIds,
   contactName,
   contactCreatedAt,
-  representing,
 }: {
   open: boolean;
   onClose: () => void;
@@ -51,7 +50,6 @@ export function StageTagsSheet({
   currentTagIds: string[];
   contactName: string;
   contactCreatedAt: string;
-  representing: Representing | null;
 }) {
   const router = useRouter();
   const { move, busy, dealModal, pendingCleanup, clearDealModal, clearPendingCleanup } = useApplyStageChange(ownerId);
@@ -246,7 +244,7 @@ export function StageTagsSheet({
           dealId={dealModal.id}
           contactName={contactName}
           defaultLeadStartedAt={contactCreatedAt}
-          defaultSide={(representing === "buyer" || representing === "seller" ? representing : null) as DealSide | null}
+          defaultSide={null}
           mode={dealModal.mode ?? "celebrate"}
           onClose={clearDealModal}
         />

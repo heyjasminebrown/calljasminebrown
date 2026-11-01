@@ -9,7 +9,6 @@ import { upsertActivity } from "@/lib/crm/activities";
 import { sendTextToContact } from "@/app/(app)/contacts/actions";
 import { buildBookingConfirmedMessage, buildBookingDeclinedMessage, buildProposeNewTimeMessage } from "@/lib/crm/booking-message";
 import { BOOKING_CONTACT_TYPE_OPTIONS } from "@/lib/crm/booking-form-options";
-import { TIMELINE_LABELS } from "@/lib/utils";
 import { baseUrl } from "@/lib/crm/sequences";
 import type { WeeklyHours } from "@/types/database";
 
@@ -101,7 +100,6 @@ export async function approveBooking(requestId: string) {
   const contactTypeLabel = BOOKING_CONTACT_TYPE_OPTIONS.find((o) => o.value === request.contact_type)?.label;
   const description = [
     contactTypeLabel ? `${contactTypeLabel}` : null,
-    request.timeline ? `Timeline: ${TIMELINE_LABELS[request.timeline]}` : null,
     request.questions ? `Questions: ${request.questions}` : null,
   ]
     .filter(Boolean)

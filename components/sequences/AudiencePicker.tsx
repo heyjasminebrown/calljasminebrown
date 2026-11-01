@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { previewEmailAudience, type AudiencePreview } from "@/app/(app)/sequences/actions";
 import { Label, Input, Button } from "@/components/ui";
-import { cn, TIMELINE_LABELS } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { Plus } from "lucide-react";
 import type { Tag, PipelineStage } from "@/types/database";
 
@@ -12,10 +12,8 @@ export type AudienceCriteria = {
   targetTagIds: string[];
   excludeTagIds: string[];
   excludeStageIds: string[];
-  excludeTimelines: string[];
 };
 
-const TIMELINE_OPTIONS = Object.entries(TIMELINE_LABELS);
 
 function toggle(list: string[], value: string): string[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
@@ -59,7 +57,7 @@ export function AudiencePicker({
   excludeContactIds?: string[];
 }) {
   const [showExcludes, setShowExcludes] = useState(
-    criteria.excludeTagIds.length > 0 || criteria.excludeStageIds.length > 0 || criteria.excludeTimelines.length > 0,
+    criteria.excludeTagIds.length > 0 || criteria.excludeStageIds.length > 0,
   );
   const [creatingTag, setCreatingTag] = useState(false);
   const [newTagName, setNewTagName] = useState("");
@@ -70,7 +68,6 @@ export function AudiencePicker({
   const targetKey = criteria.targetTagIds.join(",");
   const excludeTagKey = criteria.excludeTagIds.join(",");
   const excludeStageKey = criteria.excludeStageIds.join(",");
-  const excludeTimelineKey = criteria.excludeTimelines.join(",");
   const excludeContactKey = excludeContactIds.join(",");
 
   useEffect(() => {
@@ -88,7 +85,7 @@ export function AudiencePicker({
     }, 400);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the *Key strings below are the real, flattened dependency
-  }, [targetKey, excludeTagKey, excludeStageKey, excludeTimelineKey, excludeContactKey]);
+  }, [targetKey, excludeTagKey, excludeStageKey, excludeContactKey]);
 
   async function createTag() {
     if (!newTagName.trim()) return;
@@ -210,24 +207,6 @@ export function AudiencePicker({
                   )}
                 >
                   {s.name}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <Label>Exclude timelines</Label>
-            <div className="flex flex-wrap gap-1.5">
-              {TIMELINE_OPTIONS.map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => onChange({ ...criteria, excludeTimelines: toggle(criteria.excludeTimelines, value) })}
-                  className={cn(
-                    "h-7 rounded-full border px-2.5 text-xs font-medium",
-                    criteria.excludeTimelines.includes(value) ? "border-red-300 bg-red-50 text-red-700" : "border-neutral-200 text-neutral-600",
-                  )}
-                >
-                  {label}
                 </button>
               ))}
             </div>

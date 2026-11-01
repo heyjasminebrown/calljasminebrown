@@ -11,8 +11,6 @@ import { Avatar } from "@/components/ui";
 import { threadHref } from "@/lib/crm/inbox-href";
 import type { Conversation } from "@/lib/data/messages";
 
-const REPRESENTING_LABEL: Record<string, string> = { buyer: "buyer", seller: "seller", both: "buyer & seller" };
-
 export function ConversationRow({
   conversation,
   filter,
@@ -43,7 +41,7 @@ export function ConversationRow({
     preview = `"${preview}"`;
   }
 
-  const contextLine = [stage?.name, contact.representing ? REPRESENTING_LABEL[contact.representing] : null].filter(Boolean).join(" · ");
+  const contextLine = stage?.name ?? "";
 
   function handleCallBack(e: React.MouseEvent) {
     e.preventDefault();

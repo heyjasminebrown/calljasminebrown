@@ -1,5 +1,5 @@
 import { formatLocal } from "@/lib/format-time";
-import { RELATIONSHIP_TYPE_LABELS, TIMELINE_LABELS } from "@/lib/utils";
+import { RELATIONSHIP_TYPE_LABELS } from "@/lib/utils";
 import type { ContactWithRelations, PipelineStage } from "@/types/database";
 import type { PipelineExtras, PipelinePendingDeal } from "@/lib/data/pipeline";
 
@@ -58,7 +58,6 @@ export function getPipelineCardContext(
   }
 
   const contactType = RELATIONSHIP_TYPE_LABELS[contact.relationship_type];
-  const timelineLabel = contact.timeline ? TIMELINE_LABELS[contact.timeline] : null;
   const lastActivity = extras.lastActivityLabels[contact.id];
 
   if (extras.coldFromHotIds[contact.id]) {
@@ -69,6 +68,6 @@ export function getPipelineCardContext(
     return { line: withTimeInStage([contactType, "no contact yet"].filter(Boolean).join(" · "), extras, contact.id), quiet: false };
   }
 
-  const line = [lastActivity, timelineLabel].filter(Boolean).join(" · ") || contactType;
+  const line = lastActivity || contactType;
   return { line: withTimeInStage(line ?? "", extras, contact.id), quiet: false };
 }

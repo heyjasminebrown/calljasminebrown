@@ -4,7 +4,6 @@ export type EmailAudienceCriteria = {
   targetTagIds: string[];
   excludeTagIds: string[];
   excludeStageIds: string[];
-  excludeTimelines: string[];
   // Batch sequences only: the frozen membership captured at creation time
   // (email_sequences.snapshot_contact_ids) - when set, this replaces the
   // live contact_tags lookup for targetTagIds entirely, so a one-off batch
@@ -71,7 +70,7 @@ export async function resolveEmailAudience(
 
   const { data: contacts } = await admin
     .from("contacts")
-    .select("id, email, first_name, last_name, archived, known_personally, opted_out_at, stage_id, timeline, unsubscribe_token")
+    .select("id, email, first_name, last_name, archived, known_personally, opted_out_at, stage_id, unsubscribe_token")
     .eq("owner_id", ownerId)
     .in("id", includedIds);
 
@@ -90,10 +89,6 @@ export async function resolveEmailAudience(
       continue;
     }
     if (c.stage_id && criteria.excludeStageIds.includes(c.stage_id)) {
-      excludedCount++;
-      continue;
-    }
-    if (criteria.excludeTimelines.includes(c.timeline)) {
       excludedCount++;
       continue;
     }
