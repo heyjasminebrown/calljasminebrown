@@ -1,7 +1,7 @@
 # CRM setup status
 
 Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-curie-mb14vu`
-(Vercel production branch). Supabase migrations through 0084 have been run (0085 = Conventus Text Campaign: run it if not yet).
+(Vercel production branch). Supabase migrations through 0086 have been run.
 
 ## Done
 - Supabase, Vercel, sign-in, Gmail + Calendar (Google Workspace, Internal app), Gmail Sync now
@@ -18,6 +18,9 @@ Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-cur
   "Original Email List" is left out of New / Uncontacted
 - Tags can be created right on a contact and on Add contact
 - Error banner for background failures
+- Text campaign builder (Campaigns -> Automated text campaigns): triggers on Source (new
+  contacts), tag added, Type, or Stage; stop rules, 2/min throttle and 9 AM-8 PM ET always
+  enforced; each contact goes through a campaign once. Conventus Text Campaign is the first.
 - Public pages show (404) 383-5256; emails signed just "Jasmine Brown" (no company name)
 
 ## Waiting on something outside the CRM
@@ -28,9 +31,7 @@ Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-cur
     After a real delivery works, check the header and decide on `CRM_QUO_ENFORCE_SIGNATURE=true`.
   - In Quo -> Settings -> API, delete the old "CRM" key from Oct 30 if it's still there.
   - Texts in the Outreach scorecard stay at 0 until this is live.
-  - **Conventus Text Campaign** is built and queues new Conventus contacts, but sends nothing
-    until you add `TEXT_AUTOMATION_ENABLED` = `true` in Vercel (after A2P approval) and
-    redeploy. Campaigns -> Conventus Text Campaign shows the texts and who is where.
+  - A2P approved; sending works; `TEXT_AUTOMATION_ENABLED=true` is on.
 
 ## Needs your action
 - **Text message wording:** first-touch and text-blast templates
