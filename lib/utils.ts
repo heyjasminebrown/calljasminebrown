@@ -201,20 +201,4 @@ export const PROPERTY_TYPE_LABELS: Record<string, string> = {
   other: "Other",
 };
 
-export const LEAD_SOURCES = [
-  "Referral",
-  "Past Client",
-  "Sphere",
-  "Zillow",
-  "Realtor.com",
-  "Website",
-  "Open House",
-  "Sign Call",
-  "Meetup / Event",
-  "Eventbrite",
-  "Jotform",
-  "Calendly",
-  "Social Media",
-  "Cold Call / Prospecting",
-  "Other",
-];
+export const LEAD_SOURCES = ["Event", "Facebook", "Instagram", "YouTube", "TikTok", "Website", "Conventus"];

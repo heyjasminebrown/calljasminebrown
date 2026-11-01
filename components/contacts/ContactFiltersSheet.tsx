@@ -205,32 +205,26 @@ export function ContactFiltersSheet({
           </Select>
         </Section>
 
-        <Section title="Gender">
+        <Section title="Contact by">
           <div className="space-y-2">
             {(
               [
-                ["", "Any"],
-                ["women", "Women"],
-                ["men", "Men"],
-                ["unknown", "Unknown"],
+                ["phone", "Phone"],
+                ["email", "Email"],
               ] as const
-            ).map(([value, label]) => (
-              <label key={label} className="flex items-center gap-2.5 text-[14px] text-neutral-800">
+            ).map(([key, label]) => (
+              <label key={key} className="flex items-center gap-2.5 text-[14px] text-neutral-800">
                 <input
-                  type="radio"
-                  name="gender"
-                  checked={(draft.gender ?? "") === value}
-                  onChange={() => set("gender", value)}
-                  className="accent-[#34223a]"
+                  type="checkbox"
+                  checked={draft[key] === "1"}
+                  onChange={(e) => set(key, e.target.checked ? "1" : "")}
+                  className="h-4 w-4 rounded border-neutral-300 accent-[#34223a]"
                 />
                 {label}
               </label>
             ))}
+            <p className="text-[12px] text-neutral-400">Checking both shows people with a phone and an email.</p>
           </div>
-        </Section>
-
-        <Section title="Has phone">
-          <Toggle label="Has phone" checked={draft.phone === "1"} onChange={(on) => set("phone", on ? "1" : "")} />
         </Section>
       </div>
 

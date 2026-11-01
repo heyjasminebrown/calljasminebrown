@@ -3,13 +3,13 @@
 // string. Display chips use the bucket label when we can map one.
 
 export const CONTACT_SOURCE_FILTERS = [
-  { value: "zillow", label: "Zillow", match: ["zillow"] },
-  { value: "realtor", label: "Realtor.com", match: ["realtor.com", "realtor"] },
-  { value: "facebook", label: "Facebook", match: ["facebook", "fb", "instagram", "social"] },
-  { value: "referral", label: "Referral", match: ["referral", "referred"] },
   { value: "event", label: "Event", match: ["eventbrite", "meetup", "jotform", "event"] },
-  { value: "open_house", label: "Open house", match: ["open house", "openhouse"] },
-  { value: "manual", label: "Manual", match: ["manual"] },
+  { value: "facebook", label: "Facebook", match: ["facebook", "fb"] },
+  { value: "instagram", label: "Instagram", match: ["instagram"] },
+  { value: "youtube", label: "YouTube", match: ["youtube"] },
+  { value: "tiktok", label: "TikTok", match: ["tiktok", "tik tok"] },
+  { value: "website", label: "Website", match: ["website", "site_form", "web form"] },
+  { value: "conventus", label: "Conventus", match: ["conventus"] },
 ] as const;
 
 export type ContactSourceFilterValue = (typeof CONTACT_SOURCE_FILTERS)[number]["value"];
