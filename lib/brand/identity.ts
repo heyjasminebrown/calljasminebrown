@@ -23,8 +23,7 @@ export const OWNER_FIRST_NAME = OWNER_NAME.split(" ")[0] ?? OWNER_NAME;
 
 /** Company / brokerage / lending shop name, shown alongside OWNER_NAME in
  * a few places (email signatures, etc). Leave "" to omit it entirely. */
-// TODO: set Jasmine's lending company name (left blank so outbound email
-// isn't signed "with Your Company" in the meantime).
+// Intentionally blank: emails are signed just "Jasmine Brown".
 export const COMPANY_NAME = "";
 
 /** Short product name for the app shell: browser tab title, PWA manifest
@@ -33,12 +32,11 @@ export const COMPANY_NAME = "";
 export const APP_NAME = "CallJasmineBrown";
 export const APP_SHORT_NAME = APP_NAME;
 
-/** Fallback phone number shown on public pages (e.g. booking confirmations)
- * when no better contact channel is available. Must be a real number you
- * own before going live — this placeholder will not receive calls/texts.
- * Format: E.164 for tel: links, human-readable for display. */
-export const OWNER_PHONE_E164 = process.env.NEXT_PUBLIC_OWNER_PHONE_E164 ?? "+10000000000";
-export const OWNER_PHONE_DISPLAY = process.env.NEXT_PUBLIC_OWNER_PHONE_DISPLAY ?? "000-000-0000";
+/** Phone number shown on public pages (e.g. booking confirmations).
+ * The env vars override it if set. Format: E.164 for tel: links,
+ * human-readable for display. */
+export const OWNER_PHONE_E164 = process.env.NEXT_PUBLIC_OWNER_PHONE_E164 || "+14043835256";
+export const OWNER_PHONE_DISPLAY = process.env.NEXT_PUBLIC_OWNER_PHONE_DISPLAY || "(404) 383-5256";
 
 /** Default sender display name on outbound Gmail sends (lib/google/send-email.ts). */
 export const EMAIL_SENDER_NAME = COMPANY_NAME ? `${OWNER_NAME} with ${COMPANY_NAME}` : OWNER_NAME;
