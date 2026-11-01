@@ -40,6 +40,14 @@ function unwrap(body: AnyRecord): AnyRecord {
   return (data?.resource as AnyRecord) ?? (data?.object as AnyRecord) ?? data ?? body;
 }
 
+// In 2026-03-30 payloads the resource has no from/to; the numbers sit in
+// data.context instead (confirmed on a real message.received):
+//   { senderIdentifier: "+1404...", recipientIdentifiers: ["+1404..."] }
+function contextNumbers(body: AnyRecord): { from: string | null; to: string | null } {
+  const ctx = (body.data as AnyRecord | undefined)?.context as AnyRecord | undefined;
+  return { from: phoneOf(ctx?.senderIdentifier), to: phoneOf(ctx?.recipientIdentifiers) };
+}
+
 // A phone number given as a plain string, the first of a list, or an
 // object wrapping it ({ phoneNumber } / { number } / { value }).
 function phoneOf(v: unknown): string | null {
@@ -62,8 +70,9 @@ function rawDirection(obj: AnyRecord): "inbound" | "outbound" | "none" {
 export function parseQuoCall(body: AnyRecord): ParsedQuoCall {
   const obj = unwrap(body);
   const direction = rawDirection(obj);
-  const from = phoneOf(obj.from) ?? phoneOf((obj.participants as AnyRecord | undefined)?.from);
-  const to = phoneOf(obj.to) ?? phoneOf((obj.participants as AnyRecord | undefined)?.to);
+  const ctx = contextNumbers(body);
+  const from = phoneOf(obj.from) ?? phoneOf((obj.participants as AnyRecord | undefined)?.from) ?? ctx.from;
+  const to = phoneOf(obj.to) ?? phoneOf((obj.participants as AnyRecord | undefined)?.to) ?? ctx.to;
   const media = obj.media as AnyRecord[] | undefined;
   const recording = obj.recording as AnyRecord | undefined;
   // For a call that goes to voicemail, Quo delivers the recording +
@@ -128,8 +137,9 @@ function parseTranscript(transcript: unknown): string | null {
 export function parseQuoMessage(body: AnyRecord): ParsedQuoMessage {
   const obj = unwrap(body);
   const direction = rawDirection(obj);
-  const from = phoneOf(obj.from);
-  const to = phoneOf(obj.to);
+  const ctx = contextNumbers(body);
+  const from = phoneOf(obj.from) ?? ctx.from;
+  const to = phoneOf(obj.to) ?? ctx.to;
 
   return {
     quoMessageId: asString(obj.id),
