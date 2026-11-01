@@ -43,6 +43,14 @@ export function TodayHome({
           Couldn&apos;t load new leads: {today.newLeadsError}
         </p>
       )}
+      <div className={TODAY_GRID}>
+        <div className="col-span-12 min-w-0 md:col-span-6">
+          <TodayPipelineOverview stages={today.stages} counts={today.statStrip.stageCounts} />
+        </div>
+        <div className="col-span-12 min-w-0 md:col-span-6">
+          <TodayTodosCard tasks={tasks} />
+        </div>
+      </div>
       <section data-today-home="needs-you" className="flex min-w-0 flex-col gap-3">
         <h2 className={TODAY_LABEL}>Needs you</h2>
         {today.bookingRequests.map((request) => (
@@ -55,17 +63,7 @@ export function TodayHome({
           <TextAndNextDialer leads={leads} />
         </div>
       </section>
-      <div className={TODAY_GRID}>
-        <div className={cn("min-w-0", upcoming.length > 0 ? "col-span-12 md:col-span-6" : "col-span-12")}>
-          <TodayPipelineOverview stages={today.stages} counts={today.statStrip.stageCounts} />
-        </div>
-        {upcoming.length > 0 && (
-          <div className="col-span-12 min-w-0 md:col-span-6">
-            <TodayUpcomingEvents items={upcoming} />
-          </div>
-        )}
-      </div>
-      <TodayTodosCard tasks={tasks} />
+      {upcoming.length > 0 && <TodayUpcomingEvents items={upcoming} />}
     </div>
   );
 }

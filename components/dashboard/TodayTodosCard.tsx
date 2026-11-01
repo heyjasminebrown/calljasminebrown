@@ -29,7 +29,7 @@ export function TodayTodosCard({ tasks }: { tasks: WorklistTask[] }) {
   }
 
   return (
-    <section data-today-home="todos" className={cn("overflow-hidden", TODAY_CARD)}>
+    <section data-today-home="todos" className={cn("h-full overflow-hidden", TODAY_CARD)}>
       <div className="flex items-center gap-2 px-4 pt-4 sm:px-5">
         <ListTodo size={16} strokeWidth={1.7} className="text-[#34223a]" />
         <h2 className="text-[15px] font-semibold text-neutral-900">To Dos</h2>
