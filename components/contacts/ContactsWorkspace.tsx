@@ -61,7 +61,9 @@ export function ContactsWorkspace({
       onClose={() => setTextNextOpen(false)}
     />
   ) : filtersOpen ? (
-    <aside className="sticky top-[88px] hidden h-[calc(100dvh-110px)] w-[280px] shrink-0 self-start overflow-hidden lg:block">
+    // A fixed, full-height drawer on the right: it scrolls on its own instead
+    // of making the page and the panel both scroll.
+    <aside className="fixed inset-y-0 right-0 z-50 hidden w-[320px] overflow-hidden shadow-[-12px_0_24px_-12px_rgba(52,34,58,0.25)] lg:block">
       <ContactFiltersSheet
         stages={stages}
         tags={tags}

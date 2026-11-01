@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import { Select } from "@/components/ui";
 import { cn, RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, relationshipTypeColor, stageColor } from "@/lib/utils";
 import type { PipelineStage, Tag } from "@/types/database";
@@ -14,11 +14,20 @@ import {
 import { CONTACT_SOURCE_FILTERS, leadSourceMatches, sourceFilterByValue } from "@/lib/crm/contact-sources";
 import { ColorDot } from "@/components/ui/ColorPill";
 
-function Section({ title, children, flush }: { title: string; children: React.ReactNode; flush?: boolean }) {
+// Collapsible category. Opens by default when something in it is selected,
+// and shows how many are selected while closed.
+function Section({ title, children, selected = 0 }: { title: string; children: React.ReactNode; selected?: number }) {
+  const [open, setOpen] = useState(selected > 0);
   return (
-    <div className={cn("space-y-2.5", !flush && "border-b border-[#ddd7da] pb-4 last:border-b-0")}>
-      <p className="text-[12px] font-semibold uppercase tracking-[.06em] text-neutral-400">{title}</p>
-      {children}
+    <div className="border-b border-[#ddd7da] last:border-b-0">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex w-full items-center gap-2 py-3 text-left">
+        <span className="flex-1 text-[12px] font-semibold uppercase tracking-[.06em] text-neutral-500">{title}</span>
+        {selected > 0 && (
+          <span className="rounded-full bg-[#34223a] px-2 py-0.5 text-[11px] font-semibold text-peach">{selected}</span>
+        )}
+        <ChevronDown size={16} className={cn("text-neutral-400 transition-transform", open && "rotate-180")} />
+      </button>
+      {open && <div className="space-y-2.5 pb-4">{children}</div>}
     </div>
   );
 }
@@ -51,7 +60,7 @@ function sourceDraftValue(raw: string | undefined): string {
 
 export function ContactFiltersSheet({
   stages,
-  tags: _tags,
+  tags,
   leadSources,
   eventNames,
   registeredEventNames: _registeredEventNames = [],
@@ -86,12 +95,13 @@ export function ContactFiltersSheet({
   }
 
   // stage, type and source are comma-separated lists of checked values.
-  function toggleIn(key: "stage" | "type" | "source", value: string) {
+  function toggleIn(key: "stage" | "type" | "source" | "tags", value: string) {
     const current = (draft[key] ?? "").split(",").filter(Boolean);
     const next = current.includes(value) ? current.filter((s) => s !== value) : [...current, value];
     set(key, next.join(","));
   }
-  const checkedIn = (key: "type" | "source", value: string) => (draft[key] ?? "").split(",").includes(value);
+  const checkedIn = (key: "type" | "source" | "tags", value: string) => (draft[key] ?? "").split(",").includes(value);
+  const countOf = (key: string) => (draft[key] ?? "").split(",").filter(Boolean).length;
 
   function apply() {
     const params = new URLSearchParams(searchParams.toString());
@@ -137,9 +147,8 @@ export function ContactFiltersSheet({
         </button>
       </div>
 
-      <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
-        <div className={variant === "sheet" ? "grid grid-cols-2 gap-4 border-b border-[#ddd7da] pb-4" : "contents"}>
-        <Section title="Source" flush={variant === "sheet"}>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-1">
+        <Section title="Source" selected={countOf("source")}>
           <div className="space-y-2">
             {[...CONTACT_SOURCE_FILTERS, ...customSources].map((source) => (
               <label key={source.value} className="flex items-center gap-2.5 text-[14px] text-neutral-800">
@@ -155,7 +164,7 @@ export function ContactFiltersSheet({
           </div>
         </Section>
 
-        <Section title="Type" flush={variant === "sheet"}>
+        <Section title="Type" selected={countOf("type")}>
           <div className="space-y-2">
             {RELATIONSHIP_TYPES.map((value) => (
               <label key={value} className="flex items-center gap-2.5 text-[14px] text-neutral-800">
@@ -172,7 +181,7 @@ export function ContactFiltersSheet({
           </div>
         </Section>
 
-        <Section title="Stage" flush={variant === "sheet"}>
+        <Section title="Stage" selected={countOf("stage")}>
           <div className="space-y-2">
             {stages.map((stage) => (
               <label key={stage.id} className="flex items-center gap-2.5 text-[14px] text-neutral-800">
@@ -189,9 +198,27 @@ export function ContactFiltersSheet({
             {stages.length === 0 && <p className="text-[13px] text-neutral-400">No stages yet.</p>}
           </div>
         </Section>
-        </div>
 
-        <Section title="Events">
+        <Section title="Tags" selected={countOf("tags")}>
+          <div className="space-y-2">
+            {tags.map((tag) => (
+              <label key={tag.id} className="flex items-center gap-2.5 text-[14px] text-neutral-800">
+                <input
+                  type="checkbox"
+                  checked={checkedIn("tags", tag.id)}
+                  onChange={() => toggleIn("tags", tag.id)}
+                  className="h-4 w-4 rounded border-neutral-300 accent-[#34223a]"
+                />
+                <ColorDot color={tag.color} />
+                <span className="min-w-0 truncate">{tag.name}</span>
+              </label>
+            ))}
+            {tags.length === 0 && <p className="text-[13px] text-neutral-400">No tags yet - add them from a contact.</p>}
+            {tags.length > 1 && <p className="text-[12px] text-neutral-400">Checking several shows people with any of them.</p>}
+          </div>
+        </Section>
+
+        <Section title="Events" selected={draft.event ? 1 : 0}>
           <Toggle
             label="Ever attended"
             checked={everAttended}
@@ -210,7 +237,7 @@ export function ContactFiltersSheet({
           </Select>
         </Section>
 
-        <Section title="Contact by">
+        <Section title="Contact by" selected={(draft.phone === "1" ? 1 : 0) + (draft.email === "1" ? 1 : 0)}>
           <div className="space-y-2">
             {(
               [
