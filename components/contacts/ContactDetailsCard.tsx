@@ -8,7 +8,7 @@ import { Plus, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { syncContactToQuoAction } from "@/app/(app)/contacts/actions";
 import { contactSchema, type ContactFormValues } from "@/lib/validation/contact";
-import { RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, TIMELINE_LABELS, REPRESENTING_LABELS, LEAD_SOURCES, cn } from "@/lib/utils";
+import { RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, LEAD_SOURCES, cn } from "@/lib/utils";
 import { dateInputToAppIso, isoToDateInput } from "@/lib/format-time";
 import { useApplyStageChange } from "@/lib/hooks/useApplyStageChange";
 import { DealCelebrationModal } from "@/components/contacts/DealCelebrationModal";
@@ -46,11 +46,7 @@ export function ContactDetailsCard({
   const [addingTag, setAddingTag] = useState(false);
   const { move: applyMove, dealModal, pendingCleanup, clearDealModal, clearPendingCleanup } = useApplyStageChange(contact.owner_id);
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-  } = useForm<ContactFormValues>({
+  const { register, handleSubmit } = useForm<ContactFormValues>({
     resolver: zodResolver(contactSchema),
     defaultValues: {
       first_name: contact.first_name,
@@ -81,8 +77,6 @@ export function ContactDetailsCard({
     },
   });
 
-  const representing = watch("representing");
-  const showListingFields = representing === "seller" || representing === "both";
 
   async function onSubmit(values: ContactFormValues) {
     setSubmitting(true);
@@ -176,14 +170,6 @@ export function ContactDetailsCard({
     <form onSubmit={handleSubmit(onSubmit)} className="p-[18px]">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className={labelClass}>Phone</label>
-          <input type="tel" {...register("phone")} className={fieldClass} />
-        </div>
-        <div>
-          <label className={labelClass}>Email</label>
-          <input type="email" {...register("email")} className={fieldClass} />
-        </div>
-        <div>
           <label className={labelClass}>First name</label>
           <input {...register("first_name")} className={fieldClass} />
         </div>
@@ -192,12 +178,12 @@ export function ContactDetailsCard({
           <input {...register("last_name")} className={fieldClass} />
         </div>
         <div>
-          <label className={labelClass}>Secondary phone</label>
-          <input type="tel" {...register("secondary_phone")} className={fieldClass} />
+          <label className={labelClass}>Phone</label>
+          <input type="tel" {...register("phone")} className={fieldClass} />
         </div>
         <div>
-          <label className={labelClass}>Secondary email</label>
-          <input type="email" {...register("secondary_email")} className={fieldClass} />
+          <label className={labelClass}>Email</label>
+          <input type="email" {...register("email")} className={fieldClass} />
         </div>
         <div>
           <label className={labelClass}>Type</label>
@@ -220,28 +206,35 @@ export function ContactDetailsCard({
             ))}
           </select>
         </div>
-        <div>
-          <label className={labelClass}>Timeline</label>
-          <select {...register("timeline")} className={fieldClass}>
-            {Object.entries(TIMELINE_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
+        <div className="sm:col-span-2">
+          <p className={labelClass}>Tags</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {tags.map((tag) => {
+              const active = selectedTagIds.includes(tag.id);
+              if (!active && !addingTag) return null;
+              return (
+                <button
+                  type="button"
+                  key={tag.id}
+                  onClick={() => toggleTag(tag.id)}
+                  className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-white"
+                  style={{ backgroundColor: active ? tag.color : "#a8a29e" }}
+                >
+                  {tag.name}
+                  {active && <X size={13} />}
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => setAddingTag((v) => !v)}
+              className="flex items-center gap-1.5 rounded-full border border-dashed border-neutral-300 px-3.5 py-1.5 text-sm font-medium text-neutral-500"
+            >
+              <Plus size={13} /> {addingTag ? "Done" : "Add tag"}
+            </button>
+          </div>
         </div>
-        <div>
-          <label className={labelClass}>Representing</label>
-          <select {...register("representing")} className={fieldClass}>
-            <option value="">Not applicable</option>
-            {Object.entries(REPRESENTING_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
+        <div className="sm:col-span-2">
           <label className={labelClass}>Lead source</label>
           <input list="lead-sources" {...register("lead_source")} className={fieldClass} />
           <datalist id="lead-sources">
@@ -258,27 +251,14 @@ export function ContactDetailsCard({
           <label className={labelClass}>Next follow-up</label>
           <input type="date" {...register("next_follow_up_at")} className={fieldClass} />
         </div>
-
-        {showListingFields && (
-          <>
-            <div>
-              <label className={labelClass}>Listing address</label>
-              <input {...register("listing_address")} placeholder="What are they selling?" className={fieldClass} />
-            </div>
-            <div>
-              <label className={labelClass}>Listing timeline</label>
-              <select {...register("listing_timeline")} className={fieldClass}>
-                <option value="">Unknown</option>
-                {Object.entries(TIMELINE_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </>
-        )}
-
+        <div>
+          <label className={labelClass}>Secondary phone</label>
+          <input type="tel" {...register("secondary_phone")} className={fieldClass} />
+        </div>
+        <div>
+          <label className={labelClass}>Secondary email</label>
+          <input type="email" {...register("secondary_email")} className={fieldClass} />
+        </div>
         <div className="sm:col-span-2">
           <label className={labelClass}>Address</label>
           <input {...register("address_line1")} placeholder="Address line 1" className={fieldClass} />
@@ -307,41 +287,6 @@ export function ContactDetailsCard({
                 </option>
               ))}
           </select>
-        </div>
-        {contact.contact_type === "renter" && (
-          <div>
-            <label className={labelClass}>Lease ends</label>
-            <input type="date" {...register("lease_ends_at")} className={fieldClass} />
-          </div>
-        )}
-      </div>
-
-      <div className="mt-5">
-        <p className={labelClass}>Tags</p>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          {tags.map((tag) => {
-            const active = selectedTagIds.includes(tag.id);
-            if (!active && !addingTag) return null;
-            return (
-              <button
-                type="button"
-                key={tag.id}
-                onClick={() => toggleTag(tag.id)}
-                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-white"
-                style={{ backgroundColor: active ? tag.color : "#a8a29e" }}
-              >
-                {tag.name}
-                {active && <X size={13} />}
-              </button>
-            );
-          })}
-          <button
-            type="button"
-            onClick={() => setAddingTag((v) => !v)}
-            className="flex items-center gap-1.5 rounded-full border border-dashed border-neutral-300 px-3.5 py-1.5 text-sm font-medium text-neutral-500"
-          >
-            <Plus size={13} /> {addingTag ? "Done" : "Add tag"}
-          </button>
         </div>
       </div>
 
