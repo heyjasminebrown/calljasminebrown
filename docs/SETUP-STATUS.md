@@ -18,6 +18,7 @@ Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-cur
   "Original Email List" is left out of New / Uncontacted
 - Tags can be created right on a contact and on Add contact
 - Error banner for background failures
+- Public pages show (404) 383-5256; emails signed just "Jasmine Brown" (no company name)
 
 ## Waiting on something outside the CRM
 - **Quo calls/texts:** retest once A2P verification is approved. Text and call the Quo number,
@@ -29,11 +30,6 @@ Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-cur
   - Texts in the Outreach scorecard stay at 0 until this is live.
 
 ## Needs your action
-- **Your phone number on public pages:** the booking page shows a placeholder `000-000-0000`.
-  Add `NEXT_PUBLIC_OWNER_PHONE_E164` (e.g. `+14047895791`) and `NEXT_PUBLIC_OWNER_PHONE_DISPLAY`
-  (e.g. `(404) 789-5791`) in Vercel, then redeploy.
-- **Company name** (`COMPANY_NAME` in `lib/brand/identity.ts`) is blank, so emails are signed
-  just "Jasmine Brown". Tell Claude the company name if you want it added.
 - **Text message wording:** first-touch and text-blast templates
   (`lib/crm/new-lead-text-templates.ts`, `lib/crm/text-blast-templates.ts`) are generic
   placeholder copy ("Hi Melissa, this is Jasmine Brown..."). Rewrite them in your voice before
