@@ -105,11 +105,6 @@ export default async function SettingsPage({
             Syncs email to and from contacts already in your CRM to their timeline, lets you send email and schedule Google Meet
             invites from a contact&apos;s profile, and powers scheduled email campaigns.
           </p>
-          {gmailAccount && (
-            <p className="text-[13px] leading-5 text-amber-700">
-              Connected before Meet invites existed? Disconnect and reconnect once to grant calendar access.
-            </p>
-          )}
           <GmailConnect connectedEmail={gmailAccount?.email_address ?? null} errorCode={params.gmail_error} />
           <Link href="/sequences" className="block md:hidden">
             <Button variant="secondary" size="sm">
