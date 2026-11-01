@@ -41,7 +41,11 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (nex
 
 function sourceDraftValue(raw: string | undefined): string {
   if (!raw) return "";
-  return sourceFilterByValue(raw)?.value ?? raw;
+  return raw
+    .split(",")
+    .filter(Boolean)
+    .map((s) => sourceFilterByValue(s)?.value ?? s)
+    .join(",");
 }
 
 export function ContactFiltersSheet({
@@ -80,11 +84,13 @@ export function ContactFiltersSheet({
     });
   }
 
-  function toggleStage(id: string) {
-    const current = (draft.stage ?? "").split(",").filter(Boolean);
-    const next = current.includes(id) ? current.filter((s) => s !== id) : [...current, id];
-    set("stage", next.join(","));
+  // stage, type and source are comma-separated lists of checked values.
+  function toggleIn(key: "stage" | "type" | "source", value: string) {
+    const current = (draft[key] ?? "").split(",").filter(Boolean);
+    const next = current.includes(value) ? current.filter((s) => s !== value) : [...current, value];
+    set(key, next.join(","));
   }
+  const checkedIn = (key: "type" | "source", value: string) => (draft[key] ?? "").split(",").includes(value);
 
   function apply() {
     const params = new URLSearchParams(searchParams.toString());
@@ -128,18 +134,13 @@ export function ContactFiltersSheet({
         <div className={variant === "sheet" ? "grid grid-cols-2 gap-4 border-b border-[#ddd7da] pb-4" : "contents"}>
         <Section title="Source" flush={variant === "sheet"}>
           <div className="space-y-2">
-            <label className="flex items-center gap-2.5 text-[14px] text-neutral-800">
-              <input type="radio" name="source" checked={!draft.source} onChange={() => set("source", "")} className="accent-[#34223a]" />
-              All
-            </label>
             {CONTACT_SOURCE_FILTERS.map((source) => (
               <label key={source.value} className="flex items-center gap-2.5 text-[14px] text-neutral-800">
                 <input
-                  type="radio"
-                  name="source"
-                  checked={draft.source === source.value}
-                  onChange={() => set("source", source.value)}
-                  className="accent-[#34223a]"
+                  type="checkbox"
+                  checked={checkedIn("source", source.value)}
+                  onChange={() => toggleIn("source", source.value)}
+                  className="h-4 w-4 rounded border-neutral-300 accent-[#34223a]"
                 />
                 {source.label}
               </label>
@@ -149,18 +150,13 @@ export function ContactFiltersSheet({
 
         <Section title="Type" flush={variant === "sheet"}>
           <div className="space-y-2">
-            <label className="flex items-center gap-2.5 text-[14px] text-neutral-800">
-              <input type="radio" name="type" checked={!draft.type} onChange={() => set("type", "")} className="accent-[#34223a]" />
-              All
-            </label>
             {RELATIONSHIP_TYPES.map((value) => (
               <label key={value} className="flex items-center gap-2.5 text-[14px] text-neutral-800">
                 <input
-                  type="radio"
-                  name="type"
-                  checked={draft.type === value}
-                  onChange={() => set("type", value)}
-                  className="accent-[#34223a]"
+                  type="checkbox"
+                  checked={checkedIn("type", value)}
+                  onChange={() => toggleIn("type", value)}
+                  className="h-4 w-4 rounded border-neutral-300 accent-[#34223a]"
                 />
                 {RELATIONSHIP_TYPE_LABELS[value]}
               </label>
@@ -175,7 +171,7 @@ export function ContactFiltersSheet({
                 <input
                   type="checkbox"
                   checked={selectedStages.has(stage.id)}
-                  onChange={() => toggleStage(stage.id)}
+                  onChange={() => toggleIn("stage", stage.id)}
                   className="h-4 w-4 rounded border-neutral-300 accent-[#34223a]"
                 />
                 {stage.name}

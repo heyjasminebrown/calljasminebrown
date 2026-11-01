@@ -171,7 +171,9 @@ export async function listContacts(filters: ContactListFilters) {
   } else if (filters.stageId) {
     query = query.eq("stage_id", filters.stageId);
   }
-  if (filters.type) query = query.eq("relationship_type", filters.type);
+  // type and source are comma-separated lists (Filters uses checkboxes); a
+  // contact matches if it has any of the checked values.
+  if (filters.type) query = query.in("relationship_type", filters.type.split(",").filter(Boolean));
   if (filters.timeline) query = query.eq("timeline", filters.timeline);
   if (filters.representing) query = query.eq("representing", filters.representing);
   // Source buckets are matched in JS — lead_source is free text.
@@ -213,7 +215,10 @@ export async function listContacts(filters: ContactListFilters) {
 
   if (filters.hasPhone) contacts = contacts.filter((c) => hasUsablePhone(c.phone));
   if (filters.missingPhone) contacts = contacts.filter((c) => !hasUsablePhone(c.phone));
-  if (filters.leadSource) contacts = contacts.filter((c) => leadSourceMatches(c.lead_source, filters.leadSource!));
+  if (filters.leadSource) {
+    const sources = filters.leadSource.split(",").filter(Boolean);
+    contacts = contacts.filter((c) => sources.some((s) => leadSourceMatches(c.lead_source, s)));
+  }
   if (filters.gender) contacts = contacts.filter((c) => contactMatchesGender(c.first_name, filters.gender));
 
   if (filters.tagIds?.length) {

@@ -94,7 +94,10 @@ function formatFilterValue(key: string, raw: string, stages: PipelineStage[], ta
     const names = raw.split(",").filter(Boolean).map((id) => stages.find((s) => s.id === id)?.name ?? id);
     return names.length ? `Stage: ${names.join(", ")}` : null;
   }
-  if (key === "type") return `Type: ${RELATIONSHIP_TYPE_LABELS[raw as RelationshipType] ?? raw}`;
+  if (key === "type") {
+    const labels = raw.split(",").filter(Boolean).map((t) => RELATIONSHIP_TYPE_LABELS[t as RelationshipType] ?? t);
+    return labels.length ? `Type: ${labels.join(", ")}` : null;
+  }
   if (key === "phone") return raw === "1" ? "Has phone" : raw === "0" ? "No phone" : null;
   if (key === "email") return raw === "1" ? "Has email" : raw === "0" ? "No email" : null;
   if (key === "event") return raw === EVER_ATTENDED_EVENT ? "Ever attended" : `Attended: ${raw}`;
@@ -106,8 +109,8 @@ function formatFilterValue(key: string, raw: string, stages: PipelineStage[], ta
   if (key === "likelihood") return raw === "high" ? "Hot" : raw === "medium" ? "Warm" : raw === "low" ? "Cold" : raw;
   if (key === "newSince") return `Last ${raw} days`;
   if (key === "source") {
-    const bucket = sourceFilterByValue(raw);
-    return `Source: ${bucket?.label ?? raw}`;
+    const labels = raw.split(",").filter(Boolean).map((s) => sourceFilterByValue(s)?.label ?? s);
+    return labels.length ? `Source: ${labels.join(", ")}` : null;
   }
   if (key === "gender") {
     if (raw === "women") return "Gender: Women";
