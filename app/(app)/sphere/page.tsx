@@ -121,7 +121,7 @@ export default async function SpherePage() {
               </div>
             )}
             <p className="mt-4 text-sm text-neutral-400">
-              Every contact gets a referred by field, so lead source stops being just the word Referral and starts being a person you can thank.
+              Every contact gets a referred by field, so source stops being just the word Referral and starts being a person you can thank.
             </p>
           </div>
         </Section>

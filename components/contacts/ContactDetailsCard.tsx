@@ -302,7 +302,7 @@ export function ContactDetailsCard({
           {tagError && <p className="mt-2 text-sm text-red-600">{tagError}</p>}
         </div>
         <div className="sm:col-span-2">
-          <label className={labelClass}>Lead source</label>
+          <label className={labelClass}>Source</label>
           <input list="lead-sources" {...register("lead_source")} placeholder="Pick one, or type a new source" className={fieldClass} />
           <datalist id="lead-sources">
             {leadSourceOptions.map((s) => (

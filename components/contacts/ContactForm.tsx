@@ -337,7 +337,7 @@ export function ContactForm({
           </div>
         </div>
         <div>
-          <Label htmlFor="lead_source">Lead source</Label>
+          <Label htmlFor="lead_source">Source</Label>
           <Input id="lead_source" list="lead-sources" {...register("lead_source")} placeholder="Pick one, or type a new source" />
           <datalist id="lead-sources">
             {leadSourceOptions.map((s) => (

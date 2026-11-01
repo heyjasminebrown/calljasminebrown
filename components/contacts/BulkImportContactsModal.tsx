@@ -225,7 +225,7 @@ export function BulkImportContactsModal({
             </div>
 
             <div>
-              <Label htmlFor="import-lead-source">Lead source (how did they come in?)</Label>
+              <Label htmlFor="import-lead-source">Source (how did they come in?)</Label>
               <Input
                 id="import-lead-source"
                 placeholder="e.g. Eventbrite - House Hacking Meetup"
@@ -233,7 +233,7 @@ export function BulkImportContactsModal({
                 onChange={(e) => setLeadSource(e.target.value)}
               />
               <p className="mt-1 text-xs text-neutral-400">
-                Only applied to brand-new contacts — anyone already on file keeps their original lead source. Anyone
+                Only applied to brand-new contacts — anyone already on file keeps their original source. Anyone
                 imported with a phone number shows up in Event calls automatically.
               </p>
             </div>

@@ -75,7 +75,7 @@ export function InstagramStrangerRow({ thread, contacts }: { thread: InstagramTh
 
       {mode === "idle" && (
         <div className="mt-2.5 rounded-xl border border-dashed border-neutral-300 p-3">
-          <p className="text-sm text-neutral-500">Save as a contact with lead source Instagram, or send them the registration link.</p>
+          <p className="text-sm text-neutral-500">Save as a contact with source Instagram, or send them the registration link.</p>
           <div className="mt-2 flex flex-wrap gap-2">
             <Button variant="secondary" size="sm" onClick={() => setMode("search")}>
               <Search size={14} /> Add contact

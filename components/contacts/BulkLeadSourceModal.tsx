@@ -37,13 +37,13 @@ export function BulkLeadSourceModal({
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-4">
       <div className="w-full max-w-sm rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-2xl">
         <div className="flex items-start justify-between gap-3">
-          <p className="font-serif text-xl font-semibold text-neutral-900">Change lead source</p>
+          <p className="font-serif text-xl font-semibold text-neutral-900">Change source</p>
           <button onClick={onClose} className="shrink-0 rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100">
             <X size={18} />
           </button>
         </div>
         <p className="mt-1 text-sm text-neutral-500">
-          Setting the lead source for {contactIds.length} contact{contactIds.length === 1 ? "" : "s"}.
+          Setting the source for {contactIds.length} contact{contactIds.length === 1 ? "" : "s"}.
         </p>
         <div className="mt-4">
           <Input list="bulk-lead-sources" value={source} onChange={(e) => setSource(e.target.value)} placeholder="Pick one, or type a new source" />

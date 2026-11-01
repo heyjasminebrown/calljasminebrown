@@ -25,7 +25,7 @@ export function LeadSourceReport({ rows }: { rows: LeadSourceReportRow[] }) {
       <p className="text-xs text-neutral-400">{COUNT_SCOPE.reports}</p>
 
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-neutral-700">By lead source</h2>
+        <h2 className="mb-3 text-sm font-semibold text-neutral-700">By source</h2>
 
         {/* Mobile: one card per source */}
         <div className="space-y-2.5 md:hidden">

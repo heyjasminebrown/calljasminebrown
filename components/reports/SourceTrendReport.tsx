@@ -5,7 +5,7 @@ export function SourceTrendReport({ data }: { data: SourceTrendData }) {
   if (data.rows.length === 0) {
     return (
       <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-neutral-700">Lead source trend (last 6 months)</h2>
+        <h2 className="text-sm font-semibold text-neutral-700">Source trend (last 6 months)</h2>
         <p className="text-sm text-neutral-500">No leads in the last 6 months yet.</p>
       </div>
     );
@@ -15,7 +15,7 @@ export function SourceTrendReport({ data }: { data: SourceTrendData }) {
 
   return (
     <div className="space-y-3">
-      <h2 className="text-sm font-semibold text-neutral-700">Lead source trend (last 6 months)</h2>
+      <h2 className="text-sm font-semibold text-neutral-700">Source trend (last 6 months)</h2>
 
       {/* Mobile: one card per source, mini bar-per-month sparkline */}
       <div className="space-y-2.5 md:hidden">
