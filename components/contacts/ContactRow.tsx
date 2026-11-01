@@ -14,6 +14,7 @@ import { Select } from "@/components/ui";
 import { dateInputToAppIso, isoToDateInput } from "@/lib/format-time";
 import type { ContactWithRelations, PipelineStage } from "@/types/database";
 import { ColorDot } from "@/components/ui/ColorPill";
+import { pastePhone } from "@/lib/phone-input";
 
 export function ContactRow({
   contact,
@@ -235,6 +236,8 @@ export function ContactRow({
                   type="tel"
                   value={phoneDraft}
                   onChange={(e) => setPhoneDraft(e.target.value)}
+                  onBlur={(e) => setPhoneDraft(formatPhone(e.target.value))}
+                  onPaste={(e) => pastePhone(e, setPhoneDraft)}
                   placeholder="(404) 555-0188"
                   className="mt-1.5 w-full rounded-[10px] border border-neutral-200 bg-white px-3 py-2.5 text-[15px] text-neutral-900"
                 />

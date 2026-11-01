@@ -11,11 +11,12 @@ import { syncContactToQuoAction } from "@/app/(app)/contacts/actions";
 import { applyStageChange } from "@/lib/crm/stage-transition";
 import { contactSchema, type ContactFormValues } from "@/lib/validation/contact";
 import { Button, Input, Label, Select, Textarea, Card } from "@/components/ui";
-import { RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, DEFAULT_RELATIONSHIP_TYPE, DEFAULT_STAGE_NAME, TIMELINE_LABELS, REPRESENTING_LABELS, LEAD_SOURCES, cn, fullName } from "@/lib/utils";
+import { RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, DEFAULT_RELATIONSHIP_TYPE, DEFAULT_STAGE_NAME, TIMELINE_LABELS, REPRESENTING_LABELS, LEAD_SOURCES, cn, fullName, formatPhone } from "@/lib/utils";
 import { phonesMatch } from "@/lib/phone";
 import { dateInputToAppIso, isoToDateInput } from "@/lib/format-time";
 import type { ContactWithRelations, PipelineStage, Tag } from "@/types/database";
 import type { MergeCandidate } from "@/lib/data/contacts";
+import { pastePhone } from "@/lib/phone-input";
 
 export function ContactForm({
   contact,
@@ -42,6 +43,7 @@ export function ContactForm({
   const {
     register,
     handleSubmit,
+    setValue,
     watch,
     formState: { errors },
   } = useForm<ContactFormValues>({
@@ -51,8 +53,8 @@ export function ContactForm({
           first_name: contact.first_name,
           last_name: contact.last_name ?? "",
           email: contact.email ?? "",
-          phone: contact.phone ?? "",
-          secondary_phone: contact.secondary_phone ?? "",
+          phone: formatPhone(contact.phone),
+          secondary_phone: formatPhone(contact.secondary_phone),
           secondary_email: contact.secondary_email ?? "",
           contact_type: contact.contact_type,
           relationship_type: contact.relationship_type,
@@ -242,7 +244,13 @@ export function ContactForm({
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <Label htmlFor="phone">Phone</Label>
-            <Input id="phone" type="tel" {...register("phone")} placeholder="(555) 555-1234" />
+            <Input
+              id="phone"
+              type="tel"
+              {...register("phone", { onBlur: (e) => setValue("phone", formatPhone(e.target.value)) })}
+              onPaste={(e) => pastePhone(e, (v) => setValue("phone", v))}
+              placeholder="(555) 555-1234"
+            />
           </div>
           <div>
             <Label htmlFor="email">Email</Label>
@@ -253,7 +261,12 @@ export function ContactForm({
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <Label htmlFor="secondary_phone">Secondary phone</Label>
-            <Input id="secondary_phone" type="tel" {...register("secondary_phone")} />
+            <Input
+              id="secondary_phone"
+              type="tel"
+              {...register("secondary_phone", { onBlur: (e) => setValue("secondary_phone", formatPhone(e.target.value)) })}
+              onPaste={(e) => pastePhone(e, (v) => setValue("secondary_phone", v))}
+            />
           </div>
           <div>
             <Label htmlFor="secondary_email">Secondary email</Label>

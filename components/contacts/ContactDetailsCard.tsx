@@ -8,13 +8,14 @@ import { Plus, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { syncContactToQuoAction } from "@/app/(app)/contacts/actions";
 import { contactSchema, type ContactFormValues } from "@/lib/validation/contact";
-import { RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, LEAD_SOURCES, cn } from "@/lib/utils";
+import { RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, LEAD_SOURCES, cn, formatPhone } from "@/lib/utils";
 import { dateInputToAppIso, isoToDateInput } from "@/lib/format-time";
 import { useApplyStageChange } from "@/lib/hooks/useApplyStageChange";
 import { DealCelebrationModal } from "@/components/contacts/DealCelebrationModal";
 import { PendingDealCleanupModal } from "@/components/contacts/PendingDealCleanupModal";
 import type { ContactWithRelations, DealSide, PipelineStage, Tag } from "@/types/database";
 import type { MergeCandidate } from "@/lib/data/contacts";
+import { pastePhone } from "@/lib/phone-input";
 
 const fieldClass = "mt-1.5 w-full rounded-[10px] border border-neutral-200 bg-white px-3 py-2.5 text-[15px] text-neutral-900";
 const labelClass = "text-sm text-neutral-500";
@@ -46,14 +47,14 @@ export function ContactDetailsCard({
   const [addingTag, setAddingTag] = useState(false);
   const { move: applyMove, dealModal, pendingCleanup, clearDealModal, clearPendingCleanup } = useApplyStageChange(contact.owner_id);
 
-  const { register, handleSubmit } = useForm<ContactFormValues>({
+  const { register, handleSubmit, setValue } = useForm<ContactFormValues>({
     resolver: zodResolver(contactSchema),
     defaultValues: {
       first_name: contact.first_name,
       last_name: contact.last_name ?? "",
       email: contact.email ?? "",
-      phone: contact.phone ?? "",
-      secondary_phone: contact.secondary_phone ?? "",
+      phone: formatPhone(contact.phone),
+      secondary_phone: formatPhone(contact.secondary_phone),
       secondary_email: contact.secondary_email ?? "",
       contact_type: contact.contact_type,
       relationship_type: contact.relationship_type,
@@ -179,7 +180,12 @@ export function ContactDetailsCard({
         </div>
         <div>
           <label className={labelClass}>Phone</label>
-          <input type="tel" {...register("phone")} className={fieldClass} />
+          <input
+            type="tel"
+            {...register("phone", { onBlur: (e) => setValue("phone", formatPhone(e.target.value)) })}
+            onPaste={(e) => pastePhone(e, (v) => setValue("phone", v))}
+            className={fieldClass}
+          />
         </div>
         <div>
           <label className={labelClass}>Email</label>
@@ -253,7 +259,12 @@ export function ContactDetailsCard({
         </div>
         <div>
           <label className={labelClass}>Secondary phone</label>
-          <input type="tel" {...register("secondary_phone")} className={fieldClass} />
+          <input
+            type="tel"
+            {...register("secondary_phone", { onBlur: (e) => setValue("secondary_phone", formatPhone(e.target.value)) })}
+            onPaste={(e) => pastePhone(e, (v) => setValue("secondary_phone", v))}
+            className={fieldClass}
+          />
         </div>
         <div>
           <label className={labelClass}>Secondary email</label>
