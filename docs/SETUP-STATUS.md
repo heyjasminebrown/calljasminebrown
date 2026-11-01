@@ -1,7 +1,7 @@
 # CRM setup status
 
 Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-curie-mb14vu`
-(Vercel production branch). Supabase migrations through 0086 have been run.
+(Vercel production branch). Supabase migrations through 0087 have been run.
 
 ## Done
 - Supabase, Vercel, sign-in, Gmail + Calendar (Google Workspace, Internal app), Gmail Sync now
@@ -20,7 +20,8 @@ Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-cur
 - Error banner for background failures
 - Text campaign builder (Campaigns -> Automated text campaigns): triggers on Source (new
   contacts), tag added, Type, or Stage; stop rules, 2/min throttle and 9 AM-8 PM ET always
-  enforced; each contact goes through a campaign once. Conventus Text Campaign is the first.
+  enforced; each contact goes through a campaign once. "Right after" timing, Duplicate,
+  "skip anyone already in" other campaigns, and "add everyone who already matches".
 - Public pages show (404) 383-5256; emails signed just "Jasmine Brown" (no company name)
 
 ## Waiting on something outside the CRM
