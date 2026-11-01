@@ -118,6 +118,15 @@ type ActivityRow = {
   metadata: Record<string, unknown> | null;
 };
 
+// Only ever move forward through a campaign: a link back to an earlier text
+// (or itself) would repeat texts forever, so it's treated as the end.
+function laterStep(steps: CampaignStep[], fromId: string | null, nextId: string | null): string | null {
+  if (!nextId) return null;
+  const from = steps.findIndex((st) => st.id === fromId);
+  const to = steps.findIndex((st) => st.id === nextId);
+  return to > from ? nextId : null;
+}
+
 export async function runTextAutomation(admin: SupabaseClient, ownerId: string) {
   if (!isTextAutomationEnabled()) return { skipped: "disabled" as const };
 
@@ -214,7 +223,7 @@ export async function runTextAutomation(admin: SupabaseClient, ownerId: string) 
         await stop(e.id, `Replied no: "${text.slice(0, 80)}"`);
         continue;
       }
-      const replyNext = campaign.steps.find((st) => st.id === e.last_step)?.onReply.next ?? null;
+      const replyNext = laterStep(campaign.steps, e.last_step, campaign.steps.find((st) => st.id === e.last_step)?.onReply.next ?? null);
       if (!replyNext) {
         await update(e.id, { status: "completed", stop_reason: "Replied", next_step: null, next_send_at: null });
         continue;
@@ -279,7 +288,8 @@ export async function runTextAutomation(admin: SupabaseClient, ownerId: string) 
     // A text sent because they replied ends the campaign (they're talking
     // to you now); otherwise follow its "no reply" path.
     const noReply = e.reply_scheduled ? null : step.onNoReply;
-    const nextStep = noReply?.next ? campaign.steps.find((st) => st.id === noReply.next) : undefined;
+    const nextId = laterStep(campaign.steps, step.id, noReply?.next ?? null);
+    const nextStep = nextId ? campaign.steps.find((st) => st.id === nextId) : undefined;
     const [hour, minute] = parseTime(noReply?.time);
     const rightAfter = noReply?.days === 0;
     const next: Record<string, unknown> = nextStep

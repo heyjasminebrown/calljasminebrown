@@ -146,7 +146,13 @@ export function TextCampaignEditor({
 
           <div className="space-y-3">
             {labeled.map((step, i) => {
-              const others = labeled.filter((s) => s.id !== step.id);
+              // Only later texts: pointing back to an earlier one would loop.
+              const later = labeled.slice(i + 1);
+              const backward = (id: string | null) => !!id && !later.some((o) => o.id === id);
+              const badOption = (id: string | null) =>
+                backward(id) ? (
+                  <option value={id!}>⚠ Send {labelOf(id!)} (goes backward - pick another)</option>
+                ) : null;
               return (
                 <div key={step.id} className="rounded-xl border border-[#ddd7da] p-4">
                   <div className="flex items-center justify-between gap-2">
@@ -177,7 +183,8 @@ export function TextCampaignEditor({
                         onChange={(e) => patchStep(step.id, (s) => ({ ...s, onReply: { next: e.target.value || null } }))}
                       >
                         <option value="">End the campaign</option>
-                        {others.map((o) => (
+                        {badOption(step.onReply.next)}
+                        {later.map((o) => (
                           <option key={o.id} value={o.id}>
                             Send {o.label} (~1 min later)
                           </option>
@@ -198,7 +205,8 @@ export function TextCampaignEditor({
                         }
                       >
                         <option value="">End the campaign</option>
-                        {others.map((o) => (
+                        {badOption(step.onNoReply.next)}
+                        {later.map((o) => (
                           <option key={o.id} value={o.id}>
                             Send {o.label}
                           </option>
