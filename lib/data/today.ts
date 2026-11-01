@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { relativeTime, isTodayLocal, endOfLocalDayIso } from "@/lib/format-time";
 import { filterByQueue } from "@/lib/crm/contact-queue-filter";
 import { listContacts } from "@/lib/data/contacts";
-import { listNewLeadsQueue } from "@/lib/data/new-leads";
+import { listNewLeadsQueue, NEW_LEAD_SOURCE_FILTER } from "@/lib/data/new-leads";
 import { listAbandonedBookingFollowUps, listPendingBookingRequests, listUpcomingApprovedBookingRequests } from "@/lib/data/scheduling";
 import { isTodayWorkContact } from "@/lib/crm/today-eligible";
 import { listConversations } from "@/lib/data/messages";
@@ -179,7 +179,12 @@ async function getStatStrip(stages: PipelineStage[]) {
   // that would cut off early-morning/late-evening calls incorrectly.
   const [{ data: contacts }, { count: newLeadsWeek }, { data: recentCalls }] = await Promise.all([
     supabase.from("contacts").select("id, stage_id").eq("archived", false),
-    supabase.from("contacts").select("id", { count: "exact", head: true }).eq("archived", false).gte("lead_date", daysAgo(7)),
+    supabase
+      .from("contacts")
+      .select("id", { count: "exact", head: true })
+      .eq("archived", false)
+      .gte("lead_date", daysAgo(7))
+      .or(NEW_LEAD_SOURCE_FILTER),
     supabase.from("activities").select("occurred_at").eq("type", "call").eq("direction", "outbound").gte("occurred_at", daysAgo(1.5)),
   ]);
   const callsToday = (recentCalls ?? []).filter((c) => isTodayLocal(c.occurred_at as string)).length;

@@ -5,6 +5,19 @@ import { isTodayWorkContact } from "@/lib/crm/today-eligible";
 export const NEW_LEAD_DISMISS_KEY = "new_lead_never_contacted";
 const NEW_LEAD_WINDOW_DAYS = 14;
 
+// Lead sources that are existing relationships brought in by a bulk
+// import, not new leads - their lead_date is just the import day, so
+// without this they'd fill New / Uncontacted and "New this week".
+export const NOT_NEW_LEAD_SOURCES = ["Original Email List"];
+
+export function isNotNewLeadSource(leadSource: string | null | undefined): boolean {
+  const s = leadSource?.trim().toLowerCase();
+  return !!s && NOT_NEW_LEAD_SOURCES.some((x) => x.toLowerCase() === s);
+}
+
+// Same exclusion as a PostgREST .or() filter (null lead_source is kept).
+export const NEW_LEAD_SOURCE_FILTER = `lead_source.is.null,${NOT_NEW_LEAD_SOURCES.map((s) => `lead_source.not.ilike."${s}"`).join(",")}`;
+
 export type NewLeadContact = Pick<
   Contact,
   "id" | "first_name" | "last_name" | "phone" | "lead_source" | "lead_date" | "stage_id" | "last_event_name"
@@ -61,7 +74,7 @@ export async function listNewLeadsQueue(): Promise<{ contacts: NewLeadContact[];
   const dismissedIds = new Set((dismissals ?? []).map((r) => r.contact_id as string));
 
   const eligible = candidates
-    .filter((c) => !contactedIds.has(c.id) && !dismissedIds.has(c.id) && isTodayWorkContact(c))
+    .filter((c) => !contactedIds.has(c.id) && !dismissedIds.has(c.id) && !isNotNewLeadSource(c.lead_source) && isTodayWorkContact(c))
     .map((c) => {
       const tagRows = (c.contact_tags ?? []) as { tags?: { name?: string } | { name?: string }[] | null }[];
       const tagNames = tagRows.flatMap((row) => {
