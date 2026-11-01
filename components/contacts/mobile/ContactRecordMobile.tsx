@@ -16,7 +16,7 @@ import { EngageStrip } from "@/components/contacts/EngageStrip";
 import { FollowUpBar } from "@/components/contacts/FollowUpBar";
 import { QuickAddMenu } from "@/components/nav/QuickAddMenu";
 import { BrandWordmark } from "@/components/brand/BrandWordmark";
-import { formatPhone, stageColor, stageTint, RELATIONSHIP_TYPE_LABELS, relationshipTypeColor, relationshipTypeTint } from "@/lib/utils";
+import { formatPhone, stageColor, stageTint, RELATIONSHIP_TYPE_LABELS, relationshipTypeColor, relationshipTypeTint, TAG_CHIP } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import type { Activity, AiInsight, ContactWithRelations, PipelineStage, Tag, TextTemplate } from "@/types/database";
 import type { MergeCandidate } from "@/lib/data/contacts";
@@ -126,8 +126,7 @@ export function ContactRecordMobile({
             .map((ct) => (
               <span
                 key={ct.tags!.id}
-                className="flex h-[36px] items-center rounded-full px-3 text-[14px] font-medium text-white"
-                style={{ backgroundColor: ct.tags!.color }}
+                className={cn("flex h-[36px] items-center rounded-full px-3 text-[14px] font-medium", TAG_CHIP)}
               >
                 {ct.tags!.name}
               </span>

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@/components/ui";
 import { SnoozeMenu } from "@/components/contacts/SnoozeMenu";
-import { formatCurrency, stageColor } from "@/lib/utils";
+import { formatCurrency, stageColor, TAG_CHIP } from "@/lib/utils";
 import { formatLocal, isFollowUpOverdue } from "@/lib/format-time";
 import { clearFollowUp, snoozeFollowUp } from "@/app/(app)/today-actions";
 import { CalendarClock, Check, Bell, Plus, ChevronRight } from "lucide-react";
@@ -50,7 +50,7 @@ export function ContactContextBar({ contact, stages }: { contact: ContactWithRel
         {contact.contact_tags
           .filter((ct) => ct.tags)
           .map((ct) => (
-            <Badge key={ct.tags!.id} color={ct.tags!.color} className="max-w-[10rem] truncate px-2 py-0.5 text-[11px]">
+            <Badge key={ct.tags!.id} className={`max-w-[10rem] truncate px-2 py-0.5 text-[11px] ${TAG_CHIP}`}>
               {ct.tags!.name}
             </Badge>
           ))}

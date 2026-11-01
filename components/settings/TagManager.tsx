@@ -42,12 +42,6 @@ export function TagManager({ tags, ownerId }: { tags: Tag[]; ownerId: string }) 
       <div className="mt-3 space-y-2.5">
         {tags.map((tag) => (
           <div key={tag.id} className="flex items-center gap-2.5">
-            <input
-              type="color"
-              value={tag.color}
-              onChange={(e) => updateTag(tag.id, { color: e.target.value })}
-              className="h-9 w-9 shrink-0 cursor-pointer rounded-lg border border-neutral-200"
-            />
             <Input
               defaultValue={tag.name}
               onBlur={(e) => e.target.value !== tag.name && updateTag(tag.id, { name: e.target.value })}

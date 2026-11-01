@@ -23,7 +23,7 @@ import { EnrollmentManager } from "@/components/sequences/EnrollmentManager";
 import { RecentActivityFeed } from "@/components/sequences/RecentActivityFeed";
 import { Card, Badge } from "@/components/ui";
 import { formatLocal } from "@/lib/format-time";
-import { fullName } from "@/lib/utils";
+import { fullName, TAG_CHIP } from "@/lib/utils";
 import { ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
@@ -76,7 +76,7 @@ export default async function SequenceDetailPage({ params }: { params: Promise<{
           <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-neutral-500">
             {typeLabel}
             {sequence.targetTags.map((t) => (
-              <Badge key={t.id} color={t.color}>
+              <Badge key={t.id} className={TAG_CHIP}>
                 {t.name}
               </Badge>
             ))}

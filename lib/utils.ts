@@ -155,6 +155,11 @@ export function stageTint(stage: { name: string; color: string }): string {
   return `${stageColor(stage)}2e`;
 }
 
+// Tags aren't color-coded: every tag uses the same neutral pill, and a
+// selected tag in a picker uses the brand plum.
+export const TAG_CHIP = "bg-[#f4f1f5] text-[#34223a]";
+export const TAG_CHIP_SELECTED = "bg-[#34223a] text-peach";
+
 // Type colors reuse the stage palette (same muted tones).
 const RELATIONSHIP_TYPE_COLORS: Record<RelationshipType, string> = {
   community: STAGE_COLORS.Nurture,

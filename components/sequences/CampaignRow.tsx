@@ -13,7 +13,7 @@ import { getCampaignReportData, duplicateSequence, createNonOpenerFollowup, type
 import { cancelTextBlast } from "@/app/(app)/contacts/text-blast-actions";
 import { estimatedTextBlastMinutes } from "@/lib/crm/text-blast-timing";
 import { formatLocal } from "@/lib/format-time";
-import { cn } from "@/lib/utils";
+import { cn, TAG_CHIP } from "@/lib/utils";
 import type { SequenceListItem } from "@/lib/data/sequences";
 import type { TextBlastWithProgress } from "@/app/(app)/contacts/text-blast-actions";
 import type { Tag } from "@/types/database";
@@ -107,7 +107,7 @@ export function EmailCampaignRow({ seq, tagById }: { seq: SequenceListItem; tagB
             <p className="truncate text-[17px] font-semibold text-neutral-900">{seq.name}</p>
             <Pill className="bg-neutral-100 text-neutral-600">Email · {kindLabel}</Pill>
             {seq.targetTags.map((t) => (
-              <Badge key={t.id} color={t.color}>
+              <Badge key={t.id} className={TAG_CHIP}>
                 {t.name}
               </Badge>
             ))}

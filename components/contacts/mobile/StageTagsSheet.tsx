@@ -9,7 +9,7 @@ import { BottomSheet } from "@/components/mobile/BottomSheet";
 import { DealCelebrationModal } from "@/components/contacts/DealCelebrationModal";
 import { PendingDealCleanupModal } from "@/components/contacts/PendingDealCleanupModal";
 import { Button, Input } from "@/components/ui";
-import { cn } from "@/lib/utils";
+import { cn, TAG_CHIP_SELECTED } from "@/lib/utils";
 import type { DealSide, PipelineStage, Tag } from "@/types/database";
 
 const FOLLOW_UP_OPTIONS: { label: string; days: number }[] = [
@@ -185,8 +185,7 @@ export function StageTagsSheet({
                     key={tag.id}
                     type="button"
                     onClick={() => toggleTag(tag.id)}
-                    className={cn("flex h-[45px] items-center gap-1.5 rounded-full border px-3.5 text-[15px] font-medium", active ? "border-transparent text-white" : "border-neutral-200 text-neutral-600")}
-                    style={active ? { backgroundColor: tag.color } : undefined}
+                    className={cn("flex h-[45px] items-center gap-1.5 rounded-full border px-3.5 text-[15px] font-medium", active ? `border-transparent ${TAG_CHIP_SELECTED}` : "border-neutral-200 text-neutral-600")}
                   >
                     {active && <Check size={15} />}
                     {tag.name}

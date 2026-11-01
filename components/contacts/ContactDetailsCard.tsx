@@ -8,7 +8,7 @@ import { Plus, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { syncContactToQuoAction } from "@/app/(app)/contacts/actions";
 import { contactSchema, type ContactFormValues } from "@/lib/validation/contact";
-import { RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, cn, formatPhone } from "@/lib/utils";
+import { RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, cn, formatPhone, TAG_CHIP_SELECTED } from "@/lib/utils";
 import { dateInputToAppIso, isoToDateInput } from "@/lib/format-time";
 import { useApplyStageChange } from "@/lib/hooks/useApplyStageChange";
 import { DealCelebrationModal } from "@/components/contacts/DealCelebrationModal";
@@ -261,8 +261,10 @@ export function ContactDetailsCard({
                   type="button"
                   key={tag.id}
                   onClick={() => toggleTag(tag.id)}
-                  className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-white"
-                  style={{ backgroundColor: active ? tag.color : "#a8a29e" }}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium",
+                    active ? TAG_CHIP_SELECTED : "bg-[#e7e5e4] text-neutral-600",
+                  )}
                 >
                   {tag.name}
                   {active && <X size={13} />}

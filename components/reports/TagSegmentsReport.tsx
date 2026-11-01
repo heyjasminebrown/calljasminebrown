@@ -14,7 +14,7 @@ export function TagSegmentsReport({ data }: { data: TagSegmentData }) {
             <div className="h-4 flex-1 overflow-hidden rounded-full bg-neutral-100">
               <div
                 className="h-full rounded-full"
-                style={{ width: `${Math.max((r.count / maxCount) * 100, 4)}%`, backgroundColor: r.color }}
+                style={{ width: `${Math.max((r.count / maxCount) * 100, 4)}%`, backgroundColor: "#79657e" }}
               />
             </div>
             <span className="w-10 shrink-0 text-right text-xs font-medium text-neutral-700">{r.count}</span>

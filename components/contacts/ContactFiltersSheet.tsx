@@ -209,7 +209,6 @@ export function ContactFiltersSheet({
                   onChange={() => toggleIn("tags", tag.id)}
                   className="h-4 w-4 rounded border-neutral-300 accent-[#34223a]"
                 />
-                <ColorDot color={tag.color} />
                 <span className="min-w-0 truncate">{tag.name}</span>
               </label>
             ))}

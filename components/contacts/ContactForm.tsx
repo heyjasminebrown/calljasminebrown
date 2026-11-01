@@ -11,7 +11,7 @@ import { syncContactToQuoAction } from "@/app/(app)/contacts/actions";
 import { applyStageChange } from "@/lib/crm/stage-transition";
 import { contactSchema, type ContactFormValues } from "@/lib/validation/contact";
 import { Button, Input, Label, Select, Textarea, Card } from "@/components/ui";
-import { RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, DEFAULT_RELATIONSHIP_TYPE, DEFAULT_STAGE_NAME, cn, fullName, formatPhone } from "@/lib/utils";
+import { RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, DEFAULT_RELATIONSHIP_TYPE, DEFAULT_STAGE_NAME, cn, fullName, formatPhone, TAG_CHIP_SELECTED } from "@/lib/utils";
 import { phonesMatch } from "@/lib/phone";
 import { dateInputToAppIso, isoToDateInput } from "@/lib/format-time";
 import type { ContactWithRelations, PipelineStage, Tag } from "@/types/database";
@@ -383,9 +383,8 @@ export function ContactForm({
                 onClick={() => toggleTag(tag.id)}
                 className={cn(
                   "rounded-full border px-3 py-1.5 text-sm font-medium transition",
-                  active ? "border-transparent text-white" : "border-neutral-200 text-neutral-600",
+                  active ? `border-transparent ${TAG_CHIP_SELECTED}` : "border-neutral-200 text-neutral-600",
                 )}
-                style={active ? { backgroundColor: tag.color } : undefined}
               >
                 {tag.name}
               </button>
