@@ -183,19 +183,6 @@ async function enrichContact(
   }
 }
 
-export async function addTagByName(admin: SupabaseClient, ownerId: string, contactId: string, tagName: string): Promise<boolean> {
-  let { data: tag } = await admin.from("tags").select("id").eq("owner_id", ownerId).eq("name", tagName).maybeSingle();
-
-  if (!tag) {
-    const { data: created } = await admin
-      .from("tags")
-      .insert({ owner_id: ownerId, name: tagName })
-      .select("id")
-      .maybeSingle();
-    tag = created;
-  }
-  if (!tag) return false;
-
-  const { error } = await admin.from("contact_tags").upsert({ contact_id: contactId, tag_id: tag.id }, { onConflict: "contact_id,tag_id" });
-  return !error;
-}
+// Kept here for existing imports; lives in add-tag.ts so browser-side code
+// can use it without pulling in this module's server-only error reporting.
+export { addTagByName } from "./add-tag";

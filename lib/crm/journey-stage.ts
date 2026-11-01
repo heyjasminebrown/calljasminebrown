@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { addTagByName } from "./find-or-create-contact";
+import { addTagByName } from "./add-tag";
 
 // Shared by Eventbrite and Jotform: both ask the same "where are you at in
 // your house hacking journey?" question. Matching is keyword-based rather

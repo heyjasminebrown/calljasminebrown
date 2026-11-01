@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { addTagByName } from "./find-or-create-contact";
+import { addTagByName } from "./add-tag";
 
 // "Engaged" = multiple calls/texts (either direction) in the trailing 7
 // days, OR a genuine email interaction in the same window - recomputed
