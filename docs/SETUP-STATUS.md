@@ -11,16 +11,25 @@ Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-cur
 - Eventbrite code built; `EVENTBRITE_WEBHOOK_SECRET` and `EVENTBRITE_PRIVATE_TOKENS`
   are saved in Vercel
 
-## Next: Eventbrite, step 3
-1. Vercel → Deployments → the row with the blue **Production** badge → ⋯ → Redeploy
-   (so the Eventbrite keys take effect). Wait for Ready.
-2. In each Eventbrite account: profile → Account Settings → Developer Links → Webhooks →
-   Add webhook
+## Next: Eventbrite (pick up here)
+Already done: both keys are in Vercel, and the production site was redeployed with them
+(after `fae306b`), so the CRM is ready to receive Eventbrite webhooks.
+
+1. **Have your webhook password ready.** It's the value of `EVENTBRITE_WEBHOOK_SECRET` in
+   Vercel. If it was saved as a Secret and you don't have a copy: Vercel -> Settings ->
+   Environment Variables -> `EVENTBRITE_WEBHOOK_SECRET` -> ⋯ -> Edit -> paste a new random
+   string (keep a copy) -> Save -> redeploy the blue Production row.
+2. **Add the webhook in the first Eventbrite account:** profile icon -> Account Settings ->
+   Developer Links -> Webhooks -> Add webhook
    - Payload URL: `https://www.calljasminebrown.com/api/webhooks/eventbrite?secret=YOURSECRET`
-     (YOURSECRET = the `EVENTBRITE_WEBHOOK_SECRET` value)
-   - Event: All events · Actions: `order.placed`, `attendee.checked_in`
-3. Test: register for one of your own events with a free ticket. You should appear in
-   Contacts within a minute, tagged with the event name.
+     (YOURSECRET = the password from step 1, no spaces)
+   - Event: All events · Actions: `order.placed` and `attendee.checked_in` only
+   - Add webhook. If there's a Test button, click it; a red CRM banner saying the secret is
+     incorrect means the URL password doesn't match Vercel.
+3. **Repeat step 2 in the second Eventbrite account.**
+4. **Test:** register for one of your own events with a free ticket. Within a minute you
+   should appear in Contacts, tagged with the event name, with "Registered for [event]" on
+   your timeline.
 
 ## Waiting on something outside the CRM
 - **Quo calls/texts:** retest once A2P verification is approved. Text and call the Quo number,
