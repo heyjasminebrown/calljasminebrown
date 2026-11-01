@@ -138,6 +138,7 @@ export function ContactRecordMobile({
             contactId={contact.id}
             phone={contact.phone}
             email={contact.email}
+            contactName={name}
             smsDraft={smsDraft}
             onNote={() => {
               setLogType("note");

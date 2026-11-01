@@ -33,6 +33,7 @@ export function ContactEngageBlock({
         contactId={contact.id}
         phone={contact.phone}
         email={contact.email}
+        contactName={name}
         smsDraft={smsDraft}
         onNote={() => setLogOpen(true)}
         onTask={() => setTaskOpen(true)}
