@@ -30,7 +30,7 @@ Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-cur
   - Texts in the Outreach scorecard stay at 0 until this is live.
   - **Conventus Text Campaign** is built and queues new Conventus contacts, but sends nothing
     until you add `TEXT_AUTOMATION_ENABLED` = `true` in Vercel (after A2P approval) and
-    redeploy. Settings -> Conventus Text Campaign shows the texts and who's where.
+    redeploy. Campaigns -> Conventus Text Campaign shows the texts and who is where.
 
 ## Needs your action
 - **Text message wording:** first-touch and text-blast templates
