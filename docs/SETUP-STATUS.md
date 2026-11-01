@@ -7,7 +7,9 @@ Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-cur
 - Supabase, Vercel, sign-in, Gmail + Calendar (Google Workspace, Internal app), Gmail Sync now
 - App name **CallJasmineBrown**; brand colors; headshot; favicon
 - Type (Community/Prospect/Client/Referral Partner) and Stages (Cold/Warm/Hot/Nurture),
-  color-coded everywhere; likelihood = Hot high / Warm medium / Cold+Nurture low (+1 if Engaged)
+  color-coded everywhere
+- Cold Prospects who reply to a campaign (automated text campaign, text blast, or email
+  sequence) move to Warm automatically, unless the reply is STOP/unsubscribe or a clear no
 - Timeline and Representing removed (code and data)
 - Eventbrite connected (both accounts): registrations add/match the contact (by email or
   phone), tag the event, log "Registered for [event]"; new contacts get source "Event";
@@ -24,15 +26,13 @@ Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-cur
   "skip anyone already in" other campaigns, and "add everyone who already matches".
 - Public pages show (404) 383-5256; emails signed just "Jasmine Brown" (no company name)
 
-## Waiting on something outside the CRM
-- **Quo calls/texts:** retest once A2P verification is approved. Text and call the Quo number,
-  then check Messages, and send a text from a contact. Keys and webhook are already set up.
-  - If the Quo account has 2+ numbers, add `QUO_SEND_PHONE_NUMBER` in Vercel.
-  - Quo deliveries arrive with no signature header (logged as a warning, still accepted).
-    After a real delivery works, check the header and decide on `CRM_QUO_ENFORCE_SIGNATURE=true`.
-  - In Quo -> Settings -> API, delete the old "CRM" key from Oct 30 if it's still there.
-  - Texts in the Outreach scorecard stay at 0 until this is live.
-  - A2P approved; sending works; `TEXT_AUTOMATION_ENABLED=true` is on.
+## Quo
+- A2P approved; calls and texts log; `TEXT_AUTOMATION_ENABLED=true` is on.
+- Quo deliveries arrive with no signature header (logged as a warning, still accepted).
+  Decide later whether to set `CRM_QUO_ENFORCE_SIGNATURE=true`.
+- In Quo -> Settings -> API, delete the old "CRM" key from Oct 30 if it's still there.
+- Calls answered by Quo's AI agent: logged from the recording/transcript events (fixed
+  2026-11-01). Confirm with one test call.
 
 ## Needs your action
 - **Text message wording:** first-touch and text-blast templates

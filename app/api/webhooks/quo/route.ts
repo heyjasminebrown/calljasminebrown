@@ -12,6 +12,7 @@ import { recordOptOut, isOptOutMessage } from "@/lib/crm/consent";
 import { isIncludedQuoNumber } from "@/lib/quo/phone-filter";
 import { detectSpam, isNumberAllowlisted, hasRecentMissedCallBurst, getDisabledSpamReasons, type SpamCheckResult } from "@/lib/crm/spam-signals";
 import { reportFailure } from "@/lib/errors/report-failure";
+import { warmColdProspectOnReply } from "@/lib/crm/warm-on-reply";
 
 // Extraction (a Claude call over the full transcript) runs after the
 // response via after() below, but the function invocation itself still
@@ -249,6 +250,10 @@ export async function POST(request: NextRequest) {
           metadata: { quo_message_id: msg.quoMessageId, quo_event_type: eventType, raw: body },
         });
         await updateEngagementTag(admin, OWNER_ID, contact.id);
+
+        if (eventType === "message.received" && msg.direction === "inbound") {
+          await warmColdProspectOnReply(admin, OWNER_ID, contact.id, "text", msg.text, msg.occurredAt);
+        }
 
         if (eventType === "message.received" && msg.text) {
           if (isOptOutMessage(msg.text)) {

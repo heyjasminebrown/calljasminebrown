@@ -2,6 +2,7 @@ import { google, gmail_v1 } from "googleapis";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getAuthorizedGoogleClient } from "@/lib/google/oauth";
 import { upsertActivity } from "@/lib/crm/activities";
+import { warmColdProspectOnReply } from "@/lib/crm/warm-on-reply";
 import { analyzeContactActivity } from "@/lib/ai/analyze-contact";
 import { looksLikeBlinqShareEmail, parseBlinqShareEmail } from "@/lib/google/parse-blinq-email";
 import { recordBlinqContact } from "@/lib/crm/blinq-contact";
@@ -192,6 +193,10 @@ export async function syncGmailInbox(admin: SupabaseClient, ownerId: string) {
         body: subject ? `${subject}\n\n${bodyText}` : bodyText,
         metadata: { gmail_message_id: messageId, subject },
       });
+
+      if (!isOutbound) {
+        await warmColdProspectOnReply(admin, ownerId, contactId, "email", bodyText, occurredAt);
+      }
 
       if (!isOutbound && bodyText) {
         await analyzeContactActivity(admin, ownerId, contactId, { type: "email", direction: "inbound", content: bodyText });
