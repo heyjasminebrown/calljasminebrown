@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Period } from "@/lib/data/metrics";
-import { CONTACT_TYPE_LABELS } from "@/lib/utils";
+import { RELATIONSHIP_TYPE_LABELS } from "@/lib/utils";
 import { phonesMatch } from "@/lib/phone";
-import type { Deal } from "@/types/database";
+import type { Deal, RelationshipType } from "@/types/database";
 
 const PERIOD_DAYS: Record<Period, number> = { week: 7, month: 30 };
 
@@ -199,15 +199,15 @@ export type ContactTypeBreakdownRow = { type: string; label: string; count: numb
 
 export async function getContactTypeBreakdown(): Promise<ContactTypeBreakdownRow[]> {
   const supabase = await createClient();
-  const { data: contacts } = await supabase.from("contacts").select("contact_type").eq("archived", false);
+  const { data: contacts } = await supabase.from("contacts").select("relationship_type").eq("archived", false);
 
   const counts = new Map<string, number>();
   for (const c of contacts ?? []) {
-    counts.set(c.contact_type, (counts.get(c.contact_type) ?? 0) + 1);
+    counts.set(c.relationship_type, (counts.get(c.relationship_type) ?? 0) + 1);
   }
 
   return [...counts.entries()]
-    .map(([type, count]) => ({ type, label: CONTACT_TYPE_LABELS[type] ?? type, count }))
+    .map(([type, count]) => ({ type, label: RELATIONSHIP_TYPE_LABELS[type as RelationshipType] ?? type, count }))
     .sort((a, b) => b.count - a.count);
 }
 

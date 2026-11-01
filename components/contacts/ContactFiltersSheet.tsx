@@ -4,7 +4,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { X } from "lucide-react";
 import { Select } from "@/components/ui";
-import { cn } from "@/lib/utils";
+import { cn, RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS } from "@/lib/utils";
 import type { PipelineStage, Tag } from "@/types/database";
 import {
   CONTACTS_V2_FILTER_KEYS,
@@ -142,6 +142,27 @@ export function ContactFiltersSheet({
                   className="accent-[#34223a]"
                 />
                 {source.label}
+              </label>
+            ))}
+          </div>
+        </Section>
+
+        <Section title="Type" flush={variant === "sheet"}>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2.5 text-[14px] text-neutral-800">
+              <input type="radio" name="type" checked={!draft.type} onChange={() => set("type", "")} className="accent-[#34223a]" />
+              All
+            </label>
+            {RELATIONSHIP_TYPES.map((value) => (
+              <label key={value} className="flex items-center gap-2.5 text-[14px] text-neutral-800">
+                <input
+                  type="radio"
+                  name="type"
+                  checked={draft.type === value}
+                  onChange={() => set("type", value)}
+                  className="accent-[#34223a]"
+                />
+                {RELATIONSHIP_TYPE_LABELS[value]}
               </label>
             ))}
           </div>

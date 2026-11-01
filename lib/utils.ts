@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
+import type { RelationshipType } from "@/types/database";
 
 export function cn(...inputs: ClassValue[]) {
   return clsx(inputs);
@@ -131,6 +132,22 @@ export const TIMELINE_LABELS: Record<string, string> = {
   unknown: "Unknown",
 };
 
+// The contact's one primary relationship (shown as "Type"). Independent of
+// Stage; extra designations go on tags.
+export const RELATIONSHIP_TYPE_LABELS: Record<RelationshipType, string> = {
+  community: "Community",
+  prospect: "Prospect",
+  client: "Client",
+  referral_partner: "Referral Partner",
+};
+export const RELATIONSHIP_TYPES = Object.keys(RELATIONSHIP_TYPE_LABELS) as RelationshipType[];
+export const DEFAULT_RELATIONSHIP_TYPE: RelationshipType = "community";
+// The only pipeline stages (supabase/migrations/0083). Imported and
+// auto-created contacts land in Nurture unless a stage is chosen.
+export const PIPELINE_STAGE_NAMES = ["Cold", "Warm", "Hot", "Nurture"] as const;
+export const DEFAULT_STAGE_NAME = "Nurture";
+
+// Legacy internal category (contact_type) - no longer shown as "Type".
 export const CONTACT_TYPE_LABELS: Record<string, string> = {
   buyer: "Buyer",
   seller: "Seller",

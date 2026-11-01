@@ -2,6 +2,8 @@
 // If you use the Supabase CLI later, you can replace this with
 // `supabase gen types typescript` output.
 
+export type RelationshipType = "community" | "prospect" | "client" | "referral_partner";
+
 export type ContactType =
   | "buyer"
   | "seller"
@@ -170,6 +172,10 @@ export interface Contact {
   secondary_phone: string | null;
   secondary_email: string | null;
   contact_type: ContactType;
+  relationship_type: RelationshipType;
+  // Set by a DB trigger the first time the contact becomes a Client.
+  client_converted_at: string | null;
+  client_converted_from: RelationshipType | null;
   representing: Representing | null;
   listing_address: string | null;
   listing_timeline: Timeline | null;

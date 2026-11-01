@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { bulkImportContacts } from "@/app/(app)/contacts/actions";
 import { Button, Textarea, Select, Input, Label } from "@/components/ui";
-import { fullName } from "@/lib/utils";
+import { fullName, RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, DEFAULT_RELATIONSHIP_TYPE, PIPELINE_STAGE_NAMES, DEFAULT_STAGE_NAME } from "@/lib/utils";
 import { X, AlertTriangle, Upload } from "lucide-react";
 import { parseBulkContacts, type ParsedContactRow } from "@/lib/crm/bulk-import-contacts";
-import type { Tag } from "@/types/database";
+import type { RelationshipType, Tag } from "@/types/database";
 
-const TEMPLATE = "First Name\tLast Name\tEmail\tPhone\tDate";
+const TEMPLATE = "First Name\tLast Name\tEmail\tPhone\tType\tStage\tDate";
 const IMPORT_BATCH_SIZE = 50;
 
 export function BulkImportContactsModal({
@@ -31,6 +31,9 @@ export function BulkImportContactsModal({
   const [creatingTag, setCreatingTag] = useState(false);
   const [newTagName, setNewTagName] = useState("");
   const [leadSource, setLeadSource] = useState("");
+  const [relationshipType, setRelationshipType] = useState<RelationshipType>(DEFAULT_RELATIONSHIP_TYPE);
+  // "" = no stage.
+  const [stageName, setStageName] = useState<string>(DEFAULT_STAGE_NAME);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [progress, setProgress] = useState(0);
@@ -80,7 +83,10 @@ export function BulkImportContactsModal({
       // let the button show real progress instead of a frozen "Importing…".
       for (let i = 0; i < validRows.length; i += IMPORT_BATCH_SIZE) {
         const batch = validRows.slice(i, i + IMPORT_BATCH_SIZE);
-        const outcome = await bulkImportContacts(batch, tagName, leadSource.trim() || "CSV import");
+        const outcome = await bulkImportContacts(batch, tagName, leadSource.trim() || "CSV import", {
+          relationshipType,
+          stageName: stageName || null,
+        });
         if (!outcome.ok) throw new Error(outcome.error);
         totals.created += outcome.created;
         totals.matched += outcome.matched;
@@ -192,6 +198,8 @@ export function BulkImportContactsModal({
                     <th className="px-2 py-1.5 font-medium">Name</th>
                     <th className="px-2 py-1.5 font-medium">Email</th>
                     <th className="px-2 py-1.5 font-medium">Phone</th>
+                    <th className="px-2 py-1.5 font-medium">Type</th>
+                    <th className="px-2 py-1.5 font-medium">Stage</th>
                     <th className="px-2 py-1.5 font-medium">Date</th>
                   </tr>
                 </thead>
@@ -201,6 +209,12 @@ export function BulkImportContactsModal({
                       <td className="px-2 py-1.5">{fullName({ first_name: r.firstName ?? "", last_name: r.lastName }) || "—"}</td>
                       <td className="px-2 py-1.5">{r.email ?? "—"}</td>
                       <td className="px-2 py-1.5">{r.phone ?? "—"}</td>
+                      <td className="px-2 py-1.5">
+                        {r.relationshipType ? RELATIONSHIP_TYPE_LABELS[r.relationshipType] : <span className="text-neutral-300">{RELATIONSHIP_TYPE_LABELS[relationshipType]}</span>}
+                      </td>
+                      <td className="px-2 py-1.5">
+                        {r.stageName ?? <span className="text-neutral-300">{stageName || "No stage"}</span>}
+                      </td>
                       <td className="px-2 py-1.5">
                         {r.leadDate ? new Date(r.leadDate).toLocaleDateString() : <span className="text-neutral-300">Today</span>}
                       </td>
@@ -221,6 +235,34 @@ export function BulkImportContactsModal({
               <p className="mt-1 text-xs text-neutral-400">
                 Only applied to brand-new contacts — anyone already on file keeps their original lead source. Anyone
                 imported with a phone number shows up in Event calls automatically.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="import-type">Type</Label>
+                <Select id="import-type" value={relationshipType} onChange={(e) => setRelationshipType(e.target.value as RelationshipType)}>
+                  {RELATIONSHIP_TYPES.map((value) => (
+                    <option key={value} value={value}>
+                      {RELATIONSHIP_TYPE_LABELS[value]}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="import-stage">Stage</Label>
+                <Select id="import-stage" value={stageName} onChange={(e) => setStageName(e.target.value)}>
+                  {PIPELINE_STAGE_NAMES.map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  ))}
+                  <option value="">No stage</option>
+                </Select>
+              </div>
+              <p className="text-xs text-neutral-400 sm:col-span-2">
+                For new contacts without a Type or Stage column in the file. Anyone already on file keeps theirs, unless
+                the file sets a Type or Stage for that row.
               </p>
             </div>
 

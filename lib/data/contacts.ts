@@ -171,7 +171,7 @@ export async function listContacts(filters: ContactListFilters) {
   } else if (filters.stageId) {
     query = query.eq("stage_id", filters.stageId);
   }
-  if (filters.type) query = query.eq("contact_type", filters.type);
+  if (filters.type) query = query.eq("relationship_type", filters.type);
   if (filters.timeline) query = query.eq("timeline", filters.timeline);
   if (filters.representing) query = query.eq("representing", filters.representing);
   // Source buckets are matched in JS — lead_source is free text.

@@ -13,7 +13,7 @@ import { campaignsTextHref } from "@/lib/crm/campaigns-handoff";
 import { sourceChipLabel } from "@/lib/crm/contact-sources";
 import { openQuoCall } from "@/lib/quo/call-link";
 import { threadHref } from "@/lib/crm/inbox-href";
-import { fullName, initials } from "@/lib/utils";
+import { fullName, initials, formatPhone, RELATIONSHIP_TYPE_LABELS } from "@/lib/utils";
 import type { ContactGroupBy } from "@/lib/crm/contact-filter-params";
 import type { ContactSegment, ContactWithRelations, PipelineStage, Tag } from "@/types/database";
 
@@ -147,8 +147,8 @@ function ContactsTable({
   const allSelected = contacts.length > 0 && contacts.every((c) => selected.has(c.id));
 
   return (
-    <div className="overflow-hidden rounded-[16px] border border-[#ddd7da] bg-white">
-      <div className="grid grid-cols-[auto_minmax(0,2fr)_1fr_1fr_1fr_auto_auto] items-center gap-3 border-b border-[#ddd7da] px-4 py-2.5 text-[12px] font-semibold uppercase tracking-[.06em] text-neutral-400">
+    <div className="overflow-x-auto rounded-[16px] border border-[#ddd7da] bg-white">
+      <div className="grid min-w-[1080px] grid-cols-[auto_minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,0.9fr)_minmax(0,0.8fr)_minmax(0,1fr)_minmax(0,0.9fr)_auto_auto] items-center gap-3 border-b border-[#ddd7da] px-4 py-2.5 text-[12px] font-semibold uppercase tracking-[.06em] text-neutral-400">
         <input
           type="checkbox"
           checked={allSelected}
@@ -160,8 +160,11 @@ function ContactsTable({
           className="h-4 w-4 rounded border-neutral-300 accent-[#34223a]"
         />
         <span>Name</span>
-        <span>Source</span>
+        <span>Phone</span>
+        <span>Email</span>
+        <span>Type</span>
         <span>Stage</span>
+        <span>Source</span>
         <span>Last touch</span>
         <span className="text-center">Text</span>
         <span className="text-center">Call</span>
@@ -172,7 +175,7 @@ function ContactsTable({
         return (
           <div
             key={contact.id}
-            className="grid grid-cols-[auto_minmax(0,2fr)_1fr_1fr_1fr_auto_auto] items-center gap-3 border-b border-neutral-100 px-4 py-3 last:border-b-0"
+            className="grid min-w-[1080px] grid-cols-[auto_minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,0.9fr)_minmax(0,0.8fr)_minmax(0,1fr)_minmax(0,0.9fr)_auto_auto] items-center gap-3 border-b border-neutral-100 px-4 py-3 last:border-b-0"
           >
             <input
               type="checkbox"
@@ -185,25 +188,17 @@ function ContactsTable({
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f5e6dc] text-[12px] font-semibold text-[#34223a]">
                 {initials(contact.first_name, contact.last_name)}
               </span>
-              <span className="min-w-0">
-                <span className="block truncate text-[15px] font-semibold text-neutral-900">{fullName(contact)}</span>
-                {contact.phone && <span className="block truncate text-[12px] text-neutral-400">{contact.phone}</span>}
-              </span>
+              <span className="min-w-0 truncate text-[15px] font-semibold text-neutral-900">{fullName(contact)}</span>
             </Link>
-            <div>
-              {source ? (
-                <span className="inline-flex rounded-full bg-[#f5e6dc] px-2.5 py-0.5 text-[12px] font-medium text-[#34223a]">{source}</span>
-              ) : (
-                <span className="text-[13px] text-neutral-300">—</span>
-              )}
+            <span className="truncate text-[13px] text-neutral-600">{contact.phone ? formatPhone(contact.phone) : <Dash />}</span>
+            <span className="truncate text-[13px] text-neutral-600" title={contact.email ?? undefined}>
+              {contact.email ?? <Dash />}
+            </span>
+            <div className="min-w-0">
+              <Chip>{RELATIONSHIP_TYPE_LABELS[contact.relationship_type] ?? contact.relationship_type}</Chip>
             </div>
-            <div>
-              {stageName ? (
-                <span className="inline-flex rounded-full bg-[#f5e6dc] px-2.5 py-0.5 text-[12px] font-medium text-[#34223a]">{stageName}</span>
-              ) : (
-                <span className="text-[13px] text-neutral-300">—</span>
-              )}
-            </div>
+            <div className="min-w-0">{stageName ? <Chip>{stageName}</Chip> : <Dash />}</div>
+            <div className="min-w-0">{source ? <Chip>{source}</Chip> : <Dash />}</div>
             <span className="truncate text-[13px] text-neutral-500">{lastActivityLabels[contact.id] ?? "—"}</span>
             {hasUsablePhone(contact.phone) ? (
               <>
@@ -322,4 +317,16 @@ function ContactGroup({
         </div>}
     </div>
   );
+}
+
+function Chip({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex max-w-full truncate rounded-full bg-[#f5e6dc] px-2.5 py-0.5 text-[12px] font-medium text-[#34223a]">
+      {children}
+    </span>
+  );
+}
+
+function Dash() {
+  return <span className="text-[13px] text-neutral-300">—</span>;
 }

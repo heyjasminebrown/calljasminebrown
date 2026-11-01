@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronRight, ChevronDown, Phone, MessageSquareText, MoreHorizontal, PhoneOff, Plus, ChevronRight as ArrowRight } from "lucide-react";
-import { fullName, formatPhone, initials, CONTACT_TYPE_LABELS, TIMELINE_LABELS } from "@/lib/utils";
+import { fullName, formatPhone, initials, RELATIONSHIP_TYPE_LABELS, TIMELINE_LABELS } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { openQuoCall } from "@/lib/quo/call-link";
 import { StageSelector } from "@/components/contacts/StageSelector";
@@ -60,7 +60,7 @@ export function ContactRow({
     router.refresh();
   }
   const meta = hasPhone
-    ? [CONTACT_TYPE_LABELS[contact.contact_type], formatPhone(contact.phone), lastActivityLabel].filter(Boolean).join(" · ")
+    ? [RELATIONSHIP_TYPE_LABELS[contact.relationship_type], formatPhone(contact.phone), lastActivityLabel].filter(Boolean).join(" · ")
     : null;
 
   // Local state is only flipped after the write succeeds - previously it
@@ -276,7 +276,7 @@ export function ContactRow({
           </div>
 
           <p className="mt-4 text-[15px] leading-[23px] text-neutral-700">
-            {[CONTACT_TYPE_LABELS[contact.contact_type], contact.representing ? `${contact.representing} side` : null].filter(Boolean).join(" · ")}
+            {[RELATIONSHIP_TYPE_LABELS[contact.relationship_type], contact.representing ? `${contact.representing} side` : null].filter(Boolean).join(" · ")}
             {contact.notes ? ` — ${contact.notes}` : ""}
           </p>
 

@@ -7,7 +7,8 @@ import {
 } from "@/lib/crm/contact-filter-params";
 import { SHEET_PARAM_KEYS } from "@/lib/crm/contact-filter-params";
 import { sourceFilterByValue } from "@/lib/crm/contact-sources";
-import type { PipelineStage, Tag } from "@/types/database";
+import type { PipelineStage, RelationshipType, Tag } from "@/types/database";
+import { RELATIONSHIP_TYPE_LABELS } from "@/lib/utils";
 
 export type ActiveFilterTag = { key: string; label: string };
 
@@ -93,6 +94,7 @@ function formatFilterValue(key: string, raw: string, stages: PipelineStage[], ta
     const names = raw.split(",").filter(Boolean).map((id) => stages.find((s) => s.id === id)?.name ?? id);
     return names.length ? `Stage: ${names.join(", ")}` : null;
   }
+  if (key === "type") return `Type: ${RELATIONSHIP_TYPE_LABELS[raw as RelationshipType] ?? raw}`;
   if (key === "phone") return raw === "1" ? "Has phone" : raw === "0" ? "No phone" : null;
   if (key === "email") return raw === "1" ? "Has email" : raw === "0" ? "No email" : null;
   if (key === "event") return raw === EVER_ATTENDED_EVENT ? "Ever attended" : `Attended: ${raw}`;

@@ -9,7 +9,7 @@ import {
   listMergeCandidates,
   listTags,
 } from "@/lib/data/contacts";
-import { fullName, formatPhone, initials, CONTACT_TYPE_LABELS } from "@/lib/utils";
+import { fullName, formatPhone, initials, RELATIONSHIP_TYPE_LABELS } from "@/lib/utils";
 import { formatLocal, isFollowUpOverdue } from "@/lib/format-time";
 import { Section } from "@/components/ui/Section";
 import { QuickActions } from "@/components/contacts/QuickActions";
@@ -110,7 +110,7 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
             {[formatPhone(contact.phone), contact.email].filter(Boolean).join(" · ") || "No contact info on file"}
           </p>
           <p className="mt-1 text-base leading-6 text-neutral-600">
-            {[CONTACT_TYPE_LABELS[contact.contact_type], contact.representing ? `${contact.representing} side` : null, likelihood ? `likelihood ${likelihood}` : null]
+            {[RELATIONSHIP_TYPE_LABELS[contact.relationship_type], contact.representing ? `${contact.representing} side` : null, likelihood ? `likelihood ${likelihood}` : null]
               .filter(Boolean)
               .join(" · ")}
           </p>

@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils";
 import { TODAY_CARD } from "@/components/dashboard/today-home-layout";
 import type { PipelineStage } from "@/types/database";
 
-const RING = ["#34223a", "#e3b79c", "#5a4660", "#e3b79c", "#291a2e"];
+// Cold, Warm, Hot, Nurture - distinct within the brand palette.
+const RING = ["#a796ab", "#e3b79c", "#34223a", "#79657e"];
 
 export function TodayPipelineOverview({
   stages,
@@ -17,6 +18,8 @@ export function TodayPipelineOverview({
   size?: "phone" | "desktop";
   className?: string;
 }) {
+  // Every stage (Cold, Warm, Hot, Nurture) in pipeline order, zeros
+  // included, so the overview reads the same every day.
   const slices = stages
     .filter((s) => !s.is_closed_lost && !s.is_trash)
     .map((stage, i) => ({
@@ -24,10 +27,7 @@ export function TodayPipelineOverview({
       name: stage.name,
       count: counts.get(stage.id) ?? 0,
       color: RING[i % RING.length],
-    }))
-    .filter((s) => s.count > 0)
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 4);
+    }));
 
   const total = slices.reduce((sum, s) => sum + s.count, 0);
   const gradient =

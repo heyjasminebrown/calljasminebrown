@@ -7,6 +7,7 @@ export const contactSchema = z.object({
   phone: z.string().optional(),
   secondary_phone: z.string().optional(),
   secondary_email: z.union([z.string().email(), z.literal("")]).optional(),
+  relationship_type: z.enum(["community", "prospect", "client", "referral_partner"]),
   contact_type: z.enum([
     "buyer",
     "seller",

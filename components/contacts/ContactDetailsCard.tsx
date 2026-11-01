@@ -8,7 +8,7 @@ import { Plus, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { syncContactToQuoAction } from "@/app/(app)/contacts/actions";
 import { contactSchema, type ContactFormValues } from "@/lib/validation/contact";
-import { CONTACT_TYPE_LABELS, TIMELINE_LABELS, REPRESENTING_LABELS, LEAD_SOURCES, cn } from "@/lib/utils";
+import { RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, TIMELINE_LABELS, REPRESENTING_LABELS, LEAD_SOURCES, cn } from "@/lib/utils";
 import { dateInputToAppIso, isoToDateInput } from "@/lib/format-time";
 import { useApplyStageChange } from "@/lib/hooks/useApplyStageChange";
 import { DealCelebrationModal } from "@/components/contacts/DealCelebrationModal";
@@ -60,6 +60,7 @@ export function ContactDetailsCard({
       secondary_phone: contact.secondary_phone ?? "",
       secondary_email: contact.secondary_email ?? "",
       contact_type: contact.contact_type,
+      relationship_type: contact.relationship_type,
       representing: contact.representing,
       listing_address: contact.listing_address ?? "",
       listing_timeline: contact.listing_timeline,
@@ -113,6 +114,7 @@ export function ContactDetailsCard({
       secondary_phone: values.secondary_phone || null,
       secondary_email: values.secondary_email || null,
       contact_type: values.contact_type,
+      relationship_type: values.relationship_type,
       representing: values.representing || null,
       listing_address: values.listing_address || null,
       listing_timeline: values.listing_timeline || null,
@@ -205,17 +207,18 @@ export function ContactDetailsCard({
         </div>
         <div>
           <label className={labelClass}>Type</label>
-          <select {...register("contact_type")} className={fieldClass}>
-            {Object.entries(CONTACT_TYPE_LABELS).map(([value, label]) => (
+          <select {...register("relationship_type")} className={fieldClass}>
+            {RELATIONSHIP_TYPES.map((value) => (
               <option key={value} value={value}>
-                {label}
+                {RELATIONSHIP_TYPE_LABELS[value]}
               </option>
             ))}
           </select>
         </div>
         <div>
           <label className={labelClass}>Stage</label>
-          <select {...register("stage_id")} className={fieldClass}>
+          <select {...register("stage_id", { setValueAs: (v) => v || null })} className={fieldClass}>
+            <option value="">No stage</option>
             {stages.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}

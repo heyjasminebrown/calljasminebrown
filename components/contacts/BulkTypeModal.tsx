@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button, Select } from "@/components/ui";
-import { CONTACT_TYPE_LABELS } from "@/lib/utils";
+import { RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS } from "@/lib/utils";
+import type { RelationshipType } from "@/types/database";
 import { X } from "lucide-react";
 
 export function BulkTypeModal({
@@ -15,14 +16,20 @@ export function BulkTypeModal({
   onClose: () => void;
   onDone: () => void;
 }) {
-  const [contactType, setContactType] = useState("buyer");
+  const [relationshipType, setRelationshipType] = useState<RelationshipType>("community");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   async function apply() {
     setSaving(true);
+    setError("");
     const supabase = createClient();
-    await supabase.from("contacts").update({ contact_type: contactType }).in("id", contactIds);
+    const { error } = await supabase.from("contacts").update({ relationship_type: relationshipType }).in("id", contactIds);
     setSaving(false);
+    if (error) {
+      setError(`Couldn't change type: ${error.message}`);
+      return;
+    }
     onDone();
   }
 
@@ -36,17 +43,18 @@ export function BulkTypeModal({
           </button>
         </div>
         <p className="mt-1 text-sm text-neutral-500">
-          Setting the contact type for {contactIds.length} contact{contactIds.length === 1 ? "" : "s"}.
+          Setting the type for {contactIds.length} contact{contactIds.length === 1 ? "" : "s"}.
         </p>
         <div className="mt-4">
-          <Select value={contactType} onChange={(e) => setContactType(e.target.value)}>
-            {Object.entries(CONTACT_TYPE_LABELS).map(([value, label]) => (
+          <Select value={relationshipType} onChange={(e) => setRelationshipType(e.target.value as RelationshipType)}>
+            {RELATIONSHIP_TYPES.map((value) => (
               <option key={value} value={value}>
-                {label}
+                {RELATIONSHIP_TYPE_LABELS[value]}
               </option>
             ))}
           </Select>
         </div>
+        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
         <div className="mt-5 flex gap-3">
           <Button onClick={apply} disabled={saving} className="flex-1">
             {saving ? "Saving…" : "Change type"}

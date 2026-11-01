@@ -1,3 +1,6 @@
+import type { RelationshipType } from "@/types/database";
+import { RELATIONSHIP_TYPE_LABELS, PIPELINE_STAGE_NAMES } from "@/lib/utils";
+
 export interface ParsedContactRow {
   line: number;
   firstName: string | null;
@@ -6,6 +9,10 @@ export interface ParsedContactRow {
   secondaryEmail: string | null;
   phone: string | null;
   leadDate: string | null;
+  // From a Type / Stage column when the file has one; null means "use the
+  // import's default". Stage is a stage name, matched case-insensitively.
+  relationshipType: RelationshipType | null;
+  stageName: string | null;
   errors: string[];
 }
 
@@ -40,6 +47,12 @@ const HEADER_ALIASES: Record<string, string> = {
   "attendee phone number": "phone",
   mobile: "phone",
   cell: "phone",
+  type: "relationshipType",
+  "relationship type": "relationshipType",
+  "contact type": "relationshipType",
+  stage: "stageName",
+  "pipeline stage": "stageName",
+  "relationship stage": "stageName",
   date: "leadDate",
   "lead date": "leadDate",
   "booking date": "leadDate",
@@ -102,6 +115,14 @@ function splitFullName(full: string): { firstName: string | null; lastName: stri
   return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
 }
 
+function matchRelationshipType(raw: string): RelationshipType | null {
+  const key = raw.trim().toLowerCase().replace(/[\s_-]+/g, " ");
+  const entry = Object.entries(RELATIONSHIP_TYPE_LABELS).find(
+    ([value, label]) => label.toLowerCase() === key || value.replace(/_/g, " ") === key,
+  );
+  return (entry?.[0] as RelationshipType | undefined) ?? null;
+}
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function parseBulkContacts(text: string): { rows: ParsedContactRow[]; unmatchedHeaders: string[] } {
@@ -151,7 +172,23 @@ export function parseBulkContacts(text: string): { rows: ParsedContactRow[]; unm
       }
     }
 
-    rows.push({ line: i + 1, firstName, lastName, email, secondaryEmail, phone, leadDate, errors });
+    let relationshipType: RelationshipType | null = null;
+    const typeRaw = byField.relationshipType || null;
+    if (typeRaw) {
+      relationshipType = matchRelationshipType(typeRaw);
+      if (!relationshipType) {
+        errors.push(`Unknown type "${typeRaw}" - use ${Object.values(RELATIONSHIP_TYPE_LABELS).join(", ")}`);
+      }
+    }
+
+    let stageName: string | null = null;
+    const stageRaw = byField.stageName || null;
+    if (stageRaw) {
+      stageName = PIPELINE_STAGE_NAMES.find((s) => s.toLowerCase() === stageRaw.toLowerCase()) ?? null;
+      if (!stageName) errors.push(`Unknown stage "${stageRaw}" - use ${PIPELINE_STAGE_NAMES.join(", ")}`);
+    }
+
+    rows.push({ line: i + 1, firstName, lastName, email, secondaryEmail, phone, leadDate, relationshipType, stageName, errors });
   }
 
   return { rows, unmatchedHeaders };

@@ -11,7 +11,7 @@ import { snoozeFollowUp } from "@/app/(app)/today-actions";
 import { groupContacts } from "@/lib/crm/contact-grouping";
 import { useToast } from "@/lib/hooks/useToast";
 import { Toast } from "@/components/mobile/Toast";
-import { CONTACT_TYPE_LABELS, cn, formatPhone, fullName } from "@/lib/utils";
+import { RELATIONSHIP_TYPE_LABELS, cn, formatPhone, fullName } from "@/lib/utils";
 import { sourceChipLabel } from "@/lib/crm/contact-sources";
 import type { ContactGroupBy } from "@/lib/crm/contact-filter-params";
 import type { ContactWithRelations, PipelineStage } from "@/types/database";
@@ -33,7 +33,7 @@ function rowMeta(contact: ContactWithRelations, lastActivityLabel: string | unde
   return (
     <span className="flex min-w-0 items-center gap-1.5">
       {source && <span className="shrink-0 rounded-full bg-[#f5e6dc] px-2 py-0.5 text-[11px] font-medium text-[#34223a]">{source}</span>}
-      <span className="truncate">{[CONTACT_TYPE_LABELS[contact.contact_type], formatPhone(contact.phone), lastActivityLabel].filter(Boolean).join(" · ")}</span>
+      <span className="truncate">{[RELATIONSHIP_TYPE_LABELS[contact.relationship_type], formatPhone(contact.phone), lastActivityLabel].filter(Boolean).join(" · ")}</span>
     </span>
   );
 }

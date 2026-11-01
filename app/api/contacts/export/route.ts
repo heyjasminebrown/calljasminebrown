@@ -1,14 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { listContacts } from "@/lib/data/contacts";
 import { parseContactFilterParams } from "@/lib/crm/contact-filter-params";
-import { formatPhone } from "@/lib/utils";
+import { formatPhone, RELATIONSHIP_TYPE_LABELS } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
 
 // One field per column, in order - kept deliberately narrow to what an
 // email/mailing tool (Eventbrite's own contact list import, Mailchimp,
 // etc.) actually wants. Never includes unsubscribe_token or owner_id -
 // those are internal, not something that belongs in a downloaded file.
-const HEADERS = ["First Name", "Last Name", "Email", "Secondary Email", "Phone", "Tags", "Stage", "Contact Type", "Lead Source", "Lead Date"];
+const HEADERS = ["First Name", "Last Name", "Email", "Secondary Email", "Phone", "Tags", "Type", "Stage", "Lead Source", "Lead Date"];
 
 function csvCell(value: string): string {
   if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
@@ -41,8 +41,8 @@ export async function GET(request: NextRequest) {
       c.secondary_email ?? "",
       formatPhone(c.phone),
       c.contact_tags.filter((ct) => ct.tags).map((ct) => ct.tags!.name).join("; "),
+      RELATIONSHIP_TYPE_LABELS[c.relationship_type] ?? c.relationship_type,
       c.pipeline_stages?.name ?? "",
-      c.contact_type,
       c.lead_source ?? "",
       c.lead_date ? c.lead_date.slice(0, 10) : "",
     ]);

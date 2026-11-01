@@ -14,6 +14,8 @@ import type { GranolaNoteEvent } from "@/lib/granola/parse-event";
 import { backfillBlinqShares } from "@/lib/google/backfill-blinq";
 import { runAutoStage } from "@/lib/crm/auto-stage";
 import type { ParsedContactRow } from "@/lib/crm/bulk-import-contacts";
+import { applyStageChange } from "@/lib/crm/stage-transition";
+import type { PipelineStage, RelationshipType } from "@/types/database";
 
 const QUO_BACKFILL_BATCH_SIZE = 25;
 const GRANOLA_BACKFILL_LOOKBACK_DAYS = 90;
@@ -114,7 +116,14 @@ export async function sendEmailToContact(contactId: string, toEmail: string, sub
   return { ok: true as const };
 }
 
-export async function bulkImportContacts(rows: ParsedContactRow[], tagName: string | null, leadSource: string) {
+export async function bulkImportContacts(
+  rows: ParsedContactRow[],
+  tagName: string | null,
+  leadSource: string,
+  // The import's defaults, used when a row has no Type / Stage column value.
+  // stageName null = no stage.
+  defaults: { relationshipType: RelationshipType; stageName: string | null },
+) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -131,6 +140,13 @@ export async function bulkImportContacts(rows: ParsedContactRow[], tagName: stri
     candidates = await loadMatchCandidates(supabase, user.id);
   } catch (e) {
     return { ok: false as const, error: e instanceof Error ? e.message : "Couldn't load contacts" };
+  }
+  const { data: stagesData, error: stagesError } = await supabase.from("pipeline_stages").select("*").eq("owner_id", user.id);
+  if (stagesError) return { ok: false as const, error: `Couldn't load stages: ${stagesError.message}` };
+  const stages = (stagesData ?? []) as PipelineStage[];
+  const stageByName = (name: string | null) => (name ? stages.find((s) => s.name.toLowerCase() === name.toLowerCase()) : undefined);
+  if (defaults.stageName && !stageByName(defaults.stageName)) {
+    return { ok: false as const, error: `Stage "${defaults.stageName}" doesn't exist - check Settings → Pipeline stages` };
   }
   let created = 0;
   let matched = 0;
@@ -149,10 +165,30 @@ export async function bulkImportContacts(rows: ParsedContactRow[], tagName: stri
       leadDate: row.leadDate,
       skipQuoSync: true,
       candidates,
+      relationshipType: row.relationshipType ?? defaults.relationshipType,
+      stageId: stageByName(row.stageName ?? defaults.stageName)?.id ?? null,
     });
     if (!result) {
       failed++;
       continue;
+    }
+    // Someone already on file keeps their Type and Stage unless the file
+    // itself sets them for that row. A stage move goes through
+    // applyStageChange like any manual move; history is never touched.
+    if (result.existing) {
+      const existing = result.existing;
+      if (row.relationshipType && row.relationshipType !== existing.relationship_type) {
+        const { error } = await supabase.from("contacts").update({ relationship_type: row.relationshipType }).eq("id", existing.id);
+        if (error) return { ok: false as const, error: `Couldn't update type for row ${row.line}: ${error.message}` };
+        existing.relationship_type = row.relationshipType;
+      }
+      const newStage = stageByName(row.stageName);
+      if (newStage && newStage.id !== existing.stage_id) {
+        const oldStage = stages.find((s) => s.id === existing.stage_id);
+        const { error } = await applyStageChange(supabase, user.id, existing.id, oldStage, newStage);
+        if (error) return { ok: false as const, error: `Couldn't update stage for row ${row.line}: ${error.message}` };
+        existing.stage_id = newStage.id;
+      }
     }
     if (result.wasCreated) created++;
     else matched++;

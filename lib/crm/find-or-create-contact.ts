@@ -3,6 +3,8 @@ import { phonesMatch } from "@/lib/phone";
 import { syncContactToQuo } from "@/lib/quo/sync-contact";
 import { hasPlaceholderName } from "@/lib/crm/merge-fields";
 import { reportFailure } from "@/lib/errors/report-failure";
+import { DEFAULT_STAGE_NAME } from "@/lib/utils";
+import type { RelationshipType } from "@/types/database";
 
 export type MatchCandidate = {
   id: string;
@@ -13,9 +15,11 @@ export type MatchCandidate = {
   phone: string | null;
   secondary_phone: string | null;
   quo_contact_id: string | null;
+  relationship_type: RelationshipType;
+  stage_id: string | null;
 };
 
-const MATCH_COLUMNS = "id, first_name, last_name, email, secondary_email, phone, secondary_phone, quo_contact_id";
+const MATCH_COLUMNS = "id, first_name, last_name, email, secondary_email, phone, secondary_phone, quo_contact_id, relationship_type, stage_id";
 const PAGE_SIZE = 1000;
 
 // Every non-archived contact, paged - a single select is capped at 1000
@@ -69,8 +73,12 @@ export async function findOrCreateContact(
     // re-reading every contact for every row. Newly created contacts are
     // appended so later rows in the same import match them.
     candidates?: MatchCandidate[];
+    // New contacts only. Type defaults to Community (the column default);
+    // stage defaults to Nurture. Pass stageId: null for no stage.
+    relationshipType?: RelationshipType;
+    stageId?: string | null;
   },
-): Promise<{ id: string; wasCreated: boolean } | null> {
+): Promise<{ id: string; wasCreated: boolean; existing?: MatchCandidate } | null> {
   const email = input.email?.trim().toLowerCase() || null;
   const secondaryEmail = input.secondaryEmail?.trim().toLowerCase() || null;
   const phone = input.phone?.trim() || null;
@@ -101,16 +109,14 @@ export async function findOrCreateContact(
         quo_contact_id: match.quo_contact_id,
       });
     }
-    return { id: match.id, wasCreated: false };
+    return { id: match.id, wasCreated: false, existing: match };
   }
 
-  const { data: firstStage } = await admin
-    .from("pipeline_stages")
-    .select("id")
-    .eq("owner_id", ownerId)
-    .order("sort_order", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  let stageId = input.stageId;
+  if (stageId === undefined) {
+    const { data: stages } = await admin.from("pipeline_stages").select("id, name").eq("owner_id", ownerId).order("sort_order");
+    stageId = (stages?.find((s) => s.name === DEFAULT_STAGE_NAME) ?? stages?.[0])?.id ?? null;
+  }
 
   const { data: created, error } = await admin
     .from("contacts")
@@ -123,7 +129,8 @@ export async function findOrCreateContact(
       phone,
       contact_type: input.contactType ?? "other",
       lead_source: input.leadSource,
-      stage_id: firstStage?.id ?? null,
+      stage_id: stageId,
+      ...(input.relationshipType ? { relationship_type: input.relationshipType } : {}),
       ...(input.leadDate ? { lead_date: input.leadDate } : {}),
     })
     .select(MATCH_COLUMNS)
