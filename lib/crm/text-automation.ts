@@ -127,8 +127,45 @@ function laterStep(steps: CampaignStep[], fromId: string | null, nextId: string 
   return to > from ? nextId : null;
 }
 
+// Quo errors that are about the account, not the person being texted.
+const ACCOUNT_WIDE_STATUS = /Quo API error \((401|402|429|5\d\d)\)/;
+const ACCOUNT_WIDE_TEXT = /prepaid credits|not enough credits/i;
+export function isAccountWideFailure(error: string): boolean {
+  return ACCOUNT_WIDE_STATUS.test(error) || ACCOUNT_WIDE_TEXT.test(error);
+}
+
+// Before account-wide failures stopped counting against a contact, three
+// "out of credits" failures dropped them from the campaign. Put anyone
+// dropped that way back where they were (same text, inside the send
+// window), as long as the campaign is still on.
+async function reviveAccountWideStops(admin: SupabaseClient, ownerId: string) {
+  const { data, error } = await admin
+    .from("text_automation_enrollments")
+    .select("id, stop_reason, text_campaigns(active, steps)")
+    .eq("owner_id", ownerId)
+    .eq("status", "stopped")
+    .like("stop_reason", "Couldn't send %");
+  if (error) {
+    await reportFailure("Couldn't check for campaign texts to retry", error.message);
+    return;
+  }
+  const at = intoSendWindow(new Date()).toISOString();
+  for (const row of (data ?? []) as unknown as { id: string; stop_reason: string; text_campaigns: { active: boolean; steps: CampaignStep[] } | null }[]) {
+    if (!isAccountWideFailure(row.stop_reason) || !row.text_campaigns?.active) continue;
+    const label = row.stop_reason.match(/^Couldn't send (Text \d+):/)?.[1];
+    const step = row.text_campaigns.steps.find((st) => st.label === label);
+    if (!step) continue;
+    const { error: e } = await admin
+      .from("text_automation_enrollments")
+      .update({ status: "active", stop_reason: null, next_step: step.id, next_send_at: at, failed_attempts: 0, updated_at: new Date().toISOString() })
+      .eq("id", row.id);
+    if (e) await reportFailure("Couldn't put a contact back into their campaign", e.message, { enrollmentId: row.id });
+  }
+}
+
 export async function runTextAutomation(admin: SupabaseClient, ownerId: string) {
   if (!isTextAutomationEnabled()) return { skipped: "disabled" as const };
+  await reviveAccountWideStops(admin, ownerId);
 
   const { data, error } = await admin
     .from("text_automation_enrollments")
@@ -268,6 +305,17 @@ export async function runTextAutomation(admin: SupabaseClient, ownerId: string) 
     if (sent > 0) await new Promise((r) => setTimeout(r, GAP_BETWEEN_SENDS_MS));
     const body = renderStep(step.body, c.first_name);
     const result = await sendQuoText(c.phone!, body);
+    if (!result.ok && isAccountWideFailure(result.error)) {
+      // Out of credits, bad key, rate limit, Quo down: nothing to do with
+      // this contact. Don't count it against them - hold everyone and
+      // retry in 10 minutes. One banner entry, not one per contact.
+      await reportFailure(
+        "Campaign texts are paused: Quo refused to send (retrying every 10 minutes - nobody is dropped from a campaign)",
+        result.error,
+      );
+      await update(e.id, { last_error: result.error, next_send_at: new Date(now.getTime() + 10 * 60_000).toISOString() });
+      break;
+    }
     if (!result.ok) {
       const attempts = e.failed_attempts + 1;
       await reportFailure(`${campaign.name}: ${step.label} to ${c.first_name} failed`, result.error, { contactId: c.id });

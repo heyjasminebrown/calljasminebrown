@@ -46,7 +46,7 @@ export async function SystemErrorsBanner() {
             </div>
             <p className="mt-0.5 text-xs text-red-700/80">
               {e.occurrences > 1 ? `${e.occurrences} times, last ` : ""}
-              {new Date(e.last_seen_at).toLocaleString()}
+              {new Date(e.last_seen_at).toLocaleString("en-US", { timeZone: "America/New_York", dateStyle: "short", timeStyle: "short" })} ET
             </p>
             {e.details && (
               <details className="mt-1">
