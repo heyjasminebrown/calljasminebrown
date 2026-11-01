@@ -45,6 +45,11 @@ export function ContactDetailsCard({
   const [serverError, setServerError] = useState("");
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(contact.contact_tags.filter((ct) => ct.tags).map((ct) => ct.tags!.id));
   const [addingTag, setAddingTag] = useState(false);
+  // Tags created here are added to this list right away, before the page
+  // refreshes with the server's copy.
+  const [allTags, setAllTags] = useState<Tag[]>(tags);
+  const [newTagName, setNewTagName] = useState("");
+  const [tagError, setTagError] = useState("");
   const { move: applyMove, dealModal, pendingCleanup, clearDealModal, clearPendingCleanup } = useApplyStageChange(contact.owner_id);
 
   const { register, handleSubmit, setValue } = useForm<ContactFormValues>({
@@ -155,8 +160,47 @@ export function ContactDetailsCard({
     router.refresh();
   }
 
-  function toggleTag(id: string) {
-    setSelectedTagIds((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]));
+  // Tag changes save immediately (not on "Save changes"), so a tag added
+  // or removed here sticks even if nothing else on the form is edited.
+  async function toggleTag(id: string) {
+    setTagError("");
+    const isOn = selectedTagIds.includes(id);
+    const supabase = createClient();
+    const { error } = isOn
+      ? await supabase.from("contact_tags").delete().eq("contact_id", contact.id).eq("tag_id", id)
+      : await supabase.from("contact_tags").upsert({ contact_id: contact.id, tag_id: id }, { onConflict: "contact_id,tag_id" });
+    if (error) {
+      setTagError(`Couldn't ${isOn ? "remove" : "add"} tag: ${error.message}`);
+      return;
+    }
+    setSelectedTagIds((prev) => (isOn ? prev.filter((t) => t !== id) : [...prev, id]));
+    router.refresh();
+  }
+
+  async function createAndAddTag(e?: React.FormEvent | React.KeyboardEvent) {
+    e?.preventDefault();
+    const name = newTagName.trim();
+    if (!name) return;
+    const existing = allTags.find((t) => t.name.toLowerCase() === name.toLowerCase());
+    if (existing) {
+      setNewTagName("");
+      if (!selectedTagIds.includes(existing.id)) await toggleTag(existing.id);
+      return;
+    }
+    setTagError("");
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("tags")
+      .insert({ owner_id: contact.owner_id, name, color: "#79657e" })
+      .select("*")
+      .single();
+    if (error || !data) {
+      setTagError(`Couldn't create tag: ${error?.message ?? "unknown error"}`);
+      return;
+    }
+    setAllTags((prev) => [...prev, data as Tag].sort((a, b) => a.name.localeCompare(b.name)));
+    setNewTagName("");
+    await toggleTag(data.id);
   }
 
   return (
@@ -207,7 +251,7 @@ export function ContactDetailsCard({
         <div className="sm:col-span-2">
           <p className={labelClass}>Tags</p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            {tags.map((tag) => {
+            {allTags.map((tag) => {
               const active = selectedTagIds.includes(tag.id);
               if (!active && !addingTag) return null;
               return (
@@ -231,6 +275,27 @@ export function ContactDetailsCard({
               <Plus size={13} /> {addingTag ? "Done" : "Add tag"}
             </button>
           </div>
+          {addingTag && (
+            <div className="mt-2 flex gap-2">
+              <input
+                autoFocus
+                value={newTagName}
+                onChange={(e) => setNewTagName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && createAndAddTag(e)}
+                placeholder={allTags.length ? "Tap a tag above, or type a new one" : "Type a tag name, e.g. Pre-Approved"}
+                className={cn(fieldClass.replace("mt-1.5 ", ""), "flex-1")}
+              />
+              <button
+                type="button"
+                onClick={() => createAndAddTag()}
+                disabled={!newTagName.trim()}
+                className="shrink-0 rounded-[10px] bg-neutral-900 px-3.5 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                Add
+              </button>
+            </div>
+          )}
+          {tagError && <p className="mt-2 text-sm text-red-600">{tagError}</p>}
         </div>
         <div className="sm:col-span-2">
           <label className={labelClass}>Lead source</label>
