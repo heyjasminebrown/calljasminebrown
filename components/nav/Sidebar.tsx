@@ -43,7 +43,7 @@ export function Sidebar({ userEmail, counts = {} }: { userEmail?: string | null;
           />
         </div>
         <div className="min-w-0">
-          <BrandWordmark />
+          <BrandWordmark size="xs" />
           {userEmail && <p className="mt-0.5 truncate text-sm text-neutral-400">{userEmail}</p>}
         </div>
       </div>
