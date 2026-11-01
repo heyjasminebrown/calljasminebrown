@@ -4,12 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatInTimeZone } from "date-fns-tz";
-import { ChevronDown, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, Pencil, Plus, Trash2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui";
 import { APP_TIMEZONE } from "@/lib/format-time";
 import { cn, RELATIONSHIP_TYPE_LABELS } from "@/lib/utils";
 import { TRIGGER_LABELS } from "@/lib/crm/text-campaign-rules";
-import { deleteTextCampaign, setTextCampaignActive } from "@/app/(app)/sequences/text-campaign-actions";
+import { countExistingMatches, deleteTextCampaign, enrollExistingMatches, setTextCampaignActive } from "@/app/(app)/sequences/text-campaign-actions";
 import { TextCampaignEditor, type EditableCampaign } from "@/components/sequences/TextCampaignEditor";
 import type { PipelineStage, RelationshipType, Tag } from "@/types/database";
 
@@ -108,6 +108,9 @@ function CampaignCard({
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  // null = not asked yet; a number = how many would be added (awaiting confirm).
+  const [existingCount, setExistingCount] = useState<number | null>(null);
   const active = rows.filter((r) => r.status === "active");
   const done = rows.filter((r) => r.status !== "active").slice(0, 10);
   const labelOf = (id: string | null) => campaign.steps.findIndex((s) => s.id === id) + 1;
@@ -119,6 +122,40 @@ function CampaignCard({
     const result = await setTextCampaignActive(campaign.id, !campaign.active);
     setBusy(false);
     if (!result.ok) setError(`Couldn't switch it ${campaign.active ? "off" : "on"}: ${result.error}`);
+    router.refresh();
+  }
+
+  async function checkExisting() {
+    setBusy(true);
+    setError("");
+    setNotice("");
+    const result = await countExistingMatches(campaign.id);
+    setBusy(false);
+    if (!result.ok) {
+      setError(`Couldn't count who matches: ${result.error}`);
+      return;
+    }
+    if (result.count === 0) {
+      setNotice("No one else matches right now - everyone who does is already in (or through) this campaign.");
+      return;
+    }
+    setExistingCount(result.count);
+  }
+
+  async function addExisting() {
+    setBusy(true);
+    setError("");
+    const result = await enrollExistingMatches(campaign.id);
+    setBusy(false);
+    setExistingCount(null);
+    if (!result.ok) {
+      setError(`Couldn't add them: ${result.error}`);
+      return;
+    }
+    setNotice(
+      `Added ${result.added} ${result.added === 1 ? "person" : "people"}. ` +
+        (campaign.active ? "Text 1 goes out 2 a minute, 9 AM-8 PM ET." : "They'll start when you switch the campaign On."),
+    );
     router.refresh();
   }
 
@@ -156,6 +193,16 @@ function CampaignCard({
         >
           {campaign.active ? "On" : "Off"}
         </button>
+        <button
+          type="button"
+          onClick={() => void checkExisting()}
+          disabled={busy}
+          title="Add everyone who already matches this campaign's trigger"
+          className="rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-100 disabled:opacity-50"
+          aria-label={`Add everyone who already matches ${campaign.name}`}
+        >
+          <UserPlus size={15} />
+        </button>
         <button type="button" onClick={onEdit} className="rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-100" aria-label={`Edit ${campaign.name}`}>
           <Pencil size={15} />
         </button>
@@ -175,6 +222,22 @@ function CampaignCard({
           </Button>
         </div>
       )}
+      {existingCount != null && (
+        <div className="flex flex-wrap items-center gap-2 border-t border-neutral-100 px-4 py-3 text-sm">
+          <span className="text-neutral-600">
+            Add {existingCount} {existingCount === 1 ? "person who already matches" : "people who already match"}? They&apos;ll get Text 1
+            {campaign.active ? ` over about ${Math.ceil(existingCount / 2)} minute${existingCount > 2 ? "s" : ""} (2 a minute, 9 AM-8 PM ET)` : " once you switch the campaign On"}.
+            Opted-out, archived and spam contacts and anyone without a phone are skipped.
+          </span>
+          <Button size="sm" onClick={() => void addExisting()} disabled={busy}>
+            Add {existingCount}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => setExistingCount(null)}>
+            Cancel
+          </Button>
+        </div>
+      )}
+      {notice && <p className="border-t border-neutral-100 px-4 py-2 text-sm text-emerald-700">{notice}</p>}
       {error && <p className="border-t border-neutral-100 px-4 py-2 text-sm text-red-600">{error}</p>}
 
       {open && (

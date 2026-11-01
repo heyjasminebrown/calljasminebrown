@@ -235,6 +235,7 @@ export function TextCampaignEditor({
           <div className="rounded-xl bg-[#f4f1f5] p-3 text-xs leading-5 text-neutral-600">
             <p className="font-semibold text-neutral-700">Always on, for every campaign</p>
             Stops when they reply STOP, reply with a clear no, are archived or marked spam, or when you text or call them yourself.
+            To include people who already match (e.g. already have the tag), use the add-people button on the campaign after saving.
             At most 2 texts a minute. Nothing sends between 8 PM and 9 AM ET. Each contact goes through a campaign once. New
             campaigns start Off - switch them on when you&apos;re ready.
           </div>

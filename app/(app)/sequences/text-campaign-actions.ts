@@ -56,3 +56,74 @@ export async function deleteTextCampaign(id: string): Promise<Result> {
   revalidatePath("/sequences");
   return { ok: true, id };
 }
+
+type Matching = { ok: true; contactIds: string[] } | { ok: false; error: string };
+
+// Everyone who already matches a campaign's trigger and could be texted
+// (has a phone, not opted out, archived or spam), minus anyone who has
+// already been through it.
+async function existingMatches(campaignId: string): Promise<Matching> {
+  const supabase = await createClient();
+  const { data: c, error } = await supabase.from("text_campaigns").select("id, trigger_type, trigger_value").eq("id", campaignId).single();
+  if (error || !c) return { ok: false, error: error?.message ?? "Campaign not found" };
+
+  const ids: string[] = [];
+  for (let from = 0; ; from += 1000) {
+    // A tag campaign joins on contact_tags; the others filter contacts directly.
+    const columns: string = c.trigger_type === "tag" ? "id, contact_tags!inner(tag_id)" : "id";
+    let q = supabase.from("contacts").select(columns).eq("archived", false).eq("spam", false).is("opted_out_at", null).not("phone", "is", null);
+    if (c.trigger_type === "tag") q = q.eq("contact_tags.tag_id", c.trigger_value);
+    if (c.trigger_type === "type") q = q.eq("relationship_type", c.trigger_value);
+    if (c.trigger_type === "stage") q = q.eq("stage_id", c.trigger_value);
+    if (c.trigger_type === "source") q = q.ilike("lead_source", c.trigger_value.trim());
+    const { data, error: e } = await q.order("id").range(from, from + 999);
+    if (e) return { ok: false, error: e.message };
+    ids.push(...((data ?? []) as unknown as { id: string }[]).map((r) => r.id));
+    if (!data || data.length < 1000) break;
+  }
+
+  const { data: already, error: e2 } = await supabase.from("text_automation_enrollments").select("contact_id").eq("campaign_id", campaignId);
+  if (e2) return { ok: false, error: e2.message };
+  const done = new Set((already ?? []).map((r) => r.contact_id as string));
+  return { ok: true, contactIds: ids.filter((id) => !done.has(id)) };
+}
+
+export async function countExistingMatches(campaignId: string): Promise<{ ok: true; count: number } | { ok: false; error: string }> {
+  const result = await existingMatches(campaignId);
+  return result.ok ? { ok: true, count: result.contactIds.length } : result;
+}
+
+// Starts the campaign for everyone who already matches. Sends still go out
+// a couple a minute, inside 9 AM-8 PM ET.
+export async function enrollExistingMatches(campaignId: string): Promise<{ ok: true; added: number } | { ok: false; error: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Not signed in" };
+
+  const { data: c, error } = await supabase.from("text_campaigns").select("id, active, steps").eq("id", campaignId).single();
+  if (error || !c) return { ok: false, error: error?.message ?? "Campaign not found" };
+  const firstStep = (c.steps as { id: string }[])[0]?.id;
+  if (!firstStep) return { ok: false, error: "The campaign has no texts yet." };
+
+  const matches = await existingMatches(campaignId);
+  if (!matches.ok) return matches;
+  if (matches.contactIds.length === 0) return { ok: true, added: 0 };
+
+  const now = new Date().toISOString();
+  for (let i = 0; i < matches.contactIds.length; i += 500) {
+    const rows = matches.contactIds.slice(i, i + 500).map((contact_id) => ({
+      owner_id: user.id,
+      contact_id,
+      campaign_id: campaignId,
+      campaign: campaignId,
+      next_step: firstStep,
+      next_send_at: now,
+    }));
+    const { error: e } = await supabase.from("text_automation_enrollments").upsert(rows, { onConflict: "contact_id,campaign", ignoreDuplicates: true });
+    if (e) return { ok: false, error: e.message };
+  }
+  revalidatePath("/sequences");
+  return { ok: true, added: matches.contactIds.length };
+}

@@ -21,7 +21,7 @@ export type CampaignInput = {
 
 export const TRIGGER_LABELS: Record<TriggerType, string> = {
   source: "A new contact is added with Source",
-  tag: "This tag is added to a contact",
+  tag: "This tag is added to a contact (new or existing)",
   type: "A contact becomes Type",
   stage: "A contact moves to Stage",
 };
