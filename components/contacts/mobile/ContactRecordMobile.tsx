@@ -15,7 +15,7 @@ import { EngageStrip } from "@/components/contacts/EngageStrip";
 import { FollowUpBar } from "@/components/contacts/FollowUpBar";
 import { QuickAddMenu } from "@/components/nav/QuickAddMenu";
 import { BrandWordmark } from "@/components/brand/BrandWordmark";
-import { formatPhone } from "@/lib/utils";
+import { formatPhone, stageColor, stageTint } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import type { Activity, AiInsight, ContactWithRelations, PipelineStage, Tag, TextTemplate } from "@/types/database";
 import type { MergeCandidate } from "@/lib/data/contacts";
@@ -94,9 +94,10 @@ export function ContactRecordMobile({
           <button
             type="button"
             onClick={() => setStageSheetOpen(true)}
-            className="flex h-[36px] items-center gap-1.5 rounded-full bg-[#f5e6dc] px-3 text-[14px] font-medium text-brand-700"
+            className="flex h-[36px] items-center gap-1.5 rounded-full px-3 text-[14px] font-medium text-brand-700"
+            style={stage ? { backgroundColor: stageTint(stage) } : { backgroundColor: "#f5e6dc" }}
           >
-            <Leaf size={14} strokeWidth={2} />
+            <Leaf size={14} strokeWidth={2} style={stage ? { color: stageColor(stage) } : undefined} />
             {stage?.name ?? "No stage"}
           </button>
           {contact.lead_source && (

@@ -160,6 +160,11 @@ export function stageColor(stage: { name: string; color: string }): string {
   return STAGE_COLORS[stage.name] ?? stage.color;
 }
 
+// Soft background for a stage pill: the stage color at low opacity.
+export function stageTint(stage: { name: string; color: string }): string {
+  return `${stageColor(stage)}2e`;
+}
+
 // Legacy internal category (contact_type) - no longer shown as "Type".
 export const CONTACT_TYPE_LABELS: Record<string, string> = {
   buyer: "Buyer",

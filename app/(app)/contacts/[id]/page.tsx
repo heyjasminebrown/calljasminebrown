@@ -9,7 +9,7 @@ import {
   listMergeCandidates,
   listTags,
 } from "@/lib/data/contacts";
-import { fullName, formatPhone, initials, RELATIONSHIP_TYPE_LABELS } from "@/lib/utils";
+import { fullName, formatPhone, initials, RELATIONSHIP_TYPE_LABELS, stageColor, stageTint } from "@/lib/utils";
 import { formatLocal, isFollowUpOverdue } from "@/lib/format-time";
 import { Section } from "@/components/ui/Section";
 import { QuickActions } from "@/components/contacts/QuickActions";
@@ -119,8 +119,11 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
             </p>
           )}
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="flex h-[36px] items-center gap-1.5 rounded-full bg-[#f5e6dc] px-3 text-[14px] font-medium text-brand-700">
-              <Leaf size={14} strokeWidth={2} />
+            <span
+              className="flex h-[36px] items-center gap-1.5 rounded-full px-3 text-[14px] font-medium text-brand-700"
+              style={{ backgroundColor: stage ? stageTint(stage) : "#f5e6dc" }}
+            >
+              <Leaf size={14} strokeWidth={2} style={stage ? { color: stageColor(stage) } : undefined} />
               {stage?.name ?? "No stage"}
             </span>
             {contact.lead_source && (

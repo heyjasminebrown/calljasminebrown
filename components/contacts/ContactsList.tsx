@@ -13,7 +13,7 @@ import { campaignsTextHref } from "@/lib/crm/campaigns-handoff";
 import { sourceChipLabel } from "@/lib/crm/contact-sources";
 import { openQuoCall } from "@/lib/quo/call-link";
 import { threadHref } from "@/lib/crm/inbox-href";
-import { fullName, initials, formatPhone, RELATIONSHIP_TYPE_LABELS } from "@/lib/utils";
+import { fullName, initials, formatPhone, RELATIONSHIP_TYPE_LABELS, stageColor, stageTint } from "@/lib/utils";
 import type { ContactGroupBy } from "@/lib/crm/contact-filter-params";
 import type { ContactSegment, ContactWithRelations, PipelineStage, Tag } from "@/types/database";
 
@@ -171,7 +171,7 @@ function ContactsTable({
       </div>
       {contacts.map((contact) => {
         const source = sourceChipLabel(contact.lead_source);
-        const stageName = contact.pipeline_stages?.name;
+        const stage = contact.pipeline_stages;
         return (
           <div
             key={contact.id}
@@ -197,7 +197,19 @@ function ContactsTable({
             <div className="min-w-0">
               <Chip>{RELATIONSHIP_TYPE_LABELS[contact.relationship_type] ?? contact.relationship_type}</Chip>
             </div>
-            <div className="min-w-0">{stageName ? <Chip>{stageName}</Chip> : <Dash />}</div>
+            <div className="min-w-0">
+              {stage ? (
+                <span
+                  className="inline-flex max-w-full items-center gap-1.5 truncate rounded-full px-2.5 py-0.5 text-[12px] font-medium text-[#34223a]"
+                  style={{ backgroundColor: stageTint(stage) }}
+                >
+                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: stageColor(stage) }} />
+                  {stage.name}
+                </span>
+              ) : (
+                <Dash />
+              )}
+            </div>
             <div className="min-w-0">{source ? <Chip>{source}</Chip> : <Dash />}</div>
             <span className="truncate text-[13px] text-neutral-500">{lastActivityLabels[contact.id] ?? "—"}</span>
             {hasUsablePhone(contact.phone) ? (
