@@ -29,8 +29,6 @@ import { RATE_PRODUCT } from "@/lib/crm/rate-feed";
 import { getDisabledSpamReasons } from "@/lib/crm/spam-signals";
 import { Card, Button } from "@/components/ui";
 import { BarChart3, Download } from "lucide-react";
-import { TextAutomationStatus, type EnrollmentRow } from "@/components/settings/TextAutomationStatus";
-import { isTextAutomationEnabled, TEXT_CAMPAIGNS } from "@/lib/crm/text-automation";
 
 export default async function SettingsPage({
   searchParams,
@@ -94,13 +92,6 @@ export default async function SettingsPage({
     stageCounts[row.stage_id] = (stageCounts[row.stage_id] ?? 0) + 1;
   }
 
-  const { data: enrollmentRows, error: enrollmentError } = await supabase
-    .from("text_automation_enrollments")
-    .select("id, contact_id, status, stop_reason, next_step, next_send_at, last_step, last_error, contacts(first_name, last_name)")
-    .order("updated_at", { ascending: false })
-    .limit(200);
-  const automationOn = isTextAutomationEnabled();
-
   const connectionRows: ConnectionRow[] = [
     {
       key: "gmail",
@@ -130,20 +121,6 @@ export default async function SettingsPage({
       status: process.env.QUO_API_KEY ? "Connected" : "Not set up",
       connected: !!process.env.QUO_API_KEY,
       manageContent: <QuoSyncBackfill />,
-    },
-    {
-      key: "text-automation",
-      name: TEXT_CAMPAIGNS.conventus.name,
-      description: "Automatic texts to new Conventus contacts, stopping on a reply, a no, or STOP.",
-      status: automationOn ? "On" : "Off",
-      connected: automationOn,
-      manageContent: (
-        <TextAutomationStatus
-          enabled={automationOn}
-          rows={(enrollmentRows ?? []) as unknown as EnrollmentRow[]}
-          error={enrollmentError?.message ?? null}
-        />
-      ),
     },
     {
       key: "granola",
