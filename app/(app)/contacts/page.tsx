@@ -17,7 +17,6 @@ import { isSmartList, SMART_LIST_VIEW } from "@/lib/crm/smart-lists";
 import { ContactsWorkspace } from "@/components/contacts/ContactsWorkspace";
 import { BulkImportContactsButton } from "@/components/contacts/BulkImportContactsButton";
 import { PeopleMobile } from "@/components/contacts/mobile/PeopleMobile";
-import { CountScopeNote } from "@/components/CountScopeNote";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function ContactsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
@@ -89,7 +88,6 @@ export default async function ContactsPage({ searchParams }: { searchParams: Pro
                 ? `${contacts.length} contact${contacts.length === 1 ? "" : "s"} match these rules`
                 : `${contacts.length} ${contacts.length === 1 ? "person" : "people"}`}
             </p>
-            <CountScopeNote current="contacts" />
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <a

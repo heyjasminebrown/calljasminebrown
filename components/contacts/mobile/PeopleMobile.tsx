@@ -11,7 +11,6 @@ import { SmartListBuilder } from "@/components/contacts/SmartListBuilder";
 import { isSmartList, SMART_LIST_VIEW } from "@/lib/crm/smart-lists";
 import { ActiveFilterTags } from "@/components/contacts/ActiveFilterTags";
 import { ContactsBulkBar } from "@/components/contacts/ContactsBulkBar";
-import { CountScopeNote } from "@/components/CountScopeNote";
 import { SHEET_PARAM_KEYS } from "@/lib/crm/contact-filter-params";
 import { cn } from "@/lib/utils";
 import type { ContactGroupBy } from "@/lib/crm/contact-filter-params";
@@ -163,7 +162,6 @@ export function PeopleMobile({
           <p className="mt-0.5 text-[13px] text-neutral-400">
             {contacts.length} {contacts.length === 1 ? "person" : "people"}
           </p>
-          <CountScopeNote current="contacts" />
         </div>
         <div className="flex items-center gap-2">
           <Link href="/contacts/new" aria-label="New contact" className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-600 text-peach">
