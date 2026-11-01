@@ -140,6 +140,9 @@ export async function syncGmailInbox(admin: SupabaseClient, ownerId: string) {
   }
 
   let synced = 0;
+  // Inbound senders that aren't a contact (by main or secondary email) -
+  // returned so "my reply didn't show up" can be answered from Settings.
+  const unmatchedSenders = new Set<string>();
   for (const messageId of messageIds) {
     try {
       const { data: meta } = await gmail.users.messages.get({
@@ -172,7 +175,10 @@ export async function syncGmailInbox(admin: SupabaseClient, ownerId: string) {
 
       const counterpartEmails = isOutbound ? [...to, ...cc] : [from];
       const contactId = counterpartEmails.map((e) => contactByEmail.get(e)).find(Boolean);
-      if (!contactId) continue;
+      if (!contactId) {
+        if (!isOutbound && from && unmatchedSenders.size < 10) unmatchedSenders.add(from);
+        continue;
+      }
 
       const { data: full } = await gmail.users.messages.get({ userId: "me", id: messageId, format: "full" });
       const subject = headerValue(full.payload?.headers, "Subject");
@@ -198,5 +204,5 @@ export async function syncGmailInbox(admin: SupabaseClient, ownerId: string) {
   }
 
   await admin.from("gmail_accounts").update({ last_history_id: newHistoryId }).eq("owner_id", ownerId);
-  return { synced };
+  return { synced, checked: messageIds.size, firstSync: isFirstSync, unmatchedSenders: [...unmatchedSenders] };
 }

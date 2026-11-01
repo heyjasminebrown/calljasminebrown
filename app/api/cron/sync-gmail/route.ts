@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
   const admin = createAdminClient();
   try {
     const result = await syncGmailInbox(admin, OWNER_ID);
+    console.log("Gmail sync:", JSON.stringify(result));
     return NextResponse.json({ ok: true, ...result });
   } catch (err) {
     await reportFailure("Gmail sync cron failed", err);
