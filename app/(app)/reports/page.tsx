@@ -40,11 +40,20 @@ import { CommissionTrendReport } from "@/components/reports/CommissionTrendRepor
 import { CommissionRateTrendReport } from "@/components/reports/CommissionRateTrendReport";
 import { DealForecastReport } from "@/components/reports/DealForecastReport";
 import { CountScopeNote } from "@/components/CountScopeNote";
+import { ScorecardReport } from "@/components/reports/ScorecardReport";
+import { getScorecard, getYearScorecard } from "@/lib/data/scorecard";
+import { parseScorecardPeriod, SCORECARD_PERIOD_LABELS } from "@/lib/crm/scorecard-period";
 import type { Period } from "@/lib/data/metrics";
 
-export default async function ReportsPage({ searchParams }: { searchParams: Promise<{ period?: string }> }) {
+export default async function ReportsPage({ searchParams }: { searchParams: Promise<{ period?: string; scorecard?: string }> }) {
   const params = await searchParams;
   const period: Period = params.period === "month" ? "month" : "week";
+  const scorecardPeriod = parseScorecardPeriod(params.scorecard);
+  // Shown with its exact error instead of breaking the rest of Reports.
+  const scorecard = await Promise.all([getScorecard(scorecardPeriod), getYearScorecard()]).then(
+    ([current, year]) => ({ current, year, error: null }),
+    (err: unknown) => ({ current: null, year: null, error: err instanceof Error ? err.message : String(err) }),
+  );
 
   const [
     leadSourceRows,
@@ -120,6 +129,12 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       </div>
 
       <div className="mt-5 space-y-3">
+        <Section sectionKey="reports:scorecard" title="Conversion & outreach" meta={SCORECARD_PERIOD_LABELS[scorecardPeriod]}>
+          <div className="p-[18px]">
+            <ScorecardReport period={scorecardPeriod} current={scorecard.current} year={scorecard.year} error={scorecard.error} />
+          </div>
+        </Section>
+
         <Section sectionKey="reports:leads" title="Where are my leads coming from?" meta={topSource ? `Mostly ${topSource.source}` : undefined} defaultOpen={false}>
           <div className="p-[18px]">
             <LeadSourceReport rows={leadSourceRows} />

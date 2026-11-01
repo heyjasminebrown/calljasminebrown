@@ -8,6 +8,7 @@ import type { getTodayData } from "@/lib/data/today";
 import type { WeeklyReviewPayload } from "@/lib/data/weekly-review";
 import type { PrepSheetPayload } from "@/lib/data/prep-sheet";
 import type { MergeCandidate } from "@/lib/data/contacts";
+import type { ScorecardResult } from "@/components/dashboard/TodayScorecard";
 
 type Today = Awaited<ReturnType<typeof getTodayData>>;
 
@@ -20,6 +21,7 @@ export function TodayScreen({
   pinnedWeeklyReview,
   focus,
   initialChip,
+  scorecard,
 }: {
   today: Today;
   contacts: MergeCandidate[];
@@ -29,6 +31,7 @@ export function TodayScreen({
   pinnedWeeklyReview: { id: string; payload: WeeklyReviewPayload } | null;
   focus?: string;
   initialChip?: TodayChipKey;
+  scorecard: ScorecardResult;
 }) {
   const groups = buildTodayPersonGroups(today);
   const parsedFocus = parseTodayFocus(focus);
@@ -78,7 +81,7 @@ export function TodayScreen({
             newLeadsError={today.newLeadsError}
           />
         ) : (
-          <TodayHome today={today} contacts={contacts} ownerFirstName={ownerFirstName} />
+          <TodayHome today={today} contacts={contacts} ownerFirstName={ownerFirstName} scorecard={scorecard} />
         )}
       </div>
 
@@ -92,6 +95,7 @@ export function TodayScreen({
           pinnedWeeklyReview={pinnedWeeklyReview}
           focus={focus}
           initialChip={initialChip}
+          scorecard={scorecard}
         />
       </div>
     </div>

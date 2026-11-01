@@ -5,6 +5,7 @@ import { TodayAbandonedBookingCard } from "@/components/dashboard/TodayAbandoned
 import { TodayBookingRequestCard } from "@/components/dashboard/TodayBookingRequestCard";
 import { TodayUpcomingEvents } from "@/components/dashboard/TodayUpcomingEvents";
 import { TodayTodosCard } from "@/components/dashboard/TodayTodosCard";
+import { TodayConversionCard, TodayOutreachCard, TodayPeriodSwitcher, type ScorecardResult } from "@/components/dashboard/TodayScorecard";
 import { TODAY_GRID, TODAY_LABEL, TODAY_STACK_DESKTOP } from "@/components/dashboard/today-home-layout";
 import { timeOfDayGreeting } from "@/lib/format-time";
 import { buildTextAndNextLeads, openTasksForToday } from "@/lib/crm/today-v1";
@@ -17,10 +18,12 @@ export function TodayHome({
   today,
   contacts,
   ownerFirstName,
+  scorecard,
 }: {
   today: Awaited<ReturnType<typeof getTodayData>>;
   contacts: MergeCandidate[];
   ownerFirstName: string;
+  scorecard: ScorecardResult;
 }) {
   const greeting = timeOfDayGreeting();
   const leads = buildTextAndNextLeads(today.newLeads);
@@ -43,14 +46,20 @@ export function TodayHome({
           Couldn&apos;t load new leads: {today.newLeadsError}
         </p>
       )}
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+        <h2 className={TODAY_LABEL}>Scorecard</h2>
+        <TodayPeriodSwitcher period={scorecard.period} />
+      </div>
       <div className={TODAY_GRID}>
         <div className="col-span-12 min-w-0 md:col-span-6">
           <TodayPipelineOverview stages={today.stages} counts={today.statStrip.stageCounts} />
         </div>
         <div className="col-span-12 min-w-0 md:col-span-6">
-          <TodayTodosCard tasks={tasks} />
+          <TodayConversionCard result={scorecard} />
         </div>
       </div>
+      <TodayOutreachCard result={scorecard} />
+      <TodayTodosCard tasks={tasks} />
       <section data-today-home="needs-you" className="flex min-w-0 flex-col gap-3">
         <h2 className={TODAY_LABEL}>Needs you</h2>
         {today.bookingRequests.map((request) => (
