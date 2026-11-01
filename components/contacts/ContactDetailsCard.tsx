@@ -17,6 +17,7 @@ import type { ContactWithRelations, DealSide, PipelineStage, Tag } from "@/types
 import type { MergeCandidate } from "@/lib/data/contacts";
 import { pastePhone } from "@/lib/phone-input";
 import { useLeadSourceOptions } from "@/lib/hooks/useLeadSourceOptions";
+import { syncContactTags } from "@/lib/crm/sync-contact-tags";
 
 const fieldClass = "mt-1.5 w-full rounded-[10px] border border-neutral-200 bg-white px-3 py-2.5 text-[15px] text-neutral-900";
 const labelClass = "text-sm text-neutral-500";
@@ -141,19 +142,11 @@ export function ContactDetailsCard({
       }
     }
 
-    const { error: tagDeleteError } = await supabase.from("contact_tags").delete().eq("contact_id", contact.id);
-    if (tagDeleteError) {
-      setServerError(`Contact info saved, but tags couldn't update: ${tagDeleteError.message}`);
+    const tagError = await syncContactTags(supabase, contact.id, selectedTagIds);
+    if (tagError) {
+      setServerError(`Contact info saved, but tags couldn't update: ${tagError}`);
       setSubmitting(false);
       return;
-    }
-    if (selectedTagIds.length > 0) {
-      const { error: tagInsertError } = await supabase.from("contact_tags").insert(selectedTagIds.map((tagId) => ({ contact_id: contact.id, tag_id: tagId })));
-      if (tagInsertError) {
-        setServerError(`Contact info saved, but tags couldn't update: ${tagInsertError.message}`);
-        setSubmitting(false);
-        return;
-      }
     }
     if (payload.phone) void syncContactToQuoAction(contact.id);
 

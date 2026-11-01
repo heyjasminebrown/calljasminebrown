@@ -1,5 +1,5 @@
 import { listSequencesWithSummary, getAllSequencesSummary } from "@/lib/data/sequences";
-import { listTags, listStages } from "@/lib/data/contacts";
+import { listTags, listStages, listLeadSources } from "@/lib/data/contacts";
 import { getAllTextBlasts } from "@/app/(app)/contacts/text-blast-actions";
 import { CreateSequenceForm } from "@/components/sequences/CreateSequenceForm";
 import { NewTextButton } from "@/components/sequences/NewTextButton";
@@ -7,8 +7,8 @@ import { SequencesDashboard } from "@/components/sequences/SequencesDashboard";
 import { CampaignsList } from "@/components/sequences/CampaignsList";
 import { createClient } from "@/lib/supabase/server";
 import { Section } from "@/components/ui/Section";
-import { TextAutomationStatus, type EnrollmentRow } from "@/components/sequences/TextAutomationStatus";
-import { isTextAutomationEnabled, TEXT_CAMPAIGNS } from "@/lib/crm/text-automation";
+import { TextCampaignsPanel, type CampaignRow, type EnrollmentRow } from "@/components/sequences/TextCampaignsPanel";
+import { isTextAutomationEnabled } from "@/lib/crm/text-automation";
 
 export default async function CampaignsPage({ searchParams }: { searchParams: Promise<{ ids?: string }> }) {
   const { ids } = await searchParams;
@@ -16,7 +16,7 @@ export default async function CampaignsPage({ searchParams }: { searchParams: Pr
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const [sequences, tags, stages, summary, blasts, enrollments] = await Promise.all([
+  const [sequences, tags, stages, summary, blasts, enrollments, textCampaigns, sources] = await Promise.all([
     listSequencesWithSummary(),
     listTags(),
     listStages(),
@@ -24,12 +24,14 @@ export default async function CampaignsPage({ searchParams }: { searchParams: Pr
     getAllTextBlasts(),
     supabase
       .from("text_automation_enrollments")
-      .select("id, contact_id, status, stop_reason, next_step, next_send_at, last_step, last_error, contacts(first_name, last_name)")
+      .select("id, contact_id, campaign_id, status, stop_reason, next_step, next_send_at, last_error, contacts(first_name, last_name)")
       .order("updated_at", { ascending: false })
-      .limit(200),
+      .limit(500),
+    supabase.from("text_campaigns").select("id, name, active, trigger_type, trigger_value, steps").order("created_at"),
+    listLeadSources(),
   ]);
-  const automationOn = isTextAutomationEnabled();
-  const activeCount = (enrollments.data ?? []).filter((r) => r.status === "active").length;
+  const campaignRows = (textCampaigns.data ?? []) as CampaignRow[];
+  const onCount = campaignRows.filter((c) => c.active).length;
 
   return (
     <div className="mx-auto max-w-3xl space-y-5 px-4 py-6">
@@ -43,17 +45,22 @@ export default async function CampaignsPage({ searchParams }: { searchParams: Pr
         </div>
       </div>
 
-      <Section
-        sectionKey="campaigns:text-automation"
-        title={TEXT_CAMPAIGNS.conventus.name}
-        meta={`${automationOn ? "On" : "Off"} · ${activeCount} in progress`}
-      >
+      <Section sectionKey="campaigns:text-campaigns" title="Automated text campaigns" meta={`${onCount} on`}>
         <div className="p-[18px]">
-          <TextAutomationStatus
-            enabled={automationOn}
-            rows={(enrollments.data ?? []) as unknown as EnrollmentRow[]}
-            error={enrollments.error?.message ?? null}
-          />
+          {textCampaigns.error || enrollments.error ? (
+            <p className="text-sm text-red-600">
+              Couldn&apos;t load text campaigns: {(textCampaigns.error ?? enrollments.error)!.message}
+            </p>
+          ) : (
+            <TextCampaignsPanel
+              campaigns={campaignRows}
+              enrollments={(enrollments.data ?? []) as unknown as EnrollmentRow[]}
+              sendingEnabled={isTextAutomationEnabled()}
+              tags={tags}
+              stages={stages}
+              sources={sources}
+            />
+          )}
         </div>
       </Section>
 

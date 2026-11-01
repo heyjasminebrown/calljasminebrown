@@ -11,6 +11,7 @@ import { PendingDealCleanupModal } from "@/components/contacts/PendingDealCleanu
 import { Button, Input } from "@/components/ui";
 import { cn, TAG_CHIP_SELECTED } from "@/lib/utils";
 import type { DealSide, PipelineStage, Tag } from "@/types/database";
+import { syncContactTags } from "@/lib/crm/sync-contact-tags";
 
 const FOLLOW_UP_OPTIONS: { label: string; days: number }[] = [
   { label: "Tomorrow", days: 1 },
@@ -108,19 +109,11 @@ export function StageTagsSheet({
       }
     }
 
-    const { error: tagDeleteError } = await supabase.from("contact_tags").delete().eq("contact_id", contactId);
-    if (tagDeleteError) {
+    const tagError = await syncContactTags(supabase, contactId, selectedTagIds);
+    if (tagError) {
       setSaving(false);
-      setSaveError(`Stage saved, but tags couldn't update: ${tagDeleteError.message}`);
+      setSaveError(`Stage saved, but tags couldn't update: ${tagError}`);
       return;
-    }
-    if (selectedTagIds.length > 0) {
-      const { error: tagInsertError } = await supabase.from("contact_tags").insert(selectedTagIds.map((tagId) => ({ contact_id: contactId, tag_id: tagId })));
-      if (tagInsertError) {
-        setSaving(false);
-        setSaveError(`Stage saved, but tags couldn't update: ${tagInsertError.message}`);
-        return;
-      }
     }
 
     setSaving(false);

@@ -7,40 +7,38 @@ import { updateEngagementTag } from "@/lib/crm/engagement";
 import { isOptOutMessage } from "@/lib/crm/consent";
 import { reportFailure } from "@/lib/errors/report-failure";
 
-// "Conventus Text Campaign" - started for every new contact whose source
-// is Conventus (DB trigger, migration 0085).
+// Text campaigns built on the Campaigns page (text_campaigns, migration
+// 0086). Each has a trigger (new contact with a Source, a tag added, or a
+// Type / Stage it gets) and texts (steps):
+//   - the first text goes out right away
+//   - a reply that isn't a clear no -> that text's "on reply" step, about a
+//     minute after the reply (or the campaign ends)
+//   - no reply -> its "on no reply" step, N days later at a set ET time
+//     (or the campaign ends)
 //
-//   Text 1  right away.
-//     reply (not a clear no) -> Text 2, one minute after the reply
-//     no reply              -> Text 3, next day 4:30 PM ET
-//   Text 3
-//     reply (not a clear no) -> Text 2, one minute after the reply
-//     no reply              -> Text 4, one week later 5:45 PM ET
-//   Text 2 / Text 4 end the campaign.
+// Always enforced, for every campaign: stop on STOP, a clear no, archived
+// or spam, or when Jasmine texts or calls the contact herself; at most a
+// couple of sends a minute; Text 1 / reply texts wait for 9 AM-8 PM ET.
 //
-// It stops for a contact who opts out (STOP), replies with a clear no, is
-// archived or marked spam, or whom Jasmine texts or calls herself.
-//
-// Nothing sends unless TEXT_AUTOMATION_ENABLED=true (turned on after A2P
-// approval). Sends are throttled to a couple a minute so a batch of
-// contacts never goes out all at once.
+// Nothing sends unless TEXT_AUTOMATION_ENABLED=true; a campaign switched
+// off pauses its contacts where they are.
 
-export const TEXT_CAMPAIGNS = {
-  conventus: {
-    name: "Conventus Text Campaign",
-    steps: {
-      t1: "Hey {first_name}, it's Jasmine 🙂. I came across a recent project of yours, but wasn't sure if you were looking for your next deal by chance?",
-      t2: "Oh nice! Depending on what you're looking for, I might be a good resource for your next deal. I'll give you a quick call to hear more.",
-      t3: "Curious if you've got your next project lined up already or if you're still looking?",
-      t4: "Are you still investing right now, or taking a little break between projects?",
-    },
-  },
-} as const;
+export type CampaignStep = {
+  id: string;
+  label: string;
+  body: string;
+  onReply: { next: string | null };
+  onNoReply: { next: string | null; days?: number; time?: string };
+};
 
-type Campaign = keyof typeof TEXT_CAMPAIGNS;
-type Step = "t1" | "t2" | "t3" | "t4";
-
-export const STEP_LABELS: Record<Step, string> = { t1: "Text 1", t2: "Text 2", t3: "Text 3", t4: "Text 4" };
+export type TextCampaign = {
+  id: string;
+  name: string;
+  active: boolean;
+  trigger_type: "source" | "tag" | "type" | "stage";
+  trigger_value: string;
+  steps: CampaignStep[];
+};
 
 const MAX_SENDS_PER_RUN = 2;
 const GAP_BETWEEN_SENDS_MS = 20_000;
@@ -71,8 +69,14 @@ export function isClearNo(text: string): boolean {
   return CLEAR_NO.some((re) => re.test(text));
 }
 
-function render(campaign: Campaign, step: Step, firstName: string): string {
-  return TEXT_CAMPAIGNS[campaign].steps[step].replace("{first_name}", firstName.trim() || "there");
+// "[First Name]" (as typed in the builder) or "{first_name}".
+export function renderStep(body: string, firstName: string): string {
+  return body.replace(/\[first name\]|\{first_name\}/gi, firstName.trim() || "there");
+}
+
+function parseTime(time: string | undefined): [number, number] {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(time ?? "");
+  return m ? [Number(m[1]), Number(m[2])] : [9, 0];
 }
 
 // A given Eastern-time wall-clock time, `daysAfter` days after `from`.
@@ -92,15 +96,16 @@ type Enrollment = {
   id: string;
   owner_id: string;
   contact_id: string;
-  campaign: Campaign;
-  next_step: Step | null;
+  next_step: string | null;
   next_send_at: string | null;
-  last_step: Step | null;
+  last_step: string | null;
   last_sent_at: string | null;
   sent_message_ids: string[];
   failed_attempts: number;
   enrolled_at: string;
+  reply_scheduled: boolean;
   contacts: { id: string; first_name: string; phone: string | null; archived: boolean; spam: boolean; opted_out_at: string | null } | null;
+  text_campaigns: TextCampaign | null;
 };
 
 type ActivityRow = {
@@ -117,7 +122,7 @@ export async function runTextAutomation(admin: SupabaseClient, ownerId: string) 
 
   const { data, error } = await admin
     .from("text_automation_enrollments")
-    .select("*, contacts(id, first_name, phone, archived, spam, opted_out_at)")
+    .select("*, contacts(id, first_name, phone, archived, spam, opted_out_at), text_campaigns(id, name, active, trigger_type, trigger_value, steps)")
     .eq("owner_id", ownerId)
     .eq("status", "active");
   if (error) throw new Error(`Couldn't load text automation: ${error.message}`);
@@ -150,6 +155,11 @@ export async function runTextAutomation(admin: SupabaseClient, ownerId: string) 
 
   for (const e of enrollments) {
     const c = e.contacts;
+    const campaign = e.text_campaigns;
+    if (!campaign) {
+      await stop(e.id, "Campaign was deleted");
+      continue;
+    }
     if (!c) {
       await stop(e.id, "Contact was deleted");
       continue;
@@ -170,7 +180,7 @@ export async function runTextAutomation(admin: SupabaseClient, ownerId: string) 
     const mine = activities.filter((a) => a.contact_id === e.contact_id && a.occurred_at >= e.enrolled_at);
     // Our own sends, recognized by Quo message id, our marker, or (if Quo's
     // webhook re-logged it without either) the exact campaign wording.
-    const campaignTexts = new Set((Object.keys(TEXT_CAMPAIGNS[e.campaign].steps) as Step[]).map((step) => render(e.campaign, step, c.first_name).trim()));
+    const campaignTexts = new Set(campaign.steps.map((step) => renderStep(step.body, c.first_name).trim()));
     const isAutomationSend = (a: ActivityRow) => {
       const id = (a.metadata?.quo_message_id as string | undefined) ?? null;
       if (id && e.sent_message_ids.includes(id)) return true;
@@ -194,47 +204,57 @@ export async function runTextAutomation(admin: SupabaseClient, ownerId: string) 
         await stop(e.id, "Opted out");
         continue;
       }
-      if (e.last_step === "t1" || e.last_step === "t3") {
-        if (isClearNo(text)) {
-          await stop(e.id, `Replied no: "${text.slice(0, 80)}"`);
-          continue;
-        }
-        if (e.next_step !== "t2") {
-          const at = intoSendWindow(new Date(new Date(reply.occurred_at).getTime() + REPLY_DELAY_MS));
-          await update(e.id, { next_step: "t2", next_send_at: at.toISOString() });
-          e.next_step = "t2";
-          e.next_send_at = at.toISOString();
-        }
-      } else {
+      if (isClearNo(text)) {
+        await stop(e.id, `Replied no: "${text.slice(0, 80)}"`);
+        continue;
+      }
+      const replyNext = campaign.steps.find((st) => st.id === e.last_step)?.onReply.next ?? null;
+      if (!replyNext) {
         await update(e.id, { status: "completed", stop_reason: "Replied", next_step: null, next_send_at: null });
         continue;
       }
+      if (!e.reply_scheduled) {
+        const at = intoSendWindow(new Date(new Date(reply.occurred_at).getTime() + REPLY_DELAY_MS));
+        await update(e.id, { next_step: replyNext, next_send_at: at.toISOString(), reply_scheduled: true });
+        e.next_step = replyNext;
+        e.next_send_at = at.toISOString();
+        e.reply_scheduled = true;
+      }
     }
 
+    if (!campaign.active) continue; // switched off: paused where they are
     if (e.next_step && e.next_send_at && new Date(e.next_send_at) <= now) due.push(e);
   }
 
-  // Replies (Text 2) first, then oldest-due first; a couple per run.
-  due.sort((a, b) => (a.next_step === "t2" ? 0 : 1) - (b.next_step === "t2" ? 0 : 1) || a.next_send_at!.localeCompare(b.next_send_at!));
+  // Replies first, then oldest-due first; a couple per run.
+  due.sort((a, b) => Number(!!b.reply_scheduled) - Number(!!a.reply_scheduled) || a.next_send_at!.localeCompare(b.next_send_at!));
 
   let sent = 0;
   for (const e of due) {
     if (sent >= MAX_SENDS_PER_RUN) break;
-    const step = e.next_step!;
+    const campaign = e.text_campaigns!;
     const c = e.contacts!;
+    const step = campaign.steps.find((st) => st.id === e.next_step);
+    if (!step) {
+      await stop(e.id, "That text was removed from the campaign");
+      continue;
+    }
+    const isFirst = campaign.steps[0]?.id === step.id;
 
-    if ((step === "t1" || step === "t2") && intoSendWindow(now).getTime() !== now.getTime()) {
+    // Right-away and reply texts wait for the send window; scheduled ones
+    // already have their own time.
+    if ((isFirst || e.reply_scheduled) && intoSendWindow(now).getTime() !== now.getTime()) {
       await update(e.id, { next_send_at: intoSendWindow(now).toISOString() });
       continue;
     }
 
     if (sent > 0) await new Promise((r) => setTimeout(r, GAP_BETWEEN_SENDS_MS));
-    const body = render(e.campaign, step, c.first_name);
+    const body = renderStep(step.body, c.first_name);
     const result = await sendQuoText(c.phone!, body);
     if (!result.ok) {
       const attempts = e.failed_attempts + 1;
-      await reportFailure(`${TEXT_CAMPAIGNS[e.campaign].name}: ${STEP_LABELS[step]} to ${c.first_name} failed`, result.error, { contactId: c.id });
-      if (attempts >= MAX_FAILED_ATTEMPTS) await stop(e.id, `Couldn't send ${STEP_LABELS[step]}: ${result.error.slice(0, 200)}`);
+      await reportFailure(`${campaign.name}: ${step.label} to ${c.first_name} failed`, result.error, { contactId: c.id });
+      if (attempts >= MAX_FAILED_ATTEMPTS) await stop(e.id, `Couldn't send ${step.label}: ${result.error.slice(0, 200)}`);
       else await update(e.id, { failed_attempts: attempts, last_error: result.error, next_send_at: new Date(now.getTime() + 10 * 60_000).toISOString() });
       continue;
     }
@@ -245,24 +265,27 @@ export async function runTextAutomation(admin: SupabaseClient, ownerId: string) 
       direction: "outbound",
       occurred_at: new Date().toISOString(),
       body,
-      metadata: { quo_message_id: result.quoMessageId, automation: e.campaign, step },
+      metadata: { quo_message_id: result.quoMessageId, automation: campaign.id, step: step.id },
     });
     await updateEngagementTag(admin, e.owner_id, c.id);
 
     const sentAt = new Date();
-    const next: Record<string, unknown> =
-      step === "t1"
-        ? { next_step: "t3", next_send_at: easternAt(sentAt, 1, 16, 30).toISOString() }
-        : step === "t3"
-          ? { next_step: "t4", next_send_at: easternAt(sentAt, 7, 17, 45).toISOString() }
-          : { status: "completed", stop_reason: step === "t2" ? "Sent Text 2 - call them" : "Finished (Text 4 sent)", next_step: null, next_send_at: null };
+    // A text sent because they replied ends the campaign (they're talking
+    // to you now); otherwise follow its "no reply" path.
+    const noReply = e.reply_scheduled ? null : step.onNoReply;
+    const nextStep = noReply?.next ? campaign.steps.find((st) => st.id === noReply.next) : undefined;
+    const [hour, minute] = parseTime(noReply?.time);
+    const next: Record<string, unknown> = nextStep
+      ? { next_step: nextStep.id, next_send_at: easternAt(sentAt, Math.max(0, noReply?.days ?? 1), hour, minute).toISOString() }
+      : { status: "completed", stop_reason: `Finished after ${step.label}`, next_step: null, next_send_at: null };
     await update(e.id, {
       ...next,
-      last_step: step,
+      last_step: step.id,
       last_sent_at: sentAt.toISOString(),
       sent_message_ids: result.quoMessageId ? [...e.sent_message_ids, result.quoMessageId] : e.sent_message_ids,
       failed_attempts: 0,
       last_error: null,
+      reply_scheduled: false,
     });
   }
 

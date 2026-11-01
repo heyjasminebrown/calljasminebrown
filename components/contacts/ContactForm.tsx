@@ -18,6 +18,7 @@ import type { ContactWithRelations, PipelineStage, Tag } from "@/types/database"
 import type { MergeCandidate } from "@/lib/data/contacts";
 import { pastePhone } from "@/lib/phone-input";
 import { useLeadSourceOptions } from "@/lib/hooks/useLeadSourceOptions";
+import { syncContactTags } from "@/lib/crm/sync-contact-tags";
 
 export function ContactForm({
   contact,
@@ -191,21 +192,11 @@ export function ContactForm({
     }
 
     if (contactId) {
-      const { error: tagDeleteError } = await supabase.from("contact_tags").delete().eq("contact_id", contactId);
-      if (tagDeleteError) {
-        setServerError(`Contact saved, but tags couldn't update: ${tagDeleteError.message}`);
+      const tagError = await syncContactTags(supabase, contactId, selectedTagIds);
+      if (tagError) {
+        setServerError(`Contact saved, but tags couldn't update: ${tagError}`);
         setSubmitting(false);
         return;
-      }
-      if (selectedTagIds.length > 0) {
-        const { error: tagInsertError } = await supabase
-          .from("contact_tags")
-          .insert(selectedTagIds.map((tagId) => ({ contact_id: contactId, tag_id: tagId })));
-        if (tagInsertError) {
-          setServerError(`Contact saved, but tags couldn't update: ${tagInsertError.message}`);
-          setSubmitting(false);
-          return;
-        }
       }
     }
 

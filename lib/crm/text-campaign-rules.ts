@@ -1,0 +1,51 @@
+// Pure helpers for the text campaign builder: no server imports, so the
+// editor (client) and the save action (server) validate the same way.
+
+export type TriggerType = "source" | "tag" | "type" | "stage";
+
+export type CampaignStepInput = {
+  id: string;
+  label: string;
+  body: string;
+  onReply: { next: string | null };
+  onNoReply: { next: string | null; days?: number; time?: string };
+};
+
+export type CampaignInput = {
+  id?: string;
+  name: string;
+  triggerType: TriggerType;
+  triggerValue: string;
+  steps: CampaignStepInput[];
+};
+
+export const TRIGGER_LABELS: Record<TriggerType, string> = {
+  source: "A new contact is added with Source",
+  tag: "This tag is added to a contact",
+  type: "A contact becomes Type",
+  stage: "A contact moves to Stage",
+};
+
+// Returns the first problem, or null if the campaign can be saved.
+export function validateCampaign(input: CampaignInput): string | null {
+  if (!input.name.trim()) return "Give the campaign a name.";
+  if (!input.triggerValue.trim()) return "Choose what starts the campaign.";
+  if (input.steps.length === 0) return "Add at least one text.";
+  const ids = new Set(input.steps.map((s) => s.id));
+  for (const s of input.steps) {
+    if (!s.body.trim()) return `${s.label} has no message.`;
+    if (s.body.length > 600) return `${s.label} is too long (keep texts under 600 characters).`;
+    if (s.onReply.next && !ids.has(s.onReply.next)) return `${s.label}: the "if they reply" text no longer exists.`;
+    if (s.onReply.next === s.id) return `${s.label} can't send itself as the reply.`;
+    if (s.onNoReply.next) {
+      if (!ids.has(s.onNoReply.next)) return `${s.label}: the "if no reply" text no longer exists.`;
+      if (s.onNoReply.next === s.id) return `${s.label} can't follow itself.`;
+      const days = s.onNoReply.days ?? 0;
+      if (!Number.isInteger(days) || days < 1 || days > 90) return `${s.label}: "days later" must be between 1 and 90.`;
+      if (!/^([01]?\d|2[0-3]):[0-5]\d$/.test(s.onNoReply.time ?? "")) return `${s.label}: pick a time for the follow-up.`;
+      const [h] = (s.onNoReply.time ?? "").split(":").map(Number);
+      if (h < 9 || h >= 20) return `${s.label}: follow-ups must be between 9:00 AM and 8:00 PM ET.`;
+    }
+  }
+  return null;
+}
