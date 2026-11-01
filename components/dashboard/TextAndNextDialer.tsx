@@ -3,8 +3,9 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Info, MessageCircle, Phone, SkipForward } from "lucide-react";
+import { ArrowRight, Info, MessageCircle, Phone, SkipForward, UserCheck } from "lucide-react";
 import { sendTextToContact } from "@/app/(app)/contacts/actions";
+import { dismissNewLead } from "@/app/(app)/today-actions";
 import { applyMergeFields } from "@/lib/crm/merge-fields";
 import { leadAgeLabel, type TextAndNextLead } from "@/lib/crm/today-v1";
 import { cn, formatPhone, initials } from "@/lib/utils";
@@ -50,6 +51,25 @@ export function TextAndNextDialer({ leads }: { leads: TextAndNextLead[] }) {
   function skip() {
     if (!current) return;
     hide(current.id);
+  }
+
+  // Permanent: they never come back to this list.
+  async function notNew() {
+    if (!current) return;
+    setError("");
+    const id = current.id;
+    hide(id);
+    const result = await dismissNewLead(id);
+    if (!result.ok) {
+      setHiddenIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      setError(`Couldn't remove them from this list: ${result.error}`);
+      return;
+    }
+    router.refresh();
   }
 
   return (
@@ -132,6 +152,17 @@ export function TextAndNextDialer({ leads }: { leads: TextAndNextLead[] }) {
               >
                 <SkipForward size={14} />
                 Skip
+              </button>
+              <button
+                type="button"
+                data-today-control="not-new-lead"
+                onClick={() => void notNew()}
+                disabled={sending}
+                title="Already in touch - remove from this list for good"
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-[#ddd7da] bg-[#fcfbfb] px-3 text-[13px] font-semibold text-neutral-700 disabled:opacity-50 lg:h-11 lg:px-3.5 lg:text-[14px]"
+              >
+                <UserCheck size={14} />
+                Not new
               </button>
               <Link href="/settings#text-templates" data-today-control="edit-template" className="ml-auto text-[13px] font-medium text-[#34223a]">
                 Edit template

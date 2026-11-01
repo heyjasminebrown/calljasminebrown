@@ -15,6 +15,15 @@ export function isNotNewLeadSource(leadSource: string | null | undefined): boole
   return !!s && NOT_NEW_LEAD_SOURCES.some((x) => x.toLowerCase() === s);
 }
 
+// Sources an automated text campaign already handles (Conventus Text
+// Campaign) - left out of New / Uncontacted so nobody gets texted twice.
+// They still count as new leads in "New this week".
+const AUTOMATED_SOURCES = ["conventus"];
+
+// Only these Types are ever "new leads" - Clients and Referral Partners are
+// existing relationships, even when just added.
+const NEW_LEAD_TYPES = ["community", "prospect"];
+
 // Same exclusion as a PostgREST .or() filter (null lead_source is kept).
 export const NEW_LEAD_SOURCE_FILTER = `lead_source.is.null,${NOT_NEW_LEAD_SOURCES.map((s) => `lead_source.not.ilike."${s}"`).join(",")}`;
 
@@ -41,10 +50,11 @@ export async function listNewLeadsQueue(): Promise<{ contacts: NewLeadContact[];
 
   const { data: candidates, error: candidatesError } = await supabase
     .from("contacts")
-    .select("id, first_name, last_name, phone, lead_source, lead_date, stage_id, last_event_name, contact_tags(tags(name))")
+    .select("id, first_name, last_name, phone, lead_source, lead_date, stage_id, last_event_name, relationship_type, contact_tags(tags(name))")
     .eq("archived", false)
     .eq("known_personally", false)
     .eq("spam", false)
+    .in("relationship_type", NEW_LEAD_TYPES)
     .is("opted_out_at", null)
     .not("phone", "is", null)
     .gte("lead_date", windowStart);
@@ -74,7 +84,7 @@ export async function listNewLeadsQueue(): Promise<{ contacts: NewLeadContact[];
   const dismissedIds = new Set((dismissals ?? []).map((r) => r.contact_id as string));
 
   const eligible = candidates
-    .filter((c) => !contactedIds.has(c.id) && !dismissedIds.has(c.id) && !isNotNewLeadSource(c.lead_source) && isTodayWorkContact(c))
+    .filter((c) => !contactedIds.has(c.id) && !dismissedIds.has(c.id) && !isNotNewLeadSource(c.lead_source) && !AUTOMATED_SOURCES.includes((c.lead_source ?? "").trim().toLowerCase()) && isTodayWorkContact(c))
     .map((c) => {
       const tagRows = (c.contact_tags ?? []) as { tags?: { name?: string } | { name?: string }[] | null }[];
       const tagNames = tagRows.flatMap((row) => {
