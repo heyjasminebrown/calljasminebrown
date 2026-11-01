@@ -47,7 +47,6 @@ export type ContactFilterParams = {
   notSyncedQuo?: boolean;
   eventName?: string;
   registeredEventName?: string;
-  likelihood?: "high" | "medium" | "low";
   queue?: ContactQueue;
   leadDateWithinDays?: number;
   leadDateFrom?: string;
@@ -95,7 +94,6 @@ export function parseContactFilterParams(sp: URLSearchParams): ContactFilterPara
     notSyncedQuo: sp.get("quoSync") === "0",
     eventName: sp.get("event") ?? undefined,
     registeredEventName: resolveRegisteredEventName(sp),
-    likelihood: (sp.get("likelihood") as ContactFilterParams["likelihood"]) ?? undefined,
     queue: (sp.get("queue") as ContactQueue) ?? undefined,
     leadDateWithinDays: sp.get("newSince") ? Number(sp.get("newSince")) : undefined,
     leadDateFrom: sp.get("leadFrom") ?? undefined,
@@ -109,7 +107,7 @@ export function parseContactFilterParams(sp: URLSearchParams): ContactFilterPara
 }
 
 export const SHEET_PARAM_KEYS = [
-  "stage", "type", "tags", "source", "likelihood",
+  "stage", "type", "tags", "source",
   "phone", "email", "followup", "notes", "newSince", "leadFrom", "leadTo",
   "event", "regEvent", "gender", "city", "state", "birthdayMonth", "minBudget", "archived", "quoSync", "group",
 ] as const;

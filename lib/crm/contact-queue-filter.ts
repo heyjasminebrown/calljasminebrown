@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { computeLikelihood } from "@/lib/crm/likelihood";
 import { getDuplicateRiskPairs } from "@/lib/data/reports";
 import { hasUsablePhone, isAnyOutreach, isOutboundOutreach } from "@/lib/crm/contact-filter-predicates";
 import type { ContactQueue } from "@/lib/crm/contact-queues";
@@ -131,7 +130,7 @@ export async function filterByQueue(
 
   if (queue === "cold_from_hot") {
     return contacts.filter((c) => {
-      if (computeLikelihood(c, stages) !== "high") return false;
+      if (c.pipeline_stages?.name !== "Hot") return false;
       // Only flag leads old enough to plausibly have gone cold - otherwise
       // a brand-new hot lead with no activity yet (normal, hasn't been
       // called back yet) would get miscategorized as "went cold".

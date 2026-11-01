@@ -22,7 +22,7 @@ export const QUEUES: { value: ContactQueue; label: string; description: string }
   { value: "no_followup_after_registration", label: "Registered, no follow-up", description: "Signed up for an event, no call/text/email since" },
   { value: "no_show", label: "No-shows to re-invite", description: "Registered for an event but never checked in" },
   { value: "attended_gone_quiet", label: "Attended, gone quiet", description: "Checked in at an event, nothing logged since" },
-  { value: "cold_from_hot", label: "Went cold from Hot/Ready", description: "High likelihood to close, no activity in 30+ days" },
+  { value: "cold_from_hot", label: "Went cold from Hot", description: "In the Hot stage, no activity in 30+ days" },
   { value: "never_called", label: "Never called", description: "No call logged, ever" },
   { value: "no_contact", label: "No contact yet", description: "No call, text, or email logged, ever" },
   { value: "repeat_attendees", label: "Repeat attendees", description: "Checked in at 2+ events - your regulars" },

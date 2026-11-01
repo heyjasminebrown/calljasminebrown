@@ -17,7 +17,6 @@ const PARAM_LABELS: Record<string, string> = {
   stage: "Stage",
   type: "Type",
   tags: "Tag",
-  likelihood: "Likelihood",
   phone: "Phone",
   email: "Email",
   followup: "Follow-up",
@@ -104,7 +103,6 @@ function formatFilterValue(key: string, raw: string, stages: PipelineStage[], ta
     if (raw === NOT_FILTERED_BY_REGISTRATION) return null;
     return `Registered: ${raw}`;
   }
-  if (key === "likelihood") return raw === "high" ? "Hot" : raw === "medium" ? "Warm" : raw === "low" ? "Cold" : raw;
   if (key === "newSince") return `Last ${raw} days`;
   if (key === "source") {
     const labels = raw.split(",").filter(Boolean).map((s) => sourceFilterByValue(s)?.label ?? s);

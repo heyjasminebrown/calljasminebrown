@@ -9,10 +9,8 @@ import { ActiveFilterTags } from "@/components/contacts/ActiveFilterTags";
 import { ContactFiltersSheet } from "@/components/contacts/ContactFiltersSheet";
 import type { PipelineStage, Tag } from "@/types/database";
 
-// Shared with PeopleMobile's sort control, so the phone view can offer the
-// exact same options (including "Likelihood (hot first)," which used to
-// only exist on desktop even though listContacts already computes it) -
-// one list, not two that could drift.
+// Shared with PeopleMobile's sort control, so the phone view offers the
+// exact same options - one list, not two that could drift.
 export const SORT_OPTIONS: { value: string; label: string }[] = [
   { value: "updated_desc", label: "Recently updated" },
   { value: "created_desc", label: "Recently added" },
@@ -22,7 +20,6 @@ export const SORT_OPTIONS: { value: string; label: string }[] = [
   { value: "name_asc", label: "Name (A-Z)" },
   { value: "name_desc", label: "Name (Z-A)" },
   { value: "follow_up_asc", label: "Follow-up date" },
-  { value: "likelihood_desc", label: "Likelihood (hot first)" },
   { value: "tag_asc", label: "Tag (A-Z)" },
 ];
 

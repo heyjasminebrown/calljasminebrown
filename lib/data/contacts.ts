@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { computeLikelihood } from "@/lib/crm/likelihood";
 import { filterByQueue } from "@/lib/crm/contact-queue-filter";
 import { relativeTime } from "@/lib/format-time";
 import {
@@ -104,8 +103,7 @@ export type ContactSort =
   | "name_asc"
   | "name_desc"
   | "follow_up_asc"
-  | "tag_asc"
-  | "likelihood_desc";
+  | "tag_asc";
 
 export type ContactListFilters = {
   q?: string;
@@ -138,7 +136,6 @@ export type ContactListFilters = {
   // Call-only Other / inbound-call stubs never match — they have no
   // eventbrite activity. contact_type=attendee is a label, not this filter.
   registeredEventName?: string;
-  likelihood?: "high" | "medium" | "low";
   queue?: ContactQueue;
   // Drill-down from the dashboard's New Leads tile - contacts whose
   // lead_date falls within the last N days, not created_at (see lead_date's
@@ -195,11 +192,11 @@ export async function listContacts(filters: ContactListFilters) {
     query = query.or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%,email.ilike.%${q}%,secondary_email.ilike.%${q}%,phone.ilike.%${q}%`);
   }
 
-  // Tag, name, follow-up, and likelihood sorts need the joined data (or a
+  // Tag, name, and follow-up sorts need the joined data (or a
   // computed value) in hand first, so those are sorted in JS after the
   // fetch instead of in the query.
   const sort = filters.sort ?? "updated_desc";
-  const jsSort = new Set<ContactSort>(["name_asc", "name_desc", "follow_up_asc", "tag_asc", "likelihood_desc"]);
+  const jsSort = new Set<ContactSort>(["name_asc", "name_desc", "follow_up_asc", "tag_asc"]);
   if (sort === "created_desc") query = query.order("created_at", { ascending: false });
   else if (sort === "created_asc") query = query.order("created_at", { ascending: true });
   else if (sort === "lead_date_desc") query = query.order("lead_date", { ascending: false });
@@ -274,17 +271,11 @@ export async function listContacts(filters: ContactListFilters) {
     contacts = contacts.filter((c) => !!c.birthday && new Date(c.birthday).getUTCMonth() + 1 === filters.birthdayMonth);
   }
 
-  // Likelihood and the "queue" working lists both need the full stage set
-  // to compute against, so only fetch it when one of those is actually in
-  // play - the common case (no likelihood/queue filter) skips this entirely.
-  if (filters.likelihood || filters.queue) {
+  // The "queue" working lists need the full stage set, so it's only
+  // fetched when one is in play.
+  if (filters.queue) {
     const stages = await listStages();
-    if (filters.likelihood) {
-      contacts = contacts.filter((c) => computeLikelihood(c, stages) === filters.likelihood);
-    }
-    if (filters.queue) {
-      contacts = await filterByQueue(contacts, filters.queue, stages);
-    }
+    contacts = await filterByQueue(contacts, filters.queue, stages);
   }
 
   if (filters.includeIds?.length) {
@@ -315,14 +306,6 @@ export async function listContacts(filters: ContactListFilters) {
       if (!tagB) return -1;
       return tagA.localeCompare(tagB);
     });
-  } else if (sort === "likelihood_desc") {
-    const stages = await listStages();
-    const rank = { high: 2, medium: 1, low: 0 } as const;
-    contacts = [...contacts].sort((a, b) => {
-      const la = computeLikelihood(a, stages);
-      const lb = computeLikelihood(b, stages);
-      return (lb ? rank[lb] : -1) - (la ? rank[la] : -1);
-    });
   }
 
   return contacts;
@@ -352,7 +335,6 @@ function hasRestrictiveFilters(filters: ContactListFilters): boolean {
       filters.notSyncedQuo ||
       filters.eventName ||
       filters.registeredEventName ||
-      filters.likelihood ||
       filters.queue ||
       filters.leadDateWithinDays ||
       filters.leadDateFrom ||

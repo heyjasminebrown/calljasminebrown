@@ -23,7 +23,6 @@ import { TaskList } from "@/components/contacts/TaskList";
 import { ArchiveButton } from "@/components/contacts/ArchiveButton";
 import { DeleteContactButton } from "@/components/contacts/DeleteContactButton";
 import { MergeContactButton } from "@/components/contacts/MergeContactButton";
-import { computeLikelihood } from "@/lib/crm/likelihood";
 import { getLatestReadyTranscriptForContact } from "@/lib/data/meeting-transcripts";
 import { ApprovePanel } from "@/components/transcripts/ApprovePanel";
 import { ConsentStatus } from "@/components/contacts/ConsentStatus";
@@ -61,7 +60,6 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
 
   const openTasks = tasks.filter((t) => !t.completed_at);
   const doneTasks = tasks.filter((t) => t.completed_at);
-  const likelihood = computeLikelihood(contact, stages);
   const tagNames = contact.contact_tags.map((ct) => ct.tags?.name).filter((name): name is string => !!name);
   const firstTouchSignals = {
     leadSource: contact.lead_source,
@@ -109,7 +107,6 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
           <p className="mt-1.5 text-base leading-6 text-neutral-600">
             {[formatPhone(contact.phone), contact.email].filter(Boolean).join(" · ") || "No contact info on file"}
           </p>
-          {likelihood && <p className="mt-1 text-base leading-6 text-neutral-600">likelihood {likelihood}</p>}
           {contact.last_event_name && (
             <p className="mt-1 text-base leading-6 text-neutral-500">
               Last event: {contact.last_event_name}

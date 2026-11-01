@@ -4,9 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@/components/ui";
-import { LikelihoodBadge } from "@/components/contacts/LikelihoodBadge";
 import { SnoozeMenu } from "@/components/contacts/SnoozeMenu";
-import { computeLikelihood } from "@/lib/crm/likelihood";
 import { formatCurrency, stageColor } from "@/lib/utils";
 import { formatLocal, isFollowUpOverdue } from "@/lib/format-time";
 import { clearFollowUp, snoozeFollowUp } from "@/app/(app)/today-actions";
@@ -21,7 +19,6 @@ import type { ContactWithRelations, PipelineStage } from "@/types/database";
 export function ContactContextBar({ contact, stages }: { contact: ContactWithRelations; stages: PipelineStage[] }) {
   const router = useRouter();
   const stage = contact.pipeline_stages;
-  const likelihood = computeLikelihood(contact, stages);
   const isOverdue = isFollowUpOverdue(contact.next_follow_up_at);
   const hasBudget = contact.budget_min || contact.budget_max;
   const [menuOpen, setMenuOpen] = useState(false);
@@ -50,7 +47,6 @@ export function ContactContextBar({ contact, stages }: { contact: ContactWithRel
             {stage.name}
           </Badge>
         )}
-        <LikelihoodBadge likelihood={likelihood} />
         {contact.contact_tags
           .filter((ct) => ct.tags)
           .map((ct) => (
