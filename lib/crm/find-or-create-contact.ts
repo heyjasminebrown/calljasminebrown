@@ -77,6 +77,11 @@ export async function findOrCreateContact(
     // stage defaults to Nurture. Pass stageId: null for no stage.
     relationshipType?: RelationshipType;
     stageId?: string | null;
+    // Matched contacts only: let a different incoming email replace the
+    // Secondary email even when one is already saved (Eventbrite - the
+    // latest registration email is the one they're using now). The
+    // primary email is never replaced.
+    replaceSecondaryEmail?: boolean;
   },
 ): Promise<{ id: string; wasCreated: boolean; existing?: MatchCandidate } | null> {
   const email = input.email?.trim().toLowerCase() || null;
@@ -92,7 +97,14 @@ export async function findOrCreateContact(
     return emailMatch || phoneMatch;
   });
   if (match) {
-    await enrichContact(admin, match, { email, secondaryEmail, phone, firstName: input.firstName, lastName: input.lastName });
+    await enrichContact(admin, match, {
+      email,
+      secondaryEmail,
+      phone,
+      firstName: input.firstName,
+      lastName: input.lastName,
+      replaceSecondaryEmail: input.replaceSecondaryEmail,
+    });
     // A re-imported CSV (now carrying a date column that didn't exist on
     // the first import) is the intended way to backfill a wrong lead_date
     // on a contact created before this field existed - a deliberate,
@@ -163,7 +175,14 @@ export async function findOrCreateContact(
 async function enrichContact(
   admin: SupabaseClient,
   contact: { id: string; first_name: string; last_name: string; email: string | null; secondary_email: string | null; phone: string | null },
-  incoming: { email: string | null; secondaryEmail?: string | null; phone: string | null; firstName?: string | null; lastName?: string | null },
+  incoming: {
+    email: string | null;
+    secondaryEmail?: string | null;
+    phone: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    replaceSecondaryEmail?: boolean;
+  },
 ) {
   const patch: Record<string, string> = {};
 
@@ -178,7 +197,7 @@ async function enrichContact(
   // rather than being dropped. An explicit secondary (CSV import) wins.
   const onFile = [contact.email, contact.secondary_email, patch.email].map((e) => e?.toLowerCase());
   const secondary = [incoming.secondaryEmail, incoming.email].find((e) => e && !onFile.includes(e.toLowerCase()));
-  if (!contact.secondary_email && secondary) patch.secondary_email = secondary;
+  if (secondary && (!contact.secondary_email || incoming.replaceSecondaryEmail)) patch.secondary_email = secondary;
 
   if (Object.keys(patch).length > 0) {
     await admin.from("contacts").update(patch).eq("id", contact.id);

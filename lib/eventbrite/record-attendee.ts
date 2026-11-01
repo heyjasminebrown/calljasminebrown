@@ -37,7 +37,14 @@ export async function recordEventbriteAttendee(
     return;
   }
 
-  const contact = await findOrCreateContact(admin, ownerId, { email, phone, firstName, lastName, leadSource: "Event" });
+  const contact = await findOrCreateContact(admin, ownerId, {
+    email,
+    phone,
+    firstName,
+    lastName,
+    leadSource: "Event",
+    replaceSecondaryEmail: true,
+  });
   if (!contact) {
     await reportFailure(`Eventbrite ${kind} for "${eventName}" wasn't logged: couldn't match or create a contact`, {
       attendeeId: attendee.id,
