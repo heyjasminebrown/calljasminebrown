@@ -11,7 +11,8 @@ Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-cur
 - Eventbrite connected (both accounts): registrations add/match the contact, tag them with
   the event name and log "Registered for [event]" (confirmed working). Matching is by email
   or phone. Check-ins (Eventbrite Organizer app) log "Attended" and feed the Events filter -
-  not yet tested.
+  not yet tested. New Eventbrite contacts get lead source "Event"; a different email on a
+  matched contact is saved as its Secondary email.
 - App renamed to CallJasmineBrown; tags can be created right on a contact
 
 ## Waiting on something outside the CRM
@@ -42,8 +43,6 @@ Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-cur
   eighth source, or bulk-change them?
 - **Tags:** the account currently has no tags (beyond event tags). Create a starter set
   (e.g. Pre-Approved, Refinance, Realtor Partner, HELOC) or just add them as you go.
-- **Eventbrite with a new email on an existing contact:** the new email isn't saved today.
-  Save it to the empty Secondary email field instead?
 - **Contacts page subtitle** still says "leads from Zillow, referrals, events, and more".
   Pick new wording.
 
