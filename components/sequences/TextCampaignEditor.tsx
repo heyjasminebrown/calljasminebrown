@@ -18,6 +18,12 @@ export type EditableCampaign = {
   skip_campaign_ids?: string[];
 };
 
+// 1-30 days, plus a longer saved value so it still shows.
+const dayOptions = (current?: number) => {
+  const days = Array.from({ length: 30 }, (_, i) => i + 1);
+  return current && current > 30 ? [...days, current] : days;
+};
+
 const newStepId = () => `s${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 const blankStep = (): CampaignStepInput => ({ id: newStepId(), label: "", body: "", onReply: { next: null }, onNoReply: { next: null } });
 
@@ -232,20 +238,21 @@ export function TextCampaignEditor({
                             <option value="later">Days later at a set time</option>
                           </Select>
                           {step.onNoReply.days !== 0 && (
-                            <div className="mt-2 flex items-center gap-2 text-sm text-neutral-600">
-                              <Input
-                                type="number"
-                                min={1}
-                                max={90}
-                                className="w-20"
-                                value={Number.isFinite(step.onNoReply.days) ? step.onNoReply.days : 1}
-                                onChange={(e) => patchStep(step.id, (s) => ({ ...s, onNoReply: { ...s.onNoReply, days: Math.max(1, Number(e.target.value) || 1) } }))}
+                            <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-neutral-600">
+                              <Select
+                                className="!w-[84px] shrink-0"
+                                value={String(Number.isFinite(step.onNoReply.days) ? step.onNoReply.days : 1)}
+                                onChange={(e) => patchStep(step.id, (s) => ({ ...s, onNoReply: { ...s.onNoReply, days: Number(e.target.value) } }))}
                                 aria-label="Days later"
-                              />
+                              >
+                                {dayOptions(step.onNoReply.days).map((d) => (
+                                  <option key={d} value={d}>{d}</option>
+                                ))}
+                              </Select>
                               <span className="shrink-0">day(s) later at</span>
                               <Input
                                 type="time"
-                                className="w-32"
+                                className="!w-36 shrink-0"
                                 value={step.onNoReply.time ?? "16:30"}
                                 onChange={(e) => patchStep(step.id, (s) => ({ ...s, onNoReply: { ...s.onNoReply, time: e.target.value } }))}
                                 aria-label="Time (ET)"
