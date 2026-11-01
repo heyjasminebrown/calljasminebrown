@@ -14,6 +14,7 @@ import { leadSourceMatches } from "@/lib/crm/contact-sources";
 import { lastTouchIsOlderThan, membershipIdsFromFilters } from "@/lib/crm/smart-lists";
 import type { ContactQueue } from "@/lib/crm/contact-queues";
 import type { Activity, AiInsight, ContactSegment, ContactWithRelations, Deal, PipelineStage, Tag, Task } from "@/types/database";
+import { reportFailure } from "@/lib/errors/report-failure";
 
 // Per-contact "called 2 hours ago" / "texted yesterday" / "emailed last
 // week" meta for the Contacts row - scoped to just the contacts already
@@ -43,20 +44,40 @@ export async function getLastTouchAts(contactIds: string[]): Promise<Map<string,
 export async function getLastActivityLabels(contactIds: string[]): Promise<Map<string, string>> {
   if (contactIds.length === 0) return new Map();
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("activities")
-    .select("contact_id, type, occurred_at")
-    .in("contact_id", contactIds)
-    .in("type", ["call", "text", "email"])
-    .order("occurred_at", { ascending: false });
-
   const VERBS: Record<string, string> = { call: "called", text: "texted", email: "emailed" };
+  const latest = new Map<string, { type: string; occurred_at: string }>();
+
+  // The ids go in the request URL, so all ~700+ at once made it too long
+  // and the query failed (silently showing "—" for everyone). Ask in
+  // batches, paging past Supabase's 1000-row cap within each.
+  const BATCH = 100;
+  const batches: string[][] = [];
+  for (let i = 0; i < contactIds.length; i += BATCH) batches.push(contactIds.slice(i, i + BATCH));
+  await Promise.all(
+    batches.map(async (ids) => {
+      for (let from = 0; ; from += 1000) {
+        const { data, error } = await supabase
+          .from("activities")
+          .select("contact_id, type, occurred_at")
+          .in("contact_id", ids)
+          .in("type", ["call", "text", "email"])
+          .order("occurred_at", { ascending: false })
+          .range(from, from + 999);
+        if (error) {
+          await reportFailure("Contacts: couldn't load Last touch", error.message);
+          break;
+        }
+        for (const row of data ?? []) {
+          const prev = latest.get(row.contact_id);
+          if (!prev || row.occurred_at > prev.occurred_at) latest.set(row.contact_id, row);
+        }
+        if (!data || data.length < 1000) break;
+      }
+    }),
+  );
+
   const labels = new Map<string, string>();
-  for (const row of data ?? []) {
-    if (labels.has(row.contact_id)) continue;
-    const verb = VERBS[row.type] ?? row.type;
-    labels.set(row.contact_id, `${verb} ${relativeTime(row.occurred_at)}`);
-  }
+  for (const [id, row] of latest) labels.set(id, `${VERBS[row.type] ?? row.type} ${relativeTime(row.occurred_at)}`);
   return labels;
 }
 
