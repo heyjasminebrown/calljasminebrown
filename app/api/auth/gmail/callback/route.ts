@@ -67,6 +67,8 @@ export async function GET(request: NextRequest) {
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
         token_expiry: new Date(tokens.expiry_date ?? Date.now() + 55 * 60_000).toISOString(),
+        // Next sync run treats this as a first sync (see syncGmailInbox).
+        last_history_id: null,
       },
       { onConflict: "owner_id" },
     );

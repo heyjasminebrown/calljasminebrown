@@ -5,6 +5,9 @@ import { upsertActivity } from "@/lib/crm/activities";
 import { analyzeContactActivity } from "@/lib/ai/analyze-contact";
 import { looksLikeBlinqShareEmail, parseBlinqShareEmail } from "@/lib/google/parse-blinq-email";
 import { recordBlinqContact } from "@/lib/crm/blinq-contact";
+import { reportFailure } from "@/lib/errors/report-failure";
+
+const FIRST_SYNC_DAYS = 3;
 
 function headerValue(headers: gmail_v1.Schema$MessagePartHeader[] | undefined, name: string) {
   return headers?.find((h) => h.name?.toLowerCase() === name.toLowerCase())?.value ?? "";
@@ -79,13 +82,19 @@ export async function syncGmailInbox(admin: SupabaseClient, ownerId: string) {
   const gmail = google.gmail({ version: "v1", auth: client });
   const myEmail = account.email_address.toLowerCase();
 
-  // First sync after connecting has no baseline to diff against - record
-  // the current historyId and start fresh from here rather than backfilling
-  // however many years of old mail already sit in the inbox.
-  if (!account.last_history_id) {
+  // First sync after connecting (or reconnecting) has no baseline to diff
+  // against. Record the current historyId, and also pick up the last few
+  // days of mail - otherwise anything that arrived between connecting and
+  // this first run (e.g. a reply to a test email) was silently skipped.
+  // Never years of old mail; and re-logging is safe (dedupes on message id).
+  let messageIds = new Set<string>();
+  let newHistoryId = account.last_history_id;
+  const isFirstSync = !account.last_history_id;
+  if (isFirstSync) {
     const { data: profile } = await gmail.users.getProfile({ userId: "me" });
-    await admin.from("gmail_accounts").update({ last_history_id: profile.historyId }).eq("owner_id", ownerId);
-    return { synced: 0, skipped: "baseline_set" as const };
+    newHistoryId = profile.historyId;
+    const { data: recent } = await gmail.users.messages.list({ userId: "me", q: `newer_than:${FIRST_SYNC_DAYS}d`, maxResults: 200 });
+    messageIds = new Set((recent.messages ?? []).map((m) => m.id).filter((id): id is string => !!id));
   }
 
   const { data: contacts } = await admin
@@ -100,34 +109,34 @@ export async function syncGmailInbox(admin: SupabaseClient, ownerId: string) {
     ),
   );
 
-  let messageIds = new Set<string>();
   let pageToken: string | undefined;
-  let newHistoryId = account.last_history_id;
 
-  try {
-    do {
-      const { data: history } = await gmail.users.history.list({
-        userId: "me",
-        startHistoryId: account.last_history_id,
-        historyTypes: ["messageAdded"],
-        pageToken,
-      });
-      for (const record of history.history ?? []) {
-        for (const added of record.messagesAdded ?? []) {
-          if (added.message?.id) messageIds.add(added.message.id);
+  if (!isFirstSync) {
+    try {
+      do {
+        const { data: history } = await gmail.users.history.list({
+          userId: "me",
+          startHistoryId: account.last_history_id,
+          historyTypes: ["messageAdded"],
+          pageToken,
+        });
+        for (const record of history.history ?? []) {
+          for (const added of record.messagesAdded ?? []) {
+            if (added.message?.id) messageIds.add(added.message.id);
+          }
         }
-      }
-      if (history.historyId) newHistoryId = history.historyId;
-      pageToken = history.nextPageToken ?? undefined;
-    } while (pageToken);
-  } catch (err) {
-    // A 404 here means the stored historyId aged out of Gmail's retention
-    // window (it only keeps ~1 week) - re-baseline instead of failing
-    // forever on every future run.
-    console.error("Gmail history.list failed", err);
-    const { data: profile } = await gmail.users.getProfile({ userId: "me" });
-    await admin.from("gmail_accounts").update({ last_history_id: profile.historyId }).eq("owner_id", ownerId);
-    return { synced: 0, skipped: "history_expired_rebaselined" as const };
+        if (history.historyId) newHistoryId = history.historyId;
+        pageToken = history.nextPageToken ?? undefined;
+      } while (pageToken);
+    } catch (err) {
+      // A 404 here means the stored historyId aged out of Gmail's retention
+      // window (it only keeps ~1 week) - re-baseline instead of failing
+      // forever on every future run.
+      await reportFailure("Gmail sync couldn't read new mail (re-syncing from now)", err);
+      const { data: profile } = await gmail.users.getProfile({ userId: "me" });
+      await admin.from("gmail_accounts").update({ last_history_id: profile.historyId }).eq("owner_id", ownerId);
+      return { synced: 0, skipped: "history_expired_rebaselined" as const };
+    }
   }
 
   let synced = 0;
@@ -184,7 +193,7 @@ export async function syncGmailInbox(admin: SupabaseClient, ownerId: string) {
 
       synced++;
     } catch (err) {
-      console.error("Failed to sync Gmail message", messageId, err);
+      await reportFailure("Gmail sync failed for a message", err, { messageId });
     }
   }
 
