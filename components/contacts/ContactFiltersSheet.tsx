@@ -11,7 +11,7 @@ import {
   EVER_ATTENDED_EVENT,
   SHEET_PARAM_KEYS,
 } from "@/lib/crm/contact-filter-params";
-import { CONTACT_SOURCE_FILTERS, sourceFilterByValue } from "@/lib/crm/contact-sources";
+import { CONTACT_SOURCE_FILTERS, leadSourceMatches, sourceFilterByValue } from "@/lib/crm/contact-sources";
 import { ColorDot } from "@/components/ui/ColorPill";
 
 function Section({ title, children, flush }: { title: string; children: React.ReactNode; flush?: boolean }) {
@@ -52,7 +52,7 @@ function sourceDraftValue(raw: string | undefined): string {
 export function ContactFiltersSheet({
   stages,
   tags: _tags,
-  leadSources: _leadSources,
+  leadSources,
   eventNames,
   registeredEventNames: _registeredEventNames = [],
   onClose,
@@ -113,6 +113,12 @@ export function ContactFiltersSheet({
     if (variant !== "panel") onClose();
   }
 
+  // Sources typed on contacts that aren't one of the standard ones, so a
+  // newly added source can be filtered on too. (Comma-containing values
+  // are skipped - the URL keeps the list comma-separated.)
+  const customSources = leadSources
+    .filter((s) => !s.includes(",") && !CONTACT_SOURCE_FILTERS.some((b) => leadSourceMatches(s, b.value)))
+    .map((s) => ({ value: s, label: s }));
   const selectedStages = new Set((draft.stage ?? "").split(",").filter(Boolean));
   const everAttended = !!draft.event;
   const specificEvent = draft.event && draft.event !== EVER_ATTENDED_EVENT ? draft.event : "";
@@ -135,7 +141,7 @@ export function ContactFiltersSheet({
         <div className={variant === "sheet" ? "grid grid-cols-2 gap-4 border-b border-[#ddd7da] pb-4" : "contents"}>
         <Section title="Source" flush={variant === "sheet"}>
           <div className="space-y-2">
-            {CONTACT_SOURCE_FILTERS.map((source) => (
+            {[...CONTACT_SOURCE_FILTERS, ...customSources].map((source) => (
               <label key={source.value} className="flex items-center gap-2.5 text-[14px] text-neutral-800">
                 <input
                   type="checkbox"

@@ -11,12 +11,13 @@ import { syncContactToQuoAction } from "@/app/(app)/contacts/actions";
 import { applyStageChange } from "@/lib/crm/stage-transition";
 import { contactSchema, type ContactFormValues } from "@/lib/validation/contact";
 import { Button, Input, Label, Select, Textarea, Card } from "@/components/ui";
-import { RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, DEFAULT_RELATIONSHIP_TYPE, DEFAULT_STAGE_NAME, LEAD_SOURCES, cn, fullName, formatPhone } from "@/lib/utils";
+import { RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, DEFAULT_RELATIONSHIP_TYPE, DEFAULT_STAGE_NAME, cn, fullName, formatPhone } from "@/lib/utils";
 import { phonesMatch } from "@/lib/phone";
 import { dateInputToAppIso, isoToDateInput } from "@/lib/format-time";
 import type { ContactWithRelations, PipelineStage, Tag } from "@/types/database";
 import type { MergeCandidate } from "@/lib/data/contacts";
 import { pastePhone } from "@/lib/phone-input";
+import { useLeadSourceOptions } from "@/lib/hooks/useLeadSourceOptions";
 
 export function ContactForm({
   contact,
@@ -40,6 +41,7 @@ export function ContactForm({
     contact?.contact_tags.filter((ct) => ct.tags).map((ct) => ct.tags!.id) ?? defaultTagIds ?? [],
   );
 
+  const leadSourceOptions = useLeadSourceOptions();
   const {
     register,
     handleSubmit,
@@ -303,9 +305,9 @@ export function ContactForm({
         </div>
         <div>
           <Label htmlFor="lead_source">Lead source</Label>
-          <Input id="lead_source" list="lead-sources" {...register("lead_source")} />
+          <Input id="lead_source" list="lead-sources" {...register("lead_source")} placeholder="Pick one, or type a new source" />
           <datalist id="lead-sources">
-            {LEAD_SOURCES.map((s) => (
+            {leadSourceOptions.map((s) => (
               <option key={s} value={s} />
             ))}
           </datalist>

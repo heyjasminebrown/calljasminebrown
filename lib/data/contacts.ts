@@ -437,8 +437,13 @@ export async function listRegisteredEventNames() {
 // suggestion list.
 export async function listLeadSources() {
   const supabase = await createClient();
-  const { data } = await supabase.from("contacts").select("lead_source").eq("archived", false).not("lead_source", "is", null);
-  const values = new Set((data ?? []).map((c) => c.lead_source as string).filter((s) => s.trim().length > 0));
+  const values = new Set<string>();
+  // Paged: a single select stops at 1000 rows.
+  for (let from = 0; ; from += 1000) {
+    const { data } = await supabase.from("contacts").select("lead_source").eq("archived", false).not("lead_source", "is", null).range(from, from + 999);
+    for (const c of data ?? []) if ((c.lead_source as string).trim()) values.add((c.lead_source as string).trim());
+    if (!data || data.length < 1000) break;
+  }
   return [...values].sort((a, b) => a.localeCompare(b));
 }
 

@@ -8,7 +8,7 @@ import { Plus, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { syncContactToQuoAction } from "@/app/(app)/contacts/actions";
 import { contactSchema, type ContactFormValues } from "@/lib/validation/contact";
-import { RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, LEAD_SOURCES, cn, formatPhone } from "@/lib/utils";
+import { RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, cn, formatPhone } from "@/lib/utils";
 import { dateInputToAppIso, isoToDateInput } from "@/lib/format-time";
 import { useApplyStageChange } from "@/lib/hooks/useApplyStageChange";
 import { DealCelebrationModal } from "@/components/contacts/DealCelebrationModal";
@@ -16,6 +16,7 @@ import { PendingDealCleanupModal } from "@/components/contacts/PendingDealCleanu
 import type { ContactWithRelations, DealSide, PipelineStage, Tag } from "@/types/database";
 import type { MergeCandidate } from "@/lib/data/contacts";
 import { pastePhone } from "@/lib/phone-input";
+import { useLeadSourceOptions } from "@/lib/hooks/useLeadSourceOptions";
 
 const fieldClass = "mt-1.5 w-full rounded-[10px] border border-neutral-200 bg-white px-3 py-2.5 text-[15px] text-neutral-900";
 const labelClass = "text-sm text-neutral-500";
@@ -52,6 +53,7 @@ export function ContactDetailsCard({
   const [tagError, setTagError] = useState("");
   const { move: applyMove, dealModal, pendingCleanup, clearDealModal, clearPendingCleanup } = useApplyStageChange(contact.owner_id);
 
+  const leadSourceOptions = useLeadSourceOptions();
   const { register, handleSubmit, setValue } = useForm<ContactFormValues>({
     resolver: zodResolver(contactSchema),
     defaultValues: {
@@ -299,9 +301,9 @@ export function ContactDetailsCard({
         </div>
         <div className="sm:col-span-2">
           <label className={labelClass}>Lead source</label>
-          <input list="lead-sources" {...register("lead_source")} className={fieldClass} />
+          <input list="lead-sources" {...register("lead_source")} placeholder="Pick one, or type a new source" className={fieldClass} />
           <datalist id="lead-sources">
-            {LEAD_SOURCES.map((s) => (
+            {leadSourceOptions.map((s) => (
               <option key={s} value={s} />
             ))}
           </datalist>

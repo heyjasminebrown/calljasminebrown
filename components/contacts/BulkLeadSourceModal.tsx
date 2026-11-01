@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button, Input } from "@/components/ui";
-import { LEAD_SOURCES } from "@/lib/utils";
 import { X } from "lucide-react";
+import { useLeadSourceOptions } from "@/lib/hooks/useLeadSourceOptions";
 
 export function BulkLeadSourceModal({
   contactIds,
@@ -15,15 +15,21 @@ export function BulkLeadSourceModal({
   onClose: () => void;
   onDone: () => void;
 }) {
+  const leadSourceOptions = useLeadSourceOptions();
   const [source, setSource] = useState("");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   async function apply() {
     if (!source.trim()) return;
     setSaving(true);
     const supabase = createClient();
-    await supabase.from("contacts").update({ lead_source: source.trim() }).in("id", contactIds);
+    const { error } = await supabase.from("contacts").update({ lead_source: source.trim() }).in("id", contactIds);
     setSaving(false);
+    if (error) {
+      setError(`Couldn't change source: ${error.message}`);
+      return;
+    }
     onDone();
   }
 
@@ -40,13 +46,14 @@ export function BulkLeadSourceModal({
           Setting the lead source for {contactIds.length} contact{contactIds.length === 1 ? "" : "s"}.
         </p>
         <div className="mt-4">
-          <Input list="bulk-lead-sources" value={source} onChange={(e) => setSource(e.target.value)} placeholder="e.g. Referral" />
+          <Input list="bulk-lead-sources" value={source} onChange={(e) => setSource(e.target.value)} placeholder="Pick one, or type a new source" />
           <datalist id="bulk-lead-sources">
-            {LEAD_SOURCES.map((s) => (
+            {leadSourceOptions.map((s) => (
               <option key={s} value={s} />
             ))}
           </datalist>
         </div>
+        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
         <div className="mt-5 flex gap-3">
           <Button onClick={apply} disabled={saving || !source.trim()} className="flex-1">
             {saving ? "Saving…" : "Change source"}
