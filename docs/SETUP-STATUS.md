@@ -1,7 +1,7 @@
 # CRM setup status
 
 Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-curie-mb14vu`
-(Vercel production branch). Supabase migrations through 0084 have been run.
+(Vercel production branch). Supabase migrations through 0084 have been run (0085 = Conventus Text Campaign: run it if not yet).
 
 ## Done
 - Supabase, Vercel, sign-in, Gmail + Calendar (Google Workspace, Internal app), Gmail Sync now
@@ -28,6 +28,9 @@ Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-cur
     After a real delivery works, check the header and decide on `CRM_QUO_ENFORCE_SIGNATURE=true`.
   - In Quo -> Settings -> API, delete the old "CRM" key from Oct 30 if it's still there.
   - Texts in the Outreach scorecard stay at 0 until this is live.
+  - **Conventus Text Campaign** is built and queues new Conventus contacts, but sends nothing
+    until you add `TEXT_AUTOMATION_ENABLED` = `true` in Vercel (after A2P approval) and
+    redeploy. Settings -> Conventus Text Campaign shows the texts and who's where.
 
 ## Needs your action
 - **Text message wording:** first-touch and text-blast templates
