@@ -8,28 +8,11 @@ Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-cur
 - Type (Community/Prospect/Client/Referral Partner) and Stages (Cold/Warm/Hot/Nurture)
 - Error banner for background failures; Gmail "Sync now" in Settings
 - Timeline and Representing removed (code and data)
-- Eventbrite code built; `EVENTBRITE_WEBHOOK_SECRET` and `EVENTBRITE_PRIVATE_TOKENS`
-  are saved in Vercel
-
-## Next: Eventbrite (pick up here)
-Already done: both keys are in Vercel, and the production site was redeployed with them
-(after `fae306b`), so the CRM is ready to receive Eventbrite webhooks.
-
-1. **Have your webhook password ready.** It's the value of `EVENTBRITE_WEBHOOK_SECRET` in
-   Vercel. If it was saved as a Secret and you don't have a copy: Vercel -> Settings ->
-   Environment Variables -> `EVENTBRITE_WEBHOOK_SECRET` -> ⋯ -> Edit -> paste a new random
-   string (keep a copy) -> Save -> redeploy the blue Production row.
-2. **Add the webhook in the first Eventbrite account:** profile icon -> Account Settings ->
-   Developer Links -> Webhooks -> Add webhook
-   - Payload URL: `https://www.calljasminebrown.com/api/webhooks/eventbrite?secret=YOURSECRET`
-     (YOURSECRET = the password from step 1, no spaces)
-   - Event: All events · Actions: `order.placed` and `attendee.checked_in` only
-   - Add webhook. If there's a Test button, click it; a red CRM banner saying the secret is
-     incorrect means the URL password doesn't match Vercel.
-3. **Repeat step 2 in the second Eventbrite account.**
-4. **Test:** register for one of your own events with a free ticket. Within a minute you
-   should appear in Contacts, tagged with the event name, with "Registered for [event]" on
-   your timeline.
+- Eventbrite connected (both accounts): registrations add/match the contact, tag them with
+  the event name and log "Registered for [event]" (confirmed working). Matching is by email
+  or phone. Check-ins (Eventbrite Organizer app) log "Attended" and feed the Events filter -
+  not yet tested.
+- App renamed to CallJasmineBrown; tags can be created right on a contact
 
 ## Waiting on something outside the CRM
 - **Quo calls/texts:** retest once A2P verification is approved. Text and call the Quo number,
@@ -57,9 +40,10 @@ Already done: both keys are in Vercel, and the production site was redeployed wi
 - **"Original Email List" source:** not one of the seven sources (Event, Facebook, Instagram,
   YouTube, TikTok, Website, Conventus), so those contacts only show under "All". Add it as an
   eighth source, or bulk-change them?
-- **Starter tags** are real-estate ones (VIP, First-Time Buyer, Cash Buyer, Investor...).
-  Replace with a lending set (e.g. Pre-Approved, Refinance, Realtor Partner, HELOC)?
-- **App name:** "Jasmine CRM" today. Rename (e.g. "CallJasmine")?
+- **Tags:** the account currently has no tags (beyond event tags). Create a starter set
+  (e.g. Pre-Approved, Refinance, Realtor Partner, HELOC) or just add them as you go.
+- **Eventbrite with a new email on an existing contact:** the new email isn't saved today.
+  Save it to the empty Secondary email field instead?
 - **Contacts page subtitle** still says "leads from Zillow, referrals, events, and more".
   Pick new wording.
 
