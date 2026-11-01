@@ -147,6 +147,19 @@ export const DEFAULT_RELATIONSHIP_TYPE: RelationshipType = "community";
 export const PIPELINE_STAGE_NAMES = ["Cold", "Warm", "Hot", "Nurture"] as const;
 export const DEFAULT_STAGE_NAME = "Nurture";
 
+// One muted palette for the four stages, used everywhere a stage shows a
+// color (Settings, Today's Pipeline Overview, reports, message badges) so
+// they always match. Falls back to the stored color for anything else.
+const STAGE_COLORS: Record<string, string> = {
+  Cold: "#7d9cc0",
+  Warm: "#d8b85c",
+  Hot: "#7aa37a",
+  Nurture: "#d98c5f",
+};
+export function stageColor(stage: { name: string; color: string }): string {
+  return STAGE_COLORS[stage.name] ?? stage.color;
+}
+
 // Legacy internal category (contact_type) - no longer shown as "Type".
 export const CONTACT_TYPE_LABELS: Record<string, string> = {
   buyer: "Buyer",

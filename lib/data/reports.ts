@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Period } from "@/lib/data/metrics";
-import { RELATIONSHIP_TYPE_LABELS } from "@/lib/utils";
+import { RELATIONSHIP_TYPE_LABELS, stageColor } from "@/lib/utils";
 import { phonesMatch } from "@/lib/phone";
 import type { Deal, RelationshipType } from "@/types/database";
 
@@ -585,7 +585,7 @@ export async function getStageDistribution(): Promise<StageDistributionRow[]> {
     countByStage.set(c.stage_id, (countByStage.get(c.stage_id) ?? 0) + 1);
   }
 
-  return (stages ?? []).map((s) => ({ stageName: s.name, color: s.color, count: countByStage.get(s.id) ?? 0 }));
+  return (stages ?? []).map((s) => ({ stageName: s.name, color: stageColor(s), count: countByStage.get(s.id) ?? 0 }));
 }
 
 export type FollowUpRateTrendMonth = { key: string; label: string; rate: number | null };

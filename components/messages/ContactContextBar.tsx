@@ -8,7 +8,7 @@ import { RepresentingBadge } from "@/components/contacts/RepresentingBadge";
 import { LikelihoodBadge } from "@/components/contacts/LikelihoodBadge";
 import { SnoozeMenu } from "@/components/contacts/SnoozeMenu";
 import { computeLikelihood } from "@/lib/crm/likelihood";
-import { formatCurrency, TIMELINE_LABELS } from "@/lib/utils";
+import { formatCurrency, TIMELINE_LABELS, stageColor } from "@/lib/utils";
 import { formatLocal, isFollowUpOverdue } from "@/lib/format-time";
 import { clearFollowUp, snoozeFollowUp } from "@/app/(app)/today-actions";
 import { CalendarClock, Check, Bell, Plus, ChevronRight } from "lucide-react";
@@ -47,7 +47,7 @@ export function ContactContextBar({ contact, stages }: { contact: ContactWithRel
     <div className="space-y-1.5 border-b border-neutral-100 bg-neutral-50/60 px-3 py-2">
       <div className="flex flex-wrap items-center gap-1.5">
         {stage && (
-          <Badge className="max-w-[10rem] truncate px-2 py-0.5 text-[11px]" color={stage.color}>
+          <Badge className="max-w-[10rem] truncate px-2 py-0.5 text-[11px]" color={stageColor(stage)}>
             {stage.name}
           </Badge>
         )}

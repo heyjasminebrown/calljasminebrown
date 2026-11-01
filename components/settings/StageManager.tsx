@@ -1,4 +1,5 @@
 import type { PipelineStage } from "@/types/database";
+import { stageColor } from "@/lib/utils";
 
 // Stages are fixed to Cold, Warm, Hot, Nurture (supabase/migrations/0083):
 // imports, defaults and the Today "hot" queue match them by name, so
@@ -17,7 +18,7 @@ export function StageManager({ stages, stageCounts }: { stages: PipelineStage[];
       <div className="mt-3 space-y-2.5">
         {sorted.map((stage) => (
           <div key={stage.id} className="flex items-center gap-2.5 border-b border-neutral-100 pb-2.5 last:border-b-0 last:pb-0">
-            <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: stage.color }} />
+            <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: stageColor(stage) }} />
             <span className="flex-1 text-[15px] font-medium text-neutral-900">{stage.name}</span>
             {stageCounts && (
               <span className="shrink-0 text-[15px] text-neutral-500">

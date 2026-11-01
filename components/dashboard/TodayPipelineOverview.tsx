@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { Clock } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, stageColor } from "@/lib/utils";
 import { TODAY_CARD } from "@/components/dashboard/today-home-layout";
 import type { PipelineStage } from "@/types/database";
 
-// Cold, Warm, Hot, Nurture - distinct within the brand palette.
-const RING = ["#a796ab", "#e3b79c", "#34223a", "#79657e"];
 
 export function TodayPipelineOverview({
   stages,
@@ -22,11 +20,11 @@ export function TodayPipelineOverview({
   // included, so the overview reads the same every day.
   const slices = stages
     .filter((s) => !s.is_closed_lost && !s.is_trash)
-    .map((stage, i) => ({
+    .map((stage) => ({
       id: stage.id,
       name: stage.name,
       count: counts.get(stage.id) ?? 0,
-      color: RING[i % RING.length],
+      color: stageColor(stage),
     }));
 
   const total = slices.reduce((sum, s) => sum + s.count, 0);
