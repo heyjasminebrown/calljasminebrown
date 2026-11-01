@@ -61,7 +61,7 @@ export async function upsertActivity(
     // Someone else's insert won the race - update that row instead.
     const { data: existing } = await admin
       .from("activities")
-      .select("id")
+      .select("id, metadata")
       .eq("owner_id", ownerId)
       .eq("source", source)
       .eq("dedupe_field", idField)
@@ -69,7 +69,12 @@ export async function upsertActivity(
       .maybeSingle();
 
     if (existing) {
-      await admin.from("activities").update({ body: fields.body, metadata: fields.metadata }).eq("id", existing.id);
+      // Merge, so an event arriving after its follow-ups (a Quo
+      // call.completed after the recording/transcript) doesn't wipe them;
+      // empty values never overwrite saved ones.
+      const incoming = Object.fromEntries(Object.entries(fields.metadata).filter(([, v]) => v != null));
+      const metadata = { ...((existing.metadata as Record<string, unknown>) ?? {}), ...incoming };
+      await admin.from("activities").update({ body: fields.body, metadata }).eq("id", existing.id);
       // wasCreated: false lets a redelivered webhook (Eventbrite/Quo/etc.
       // resending the same event id) tell "this exact registration/call/
       // text already exists" apart from a genuinely new one - callers use

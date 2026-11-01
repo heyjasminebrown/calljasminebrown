@@ -133,6 +133,27 @@ export async function POST(request: NextRequest) {
 
       let result = await patchActivityMetadata(admin, OWNER_ID, "quo", "quo_call_id", call.quoCallId, patch);
 
+      // No call logged yet (call.completed hasn't arrived, or never will -
+      // seen on a call Quo's AI agent answered): log the call from this
+      // event, then attach. A later call.completed merges into the same row.
+      if (!result && call.quoCallId && call.counterpartNumber) {
+        const contact = await findOrCreateContact(admin, OWNER_ID, {
+          phone: call.counterpartNumber,
+          leadSource: "Quo (auto-created from call)",
+        });
+        if (contact) {
+          await upsertActivity(admin, OWNER_ID, contact.id, "quo", "quo_call_id", call.quoCallId, {
+            type: "call",
+            direction: call.direction === "none" ? "inbound" : call.direction,
+            occurred_at: call.occurredAt,
+            body: describeCall(call),
+            metadata: { quo_call_id: call.quoCallId, quo_event_type: eventType },
+          });
+          result = await patchActivityMetadata(admin, OWNER_ID, "quo", "quo_call_id", call.quoCallId, patch);
+          if (result) await updateEngagementTag(admin, OWNER_ID, contact.id);
+        }
+      }
+
       // Silent no-op otherwise: either call.quoCallId didn't parse out of
       // this event at all (the recording/summary field-name guesses above
       // are still unconfirmed against a real payload), or no activity
@@ -141,7 +162,10 @@ export async function POST(request: NextRequest) {
       // sitting in Vercel's logs to fix the parsing from, next time this
       // happens.
       if (!result) {
-        await reportFailure(`Quo ${eventType}: couldn't attach to any activity (quoCallId=${call.quoCallId ?? "null"})`, JSON.stringify(body));
+        await reportFailure(
+          `Quo ${eventType}: couldn't log it on a contact (quoCallId=${call.quoCallId ?? "null"}, other number=${call.counterpartNumber ?? "not found"})`,
+          JSON.stringify(body),
+        );
       }
 
       // A 12-second robocall has no summary/transcript at call.completed

@@ -4,7 +4,17 @@
 // body is always preserved on the activity's `metadata.raw` so nothing is
 // lost even if a field guess here is wrong; we can backfill once confirmed.
 
+import { normalizePhone } from "@/lib/phone";
+import { OWNER_PHONE_E164 } from "@/lib/brand/identity";
+
 type AnyRecord = Record<string, unknown>;
+
+// Her own Quo line(s), to tell them apart from the other person when a
+// payload lists every number together (data.context.participants.external).
+function ownNumbers(): Set<string> {
+  const raw = [process.env.QUO_SEND_PHONE_NUMBER, process.env.QUO_INCLUDED_PHONE_NUMBERS, OWNER_PHONE_E164].filter(Boolean).join(",");
+  return new Set(raw.split(",").map((n) => normalizePhone(n)).filter((n): n is string => !!n));
+}
 
 function asString(v: unknown): string | null {
   return typeof v === "string" ? v : null;
@@ -43,9 +53,24 @@ function unwrap(body: AnyRecord): AnyRecord {
 // In 2026-03-30 payloads the resource has no from/to; the numbers sit in
 // data.context instead (confirmed on a real message.received):
 //   { senderIdentifier: "+1404...", recipientIdentifiers: ["+1404..."] }
-function contextNumbers(body: AnyRecord): { from: string | null; to: string | null } {
+//
+// Call events (confirmed on real call.recording/transcript/summary
+// deliveries, 2026-11-01) instead list both numbers together:
+//   { participants: { external: ["+1404...(her line)", "+1404...(caller)"] } }
+// so her own line is picked out by number and direction decides from/to.
+function contextNumbers(body: AnyRecord, direction: "inbound" | "outbound" | "none"): { from: string | null; to: string | null } {
   const ctx = (body.data as AnyRecord | undefined)?.context as AnyRecord | undefined;
-  return { from: phoneOf(ctx?.senderIdentifier), to: phoneOf(ctx?.recipientIdentifiers) };
+  const from = phoneOf(ctx?.senderIdentifier);
+  const to = phoneOf(ctx?.recipientIdentifiers);
+  if (from || to) return { from, to };
+
+  const external = (ctx?.participants as AnyRecord | undefined)?.external;
+  const numbers = (Array.isArray(external) ? external : [external]).map(phoneOf).filter((n): n is string => !!n);
+  if (numbers.length === 0) return { from: null, to: null };
+  const mine = ownNumbers();
+  const own = numbers.find((n) => mine.has(normalizePhone(n) ?? "")) ?? null;
+  const other = numbers.find((n) => !mine.has(normalizePhone(n) ?? "")) ?? null;
+  return direction === "outbound" ? { from: own, to: other } : { from: other, to: own };
 }
 
 // A phone number given as a plain string, the first of a list, or an
@@ -70,9 +95,9 @@ function rawDirection(obj: AnyRecord): "inbound" | "outbound" | "none" {
 export function parseQuoCall(body: AnyRecord): ParsedQuoCall {
   const obj = unwrap(body);
   const direction = rawDirection(obj);
-  const ctx = contextNumbers(body);
-  const from = phoneOf(obj.from) ?? phoneOf((obj.participants as AnyRecord | undefined)?.from) ?? ctx.from;
-  const to = phoneOf(obj.to) ?? phoneOf((obj.participants as AnyRecord | undefined)?.to) ?? ctx.to;
+  const ctx = contextNumbers(body, direction);
+  const from = phoneOf(obj.from) ?? phoneOf((obj.participants as AnyRecord | undefined)?.from) ?? phoneOf(obj.fromPhoneNumber) ?? ctx.from;
+  const to = phoneOf(obj.to) ?? phoneOf((obj.participants as AnyRecord | undefined)?.to) ?? phoneOf(obj.toPhoneNumber) ?? ctx.to;
   const media = obj.media as AnyRecord[] | undefined;
   const recording = obj.recording as AnyRecord | undefined;
   // For a call that goes to voicemail, Quo delivers the recording +
@@ -92,7 +117,7 @@ export function parseQuoCall(body: AnyRecord): ParsedQuoCall {
   // same callXxx/callId sub-resource pattern but haven't been confirmed the
   // same way yet - if a summary still doesn't show up, get a real payload
   // for that event type too and adjust the summary line below.
-  const isTranscriptObject = obj.object === "callTranscript";
+  const isTranscriptObject = obj.object === "callTranscript" || (Array.isArray(obj.dialogue) && !!obj.callId);
   const isSummaryObject = obj.object === "callSummary";
   const transcriptSource = isTranscriptObject ? obj : (obj.transcript as unknown);
 
@@ -108,10 +133,17 @@ export function parseQuoCall(body: AnyRecord): ParsedQuoCall {
     durationSeconds: typeof obj.duration === "number" ? obj.duration : null,
     status: asString(obj.status),
     occurredAt: asString(obj.completedAt) ?? asString(obj.createdAt) ?? new Date().toISOString(),
-    recordingUrl: asString(voicemail?.recordingUrl) ?? asString(media?.[0]?.url) ?? asString(recording?.url) ?? asString(obj.recordingUrl),
-    summary: asString(obj.summary) ?? asString(obj.aiSummary) ?? (isSummaryObject ? asString(obj.content) ?? asString(obj.text) : null),
+    recordingUrl: asString(voicemail?.recordingUrl) ?? asString(media?.[0]?.url) ?? asString(recording?.url) ?? asString(obj.recordingUrl) ?? asString((obj.recordings as AnyRecord[] | undefined)?.[0]?.url),
+    // call.summary.completed (2026-03-30) sends summary as a list of lines.
+    summary: asString(obj.summary) ?? listText(obj.summary) ?? asString(obj.aiSummary) ?? (isSummaryObject ? asString(obj.content) ?? asString(obj.text) : null),
     transcript: asString(voicemail?.transcript) ?? parseTranscript(transcriptSource),
   };
+}
+
+function listText(v: unknown): string | null {
+  if (!Array.isArray(v)) return null;
+  const lines = v.map((x) => asString(x) ?? asString((x as AnyRecord | null)?.text) ?? asString((x as AnyRecord | null)?.content)).filter(Boolean);
+  return lines.length ? lines.join(" ") : null;
 }
 
 function parseTranscript(transcript: unknown): string | null {
@@ -137,7 +169,7 @@ function parseTranscript(transcript: unknown): string | null {
 export function parseQuoMessage(body: AnyRecord): ParsedQuoMessage {
   const obj = unwrap(body);
   const direction = rawDirection(obj);
-  const ctx = contextNumbers(body);
+  const ctx = contextNumbers(body, direction);
   const from = phoneOf(obj.from) ?? ctx.from;
   const to = phoneOf(obj.to) ?? ctx.to;
 
