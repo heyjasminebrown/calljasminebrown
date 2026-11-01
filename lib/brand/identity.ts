@@ -30,7 +30,7 @@ export const COMPANY_NAME = "";
 /** Short product name for the app shell: browser tab title, PWA manifest
  * name/short_name, nav wordmark, "Add [APP_NAME] to your Home Screen"-style
  * copy. Keep it short — it appears in the mobile home-screen icon label. */
-export const APP_NAME = "Jasmine CRM";
+export const APP_NAME = "CallJasmineBrown";
 export const APP_SHORT_NAME = APP_NAME;
 
 /** Fallback phone number shown on public pages (e.g. booking confirmations)

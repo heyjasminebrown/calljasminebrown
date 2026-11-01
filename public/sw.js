@@ -7,11 +7,11 @@ self.addEventListener("push", (event) => {
   try {
     payload = event.data.json();
   } catch {
-    payload = { title: "Jasmine CRM", body: event.data.text() };
+    payload = { title: "CallJasmineBrown", body: event.data.text() };
   }
 
   event.waitUntil(
-    self.registration.showNotification(payload.title || "Jasmine CRM", {
+    self.registration.showNotification(payload.title || "CallJasmineBrown", {
       body: payload.body,
       icon: "/icon-192.png",
       badge: "/icon-192.png",
