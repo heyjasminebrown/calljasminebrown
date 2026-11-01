@@ -173,9 +173,12 @@ async function enrichContact(
   }
   if (!contact.email && incoming.email) patch.email = incoming.email;
   if (!contact.phone && incoming.phone) patch.phone = incoming.phone;
-  const secondary = incoming.secondaryEmail;
+  // A different email than the one on file (e.g. matched by phone, but they
+  // registered with another address) goes into an empty Secondary email
+  // rather than being dropped. An explicit secondary (CSV import) wins.
   const onFile = [contact.email, contact.secondary_email, patch.email].map((e) => e?.toLowerCase());
-  if (!contact.secondary_email && secondary && !onFile.includes(secondary)) patch.secondary_email = secondary;
+  const secondary = [incoming.secondaryEmail, incoming.email].find((e) => e && !onFile.includes(e.toLowerCase()));
+  if (!contact.secondary_email && secondary) patch.secondary_email = secondary;
 
   if (Object.keys(patch).length > 0) {
     await admin.from("contacts").update(patch).eq("id", contact.id);

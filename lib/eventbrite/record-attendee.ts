@@ -10,7 +10,7 @@ function clean(v: string | null | undefined): string | null {
 }
 
 // One Eventbrite attendee -> the matching contact (created as Community /
-// Nurture if new), tagged with the event's name, with a timeline entry.
+// Nurture with lead source "Event" if new), tagged with the event's name, with a timeline entry.
 // "registered" logs source=eventbrite; "attended" logs source=checkin and
 // sets last_event_name, which is what the Contacts Events filter reads.
 // Both dedupe on the attendee id, so Eventbrite's retries are harmless.
@@ -37,7 +37,7 @@ export async function recordEventbriteAttendee(
     return;
   }
 
-  const contact = await findOrCreateContact(admin, ownerId, { email, phone, firstName, lastName, leadSource: "Eventbrite" });
+  const contact = await findOrCreateContact(admin, ownerId, { email, phone, firstName, lastName, leadSource: "Event" });
   if (!contact) {
     await reportFailure(`Eventbrite ${kind} for "${eventName}" wasn't logged: couldn't match or create a contact`, {
       attendeeId: attendee.id,
