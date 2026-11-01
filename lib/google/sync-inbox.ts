@@ -199,6 +199,11 @@ export async function syncGmailInbox(admin: SupabaseClient, ownerId: string) {
 
       synced++;
     } catch (err) {
+      // 404 = the message was gone by the time we fetched it (a draft
+      // replaced by its next autosave, or mail deleted right away) -
+      // nothing to log, not a failure.
+      const status = (err as { code?: number; status?: number }).code ?? (err as { status?: number }).status;
+      if (status === 404) continue;
       await reportFailure("Gmail sync failed for a message", err, { messageId });
     }
   }
