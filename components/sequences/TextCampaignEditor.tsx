@@ -152,7 +152,9 @@ export function TextCampaignEditor({
 
           <div className="space-y-3">
             {labeled.map((step, i) => {
-              // Only later texts: pointing back to an earlier one would loop.
+              // "If they reply" can go to any other text (a reply text ends the
+              // campaign, so it can't loop). "If no reply" only goes forward:
+              // pointing back would repeat texts forever.
               const later = labeled.slice(i + 1);
               const backward = (id: string | null) => !!id && !later.some((o) => o.id === id);
               const badOption = (id: string | null) =>
@@ -189,8 +191,7 @@ export function TextCampaignEditor({
                         onChange={(e) => patchStep(step.id, (s) => ({ ...s, onReply: { next: e.target.value || null } }))}
                       >
                         <option value="">End the campaign</option>
-                        {badOption(step.onReply.next)}
-                        {later.map((o) => (
+                        {labeled.filter((o) => o.id !== step.id).map((o) => (
                           <option key={o.id} value={o.id}>
                             Send {o.label} (~1 min later)
                           </option>

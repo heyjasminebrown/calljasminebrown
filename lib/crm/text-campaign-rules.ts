@@ -41,8 +41,6 @@ export function validateCampaign(input: CampaignInput): string | null {
     if (s.body.length > 600) return `${s.label} is too long (keep texts under 600 characters).`;
     if (s.onReply.next && !ids.has(s.onReply.next)) return `${s.label}: the "if they reply" text no longer exists.`;
     if (s.onReply.next === s.id) return `${s.label} can't send itself as the reply.`;
-    if (s.onReply.next && position.get(s.onReply.next)! < i)
-      return `${s.label}: "if they reply" can't go back to ${label(s.onReply.next)}. Pick a later text or End.`;
     if (s.onNoReply.next) {
       if (!ids.has(s.onNoReply.next)) return `${s.label}: the "if no reply" text no longer exists.`;
       if (s.onNoReply.next === s.id) return `${s.label} can't follow itself.`;

@@ -223,7 +223,9 @@ export async function runTextAutomation(admin: SupabaseClient, ownerId: string) 
         await stop(e.id, `Replied no: "${text.slice(0, 80)}"`);
         continue;
       }
-      const replyNext = laterStep(campaign.steps, e.last_step, campaign.steps.find((st) => st.id === e.last_step)?.onReply.next ?? null);
+      // Any other text (earlier is fine): a reply text ends the campaign.
+      const replyTo = campaign.steps.find((st) => st.id === e.last_step)?.onReply.next ?? null;
+      const replyNext = replyTo && replyTo !== e.last_step ? replyTo : null;
       if (!replyNext) {
         await update(e.id, { status: "completed", stop_reason: "Replied", next_step: null, next_send_at: null });
         continue;
