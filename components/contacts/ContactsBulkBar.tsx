@@ -6,11 +6,12 @@ import { campaignsTextHref } from "@/lib/crm/campaigns-handoff";
 import { hasUsablePhone } from "@/lib/crm/contact-filter-predicates";
 import { BulkTagModal } from "@/components/contacts/BulkTagModal";
 import { BulkStageModal } from "@/components/contacts/BulkStageModal";
+import { BulkTypeModal } from "@/components/contacts/BulkTypeModal";
 import { BulkAddToListModal } from "@/components/contacts/BulkAddToListModal";
 import { cn } from "@/lib/utils";
 import type { ContactSegment, ContactWithRelations, PipelineStage, Tag } from "@/types/database";
 
-type BulkModal = "add-tag" | "remove-tag" | "stage" | "list" | null;
+type BulkModal = "add-tag" | "remove-tag" | "stage" | "type" | "list" | null;
 
 function Pill({
   children,
@@ -81,6 +82,7 @@ export function ContactsBulkBar({
         <Pill filled onClick={textSelected} disabled={selectedWithPhone === 0}>
           Text
         </Pill>
+        <Pill onClick={() => setModal("type")}>{mobile ? "Type" : "Change type"}</Pill>
         <Pill onClick={() => setModal("stage")}>{mobile ? "Stage" : "Change stage"}</Pill>
         <Pill onClick={() => setModal("list")}>{mobile ? "List" : "Add to list"}</Pill>
         <Pill onClick={() => setModal("add-tag")}>{mobile ? "Tags" : "Add tags"}</Pill>
@@ -101,6 +103,7 @@ export function ContactsBulkBar({
       {modal === "stage" && (
         <BulkStageModal contacts={selectedContacts} stages={stages} ownerId={ownerId} onClose={() => setModal(null)} onDone={afterAction} />
       )}
+      {modal === "type" && <BulkTypeModal contactIds={selectedIds} onClose={() => setModal(null)} onDone={afterAction} />}
       {modal === "list" && (
         <BulkAddToListModal
           contactIds={selectedIds}

@@ -24,12 +24,16 @@ export function BulkTypeModal({
     setSaving(true);
     setError("");
     const supabase = createClient();
-    const { error } = await supabase.from("contacts").update({ relationship_type: relationshipType }).in("id", contactIds);
-    setSaving(false);
-    if (error) {
-      setError(`Couldn't change type: ${error.message}`);
-      return;
+    // Batches of 100 keep the request URL short for big selections.
+    for (let i = 0; i < contactIds.length; i += 100) {
+      const { error } = await supabase.from("contacts").update({ relationship_type: relationshipType }).in("id", contactIds.slice(i, i + 100));
+      if (error) {
+        setSaving(false);
+        setError(`Couldn't change type${i > 0 ? ` (the first ${i} were changed)` : ""}: ${error.message}`);
+        return;
+      }
     }
+    setSaving(false);
     onDone();
   }
 
