@@ -52,7 +52,7 @@ export function TrendLineChart({
   }
 
   return (
-    <figure className="min-w-0 rounded-xl border border-[#ebe9e7] bg-white p-3">
+    <figure className="relative min-w-0 rounded-xl border border-[#ebe9e7] bg-white p-3">
       <figcaption className="flex items-baseline justify-between gap-2">
         <span className="truncate text-[13px] font-medium text-neutral-600">{title}</span>
         <span className="shrink-0 text-[13px] text-neutral-500">

@@ -40,13 +40,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     // Desktop shell starts at lg (1024px) — not md (768). Below that the
     // phone 5-tab bar stays; at 1024+ the sidebar is a real app chrome
-    // and <main> is the only scroller (lg:h-dvh + overflow-hidden).
+    // and <main> is the only scroller (lg:h-dvh + overflow-hidden). Its direct
+    // children never shrink: a page wrapper with overflow-x-hidden would
+    // otherwise shrink to the screen height and scroll on its own, giving a
+    // second scrollbar inside the page (Today, Reports). Messages opts back in
+    // with lg:!shrink, since its panes are meant to fill the screen and scroll
+    // separately.
     <div className="flex min-h-dvh lg:h-dvh lg:overflow-hidden">
       <Suspense fallback={<aside className="hidden w-[220px] shrink-0 border-r border-[#ddd7da] bg-[#ebeaeb] lg:flex" />}>
         <Sidebar userEmail={user?.email} counts={navCounts} />
       </Suspense>
       <div className="flex min-h-dvh min-w-0 flex-1 flex-col lg:h-dvh lg:overflow-hidden">
-        <main className="flex flex-1 flex-col bg-[#ebeaeb] pb-[calc(var(--app-bottom-nav)+12px)] lg:min-h-0 lg:overflow-y-auto lg:pb-8">
+        <main className="relative flex flex-1 flex-col bg-[#ebeaeb] pb-[calc(var(--app-bottom-nav)+12px)] lg:min-h-0 lg:overflow-y-auto lg:pb-8 [&>*]:shrink-0">
           <Suspense fallback={null}>
             <SystemErrorsBanner />
           </Suspense>

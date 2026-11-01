@@ -61,7 +61,7 @@ export default async function MessageThreadPage({
   };
 
   return (
-    <div className="lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-hidden lg:px-8 lg:pt-8 lg:pb-6">
+    <div className="lg:flex lg:min-h-0 lg:flex-1 lg:!shrink lg:flex-col lg:overflow-hidden lg:px-8 lg:pt-8 lg:pb-6">
       <MessagesInbox
         threads={toSmsInboxThreads(conversations)}
         initialSeen={parseInboxSeen(cookieStore.get(INBOX_SEEN_COOKIE)?.value)}
