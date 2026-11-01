@@ -15,6 +15,7 @@ export type EditableCampaign = {
   trigger_type: TriggerType;
   trigger_value: string;
   steps: CampaignStepInput[];
+  skip_campaign_ids?: string[];
 };
 
 const newStepId = () => `s${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
@@ -29,9 +30,11 @@ export function TextCampaignEditor({
   tags,
   stages,
   sources,
+  otherCampaigns,
   onClose,
 }: {
   campaign?: EditableCampaign;
+  otherCampaigns: { id: string; name: string }[];
   tags: Tag[];
   stages: PipelineStage[];
   sources: string[];
@@ -42,6 +45,8 @@ export function TextCampaignEditor({
   const [triggerType, setTriggerType] = useState<TriggerType>(campaign?.trigger_type ?? "source");
   const [triggerValue, setTriggerValue] = useState(campaign?.trigger_value ?? "");
   const [steps, setSteps] = useState<CampaignStepInput[]>(campaign?.steps.length ? campaign.steps : [blankStep()]);
+  const [skipIds, setSkipIds] = useState<string[]>(campaign?.skip_campaign_ids ?? []);
+  const skippable = otherCampaigns.filter((c) => c.id !== campaign?.id);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -66,7 +71,7 @@ export function TextCampaignEditor({
 
   async function save() {
     setError("");
-    const input = { id: campaign?.id, name, triggerType, triggerValue, steps: labeled };
+    const input = { id: campaign?.id, name, triggerType, triggerValue, steps: labeled, skipCampaignIds: skipIds };
     const problem = validateCampaign(input);
     if (problem) {
       setError(problem);
@@ -200,26 +205,50 @@ export function TextCampaignEditor({
                         ))}
                       </Select>
                       {step.onNoReply.next && (
-                        <div className="mt-2 flex items-center gap-2 text-sm text-neutral-600">
-                          <Input
-                            type="number"
-                            min={1}
-                            max={90}
-                            className="w-20"
-                            value={step.onNoReply.days ?? 1}
-                            onChange={(e) => patchStep(step.id, (s) => ({ ...s, onNoReply: { ...s.onNoReply, days: Number(e.target.value) } }))}
-                            aria-label="Days later"
-                          />
-                          <span className="shrink-0">day(s) later at</span>
-                          <Input
-                            type="time"
-                            className="w-32"
-                            value={step.onNoReply.time ?? "16:30"}
-                            onChange={(e) => patchStep(step.id, (s) => ({ ...s, onNoReply: { ...s.onNoReply, time: e.target.value } }))}
-                            aria-label="Time (ET)"
-                          />
-                          <span className="shrink-0">ET</span>
-                        </div>
+                        <>
+                          <Select
+                            className="mt-2"
+                            value={step.onNoReply.days === 0 ? "now" : "later"}
+                            onChange={(e) =>
+                              patchStep(step.id, (s) => ({
+                                ...s,
+                                onNoReply:
+                                  e.target.value === "now"
+                                    ? { next: s.onNoReply.next, days: 0 }
+                                    : { next: s.onNoReply.next, days: 1, time: s.onNoReply.time ?? "16:30" },
+                              }))
+                            }
+                            aria-label="When"
+                          >
+                            <option value="now">Right after this text (~1 min)</option>
+                            <option value="later">Days later at a set time</option>
+                          </Select>
+                          {step.onNoReply.days !== 0 && (
+                            <div className="mt-2 flex items-center gap-2 text-sm text-neutral-600">
+                              <Input
+                                type="number"
+                                min={1}
+                                max={90}
+                                className="w-20"
+                                value={Number.isFinite(step.onNoReply.days) ? step.onNoReply.days : 1}
+                                onChange={(e) => patchStep(step.id, (s) => ({ ...s, onNoReply: { ...s.onNoReply, days: Math.max(1, Number(e.target.value) || 1) } }))}
+                                aria-label="Days later"
+                              />
+                              <span className="shrink-0">day(s) later at</span>
+                              <Input
+                                type="time"
+                                className="w-32"
+                                value={step.onNoReply.time ?? "16:30"}
+                                onChange={(e) => patchStep(step.id, (s) => ({ ...s, onNoReply: { ...s.onNoReply, time: e.target.value } }))}
+                                aria-label="Time (ET)"
+                              />
+                              <span className="shrink-0">ET</span>
+                            </div>
+                          )}
+                          {step.onNoReply.days === 0 && (
+                            <p className="mt-1 text-xs text-neutral-400">Sent even if they reply in that minute; their reply is handled after it.</p>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
@@ -231,6 +260,26 @@ export function TextCampaignEditor({
               <Plus size={14} /> Add a text
             </Button>
           </div>
+
+          {skippable.length > 0 && (
+            <div>
+              <Label>Skip anyone who&apos;s already in</Label>
+              <div className="mt-1 space-y-1.5">
+                {skippable.map((c) => (
+                  <label key={c.id} className="flex items-center gap-2.5 text-[14px] text-neutral-800">
+                    <input
+                      type="checkbox"
+                      checked={skipIds.includes(c.id)}
+                      onChange={() => setSkipIds((prev) => (prev.includes(c.id) ? prev.filter((x) => x !== c.id) : [...prev, c.id]))}
+                      className="h-4 w-4 rounded border-neutral-300 accent-[#34223a]"
+                    />
+                    {c.name}
+                  </label>
+                ))}
+              </div>
+              <p className="mt-1 text-xs text-neutral-400">So nobody gets the same invite twice from two campaigns.</p>
+            </div>
+          )}
 
           <div className="rounded-xl bg-[#f4f1f5] p-3 text-xs leading-5 text-neutral-600">
             <p className="font-semibold text-neutral-700">Always on, for every campaign</p>

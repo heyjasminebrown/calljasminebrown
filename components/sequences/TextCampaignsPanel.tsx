@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatInTimeZone } from "date-fns-tz";
-import { ChevronDown, Pencil, Plus, Trash2, UserPlus } from "lucide-react";
+import { ChevronDown, Copy, Pencil, Plus, Trash2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui";
 import { APP_TIMEZONE } from "@/lib/format-time";
 import { cn, RELATIONSHIP_TYPE_LABELS } from "@/lib/utils";
@@ -60,6 +60,16 @@ export function TextCampaignsPanel({
           tags={tags}
           stages={stages}
           onEdit={() => setEditing(c)}
+          onDuplicate={() =>
+            setEditing({
+              name: `Copy of ${c.name}`,
+              trigger_type: c.trigger_type,
+              trigger_value: c.trigger_value,
+              steps: c.steps,
+              // The copy skips anyone the original already texted.
+              skip_campaign_ids: [c.id, ...(c.skip_campaign_ids ?? [])],
+            })
+          }
         />
       ))}
       <Button variant="secondary" onClick={() => setEditing("new")}>
@@ -71,6 +81,7 @@ export function TextCampaignsPanel({
           tags={tags}
           stages={stages}
           sources={sources}
+          otherCampaigns={campaigns.map((x) => ({ id: x.id, name: x.name }))}
           onClose={() => setEditing(null)}
         />
       )}
@@ -96,12 +107,14 @@ function CampaignCard({
   tags,
   stages,
   onEdit,
+  onDuplicate,
 }: {
   campaign: CampaignRow;
   rows: EnrollmentRow[];
   tags: Tag[];
   stages: PipelineStage[];
   onEdit: () => void;
+  onDuplicate: () => void;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -206,6 +219,9 @@ function CampaignCard({
         <button type="button" onClick={onEdit} className="rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-100" aria-label={`Edit ${campaign.name}`}>
           <Pencil size={15} />
         </button>
+        <button type="button" onClick={onDuplicate} className="rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-100" aria-label={`Duplicate ${campaign.name}`} title="Duplicate">
+          <Copy size={15} />
+        </button>
         <button type="button" onClick={() => setConfirmDelete(true)} className="rounded-lg p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={`Delete ${campaign.name}`}>
           <Trash2 size={15} />
         </button>
@@ -248,7 +264,11 @@ function CampaignCard({
                 <span className="font-semibold text-neutral-800">Text {i + 1}{i === 0 ? " (right away)" : ""}:</span> {s.body}
                 <span className="block text-xs text-neutral-400">
                   Reply → {s.onReply.next ? `Text ${labelOf(s.onReply.next)} (~1 min later)` : "end"} · No reply →{" "}
-                  {s.onNoReply.next ? `Text ${labelOf(s.onNoReply.next)}, ${s.onNoReply.days} day(s) later at ${s.onNoReply.time} ET` : "end"}
+                  {s.onNoReply.next
+                    ? s.onNoReply.days === 0
+                      ? `Text ${labelOf(s.onNoReply.next)} right after`
+                      : `Text ${labelOf(s.onNoReply.next)}, ${s.onNoReply.days} day(s) later at ${s.onNoReply.time} ET`
+                    : "end"}
                 </span>
               </li>
             ))}

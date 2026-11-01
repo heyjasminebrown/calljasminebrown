@@ -17,6 +17,8 @@ export type CampaignInput = {
   triggerType: TriggerType;
   triggerValue: string;
   steps: CampaignStepInput[];
+  // Don't start this campaign for anyone already in these campaigns.
+  skipCampaignIds: string[];
 };
 
 export const TRIGGER_LABELS: Record<TriggerType, string> = {
@@ -41,10 +43,13 @@ export function validateCampaign(input: CampaignInput): string | null {
       if (!ids.has(s.onNoReply.next)) return `${s.label}: the "if no reply" text no longer exists.`;
       if (s.onNoReply.next === s.id) return `${s.label} can't follow itself.`;
       const days = s.onNoReply.days ?? 0;
-      if (!Number.isInteger(days) || days < 1 || days > 90) return `${s.label}: "days later" must be between 1 and 90.`;
-      if (!/^([01]?\d|2[0-3]):[0-5]\d$/.test(s.onNoReply.time ?? "")) return `${s.label}: pick a time for the follow-up.`;
-      const [h] = (s.onNoReply.time ?? "").split(":").map(Number);
-      if (h < 9 || h >= 20) return `${s.label}: follow-ups must be between 9:00 AM and 8:00 PM ET.`;
+      // 0 = right after this text (about a minute later), no time needed.
+      if (!Number.isInteger(days) || days < 0 || days > 90) return `${s.label}: "days later" must be between 1 and 90.`;
+      if (days > 0) {
+        if (!/^([01]?\d|2[0-3]):[0-5]\d$/.test(s.onNoReply.time ?? "")) return `${s.label}: pick a time for the follow-up.`;
+        const [h] = (s.onNoReply.time ?? "").split(":").map(Number);
+        if (h < 9 || h >= 20) return `${s.label}: follow-ups must be between 9:00 AM and 8:00 PM ET.`;
+      }
     }
   }
   return null;

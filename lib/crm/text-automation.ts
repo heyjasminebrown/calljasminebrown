@@ -28,6 +28,7 @@ export type CampaignStep = {
   label: string;
   body: string;
   onReply: { next: string | null };
+  // days 0 = right after this text (about a minute later).
   onNoReply: { next: string | null; days?: number; time?: string };
 };
 
@@ -194,8 +195,13 @@ export async function runTextAutomation(admin: SupabaseClient, ownerId: string) 
       continue;
     }
 
+    // Mid "right after" pair (e.g. the RSVP link a minute after the invite):
+    // send the second text first, then handle any reply.
+    const lastDef = campaign.steps.find((st) => st.id === e.last_step);
+    const chainedNext = !e.reply_scheduled && lastDef?.onNoReply.next === e.next_step && lastDef?.onNoReply.days === 0;
+
     // A reply since our last text.
-    const reply = e.last_sent_at
+    const reply = !chainedNext && e.last_sent_at
       ? mine.find((a) => a.type === "text" && a.direction === "inbound" && a.occurred_at > e.last_sent_at!)
       : undefined;
     if (reply) {
@@ -275,13 +281,22 @@ export async function runTextAutomation(admin: SupabaseClient, ownerId: string) 
     const noReply = e.reply_scheduled ? null : step.onNoReply;
     const nextStep = noReply?.next ? campaign.steps.find((st) => st.id === noReply.next) : undefined;
     const [hour, minute] = parseTime(noReply?.time);
+    const rightAfter = noReply?.days === 0;
     const next: Record<string, unknown> = nextStep
-      ? { next_step: nextStep.id, next_send_at: easternAt(sentAt, Math.max(0, noReply?.days ?? 1), hour, minute).toISOString() }
+      ? {
+          next_step: nextStep.id,
+          next_send_at: rightAfter
+            ? new Date(sentAt.getTime() + REPLY_DELAY_MS).toISOString()
+            : easternAt(sentAt, Math.max(1, noReply?.days ?? 1), hour, minute).toISOString(),
+        }
       : { status: "completed", stop_reason: `Finished after ${step.label}`, next_step: null, next_send_at: null };
+    // The second text of a "right after" pair keeps the first one's time as
+    // the start of the reply window, so a reply in that minute still counts.
+    const sentAsChained = !e.reply_scheduled && campaign.steps.some((st) => st.onNoReply.next === step.id && st.onNoReply.days === 0 && st.id === e.last_step);
     await update(e.id, {
       ...next,
       last_step: step.id,
-      last_sent_at: sentAt.toISOString(),
+      last_sent_at: sentAsChained && e.last_sent_at ? e.last_sent_at : sentAt.toISOString(),
       sent_message_ids: result.quoMessageId ? [...e.sent_message_ids, result.quoMessageId] : e.sent_message_ids,
       failed_attempts: 0,
       last_error: null,

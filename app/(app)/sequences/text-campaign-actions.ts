@@ -20,12 +20,17 @@ export async function saveTextCampaign(input: CampaignInput): Promise<Result> {
     name: input.name.trim(),
     trigger_type: input.triggerType,
     trigger_value: input.triggerValue.trim(),
+    skip_campaign_ids: input.skipCampaignIds.filter((id) => id !== input.id),
     steps: input.steps.map((s) => ({
       id: s.id,
       label: s.label,
       body: s.body.trim(),
       onReply: { next: s.onReply.next },
-      onNoReply: s.onNoReply.next ? { next: s.onNoReply.next, days: s.onNoReply.days, time: s.onNoReply.time } : { next: null },
+      onNoReply: s.onNoReply.next
+        ? s.onNoReply.days === 0
+          ? { next: s.onNoReply.next, days: 0 }
+          : { next: s.onNoReply.next, days: s.onNoReply.days, time: s.onNoReply.time }
+        : { next: null },
     })),
     updated_at: new Date().toISOString(),
   };
@@ -64,7 +69,11 @@ type Matching = { ok: true; contactIds: string[] } | { ok: false; error: string 
 // already been through it.
 async function existingMatches(campaignId: string): Promise<Matching> {
   const supabase = await createClient();
-  const { data: c, error } = await supabase.from("text_campaigns").select("id, trigger_type, trigger_value").eq("id", campaignId).single();
+  const { data: c, error } = await supabase
+    .from("text_campaigns")
+    .select("id, trigger_type, trigger_value, skip_campaign_ids")
+    .eq("id", campaignId)
+    .single();
   if (error || !c) return { ok: false, error: error?.message ?? "Campaign not found" };
 
   const ids: string[] = [];
@@ -82,7 +91,10 @@ async function existingMatches(campaignId: string): Promise<Matching> {
     if (!data || data.length < 1000) break;
   }
 
-  const { data: already, error: e2 } = await supabase.from("text_automation_enrollments").select("contact_id").eq("campaign_id", campaignId);
+  const { data: already, error: e2 } = await supabase
+    .from("text_automation_enrollments")
+    .select("contact_id")
+    .in("campaign_id", [campaignId, ...((c.skip_campaign_ids as string[] | null) ?? [])]);
   if (e2) return { ok: false, error: e2.message };
   const done = new Set((already ?? []).map((r) => r.contact_id as string));
   return { ok: true, contactIds: ids.filter((id) => !done.has(id)) };
