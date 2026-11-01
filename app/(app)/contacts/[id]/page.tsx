@@ -21,6 +21,7 @@ import { ActivityTimeline } from "@/components/contacts/ActivityTimeline";
 import { AddActivityForm } from "@/components/contacts/AddActivityForm";
 import { TaskList } from "@/components/contacts/TaskList";
 import { ArchiveButton } from "@/components/contacts/ArchiveButton";
+import { DeleteContactButton } from "@/components/contacts/DeleteContactButton";
 import { MergeContactButton } from "@/components/contacts/MergeContactButton";
 import { computeLikelihood } from "@/lib/crm/likelihood";
 import { getLatestReadyTranscriptForContact } from "@/lib/data/meeting-transcripts";
@@ -243,6 +244,7 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
           <div className="flex items-center gap-2 border-t border-[#ddd7da] pt-5">
             <MergeContactButton contactId={contact.id} contactName={fullName(contact)} candidates={mergeCandidates} />
             <ArchiveButton contactId={contact.id} archived={contact.archived} />
+            <DeleteContactButton contactId={contact.id} contactName={fullName(contact)} />
           </div>
         </div>
       </div>

@@ -7,6 +7,7 @@ import { Avatar } from "@/components/ui";
 import { QuickActions } from "@/components/contacts/QuickActions";
 import { MergeContactButton } from "@/components/contacts/MergeContactButton";
 import { ArchiveButton } from "@/components/contacts/ArchiveButton";
+import { DeleteContactButton } from "@/components/contacts/DeleteContactButton";
 import { StageTagsSheet } from "@/components/contacts/mobile/StageTagsSheet";
 import { LogSheet } from "@/components/contacts/mobile/LogSheet";
 import { OverviewTab } from "@/components/contacts/mobile/OverviewTab";
@@ -73,6 +74,7 @@ export function ContactRecordMobile({
         <div className="flex items-center gap-1">
           <MergeContactButton contactId={contact.id} contactName={name} candidates={mergeCandidates} />
           <ArchiveButton contactId={contact.id} archived={contact.archived} />
+          <DeleteContactButton contactId={contact.id} contactName={name} />
         </div>
       </div>
 
