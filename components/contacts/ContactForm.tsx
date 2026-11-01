@@ -62,10 +62,7 @@ export function ContactForm({
           stage_id: contact.stage_id,
           lead_source: contact.lead_source ?? "",
           lead_date: isoToDateInput(contact.lead_date),
-          budget_min: contact.budget_min ?? undefined,
-          budget_max: contact.budget_max ?? undefined,
           referral_fee: contact.referral_fee ?? undefined,
-          areas_of_interest: (contact.areas_of_interest ?? []).join(", "),
           timeline: contact.timeline,
           next_follow_up_at: isoToDateInput(contact.next_follow_up_at),
           birthday: contact.birthday ?? "",
@@ -143,11 +140,6 @@ export function ContactForm({
       // created_at/now()). Omitting it on create lets the DB default apply;
       // on edit it just leaves whatever was already there untouched.
       ...(values.lead_date ? { lead_date: dateInputToAppIso(values.lead_date) } : {}),
-      budget_min: values.budget_min && !Number.isNaN(values.budget_min) ? values.budget_min : null,
-      budget_max: values.budget_max && !Number.isNaN(values.budget_max) ? values.budget_max : null,
-      areas_of_interest: values.areas_of_interest
-        ? values.areas_of_interest.split(",").map((s) => s.trim()).filter(Boolean)
-        : [],
       timeline: values.timeline,
       next_follow_up_at: values.next_follow_up_at ? dateInputToAppIso(values.next_follow_up_at) : null,
       birthday: values.birthday || null,
@@ -352,24 +344,6 @@ export function ContactForm({
         <div>
           <Label htmlFor="next_follow_up_at">Next follow-up</Label>
           <Input id="next_follow_up_at" type="date" {...register("next_follow_up_at")} />
-        </div>
-      </Card>
-
-      <Card className="space-y-4">
-        <h2 className="text-sm font-semibold text-neutral-700">Buying details</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <Label htmlFor="budget_min">Budget min</Label>
-            <Input id="budget_min" type="number" step="1000" {...register("budget_min")} />
-          </div>
-          <div>
-            <Label htmlFor="budget_max">Budget max</Label>
-            <Input id="budget_max" type="number" step="1000" {...register("budget_max")} />
-          </div>
-        </div>
-        <div>
-          <Label htmlFor="areas_of_interest">Areas of interest</Label>
-          <Input id="areas_of_interest" {...register("areas_of_interest")} placeholder="Comma-separated, e.g. Downtown, Riverside" />
         </div>
       </Card>
 

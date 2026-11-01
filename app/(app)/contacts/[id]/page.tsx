@@ -21,7 +21,6 @@ import { AddActivityForm } from "@/components/contacts/AddActivityForm";
 import { TaskList } from "@/components/contacts/TaskList";
 import { ArchiveButton } from "@/components/contacts/ArchiveButton";
 import { MergeContactButton } from "@/components/contacts/MergeContactButton";
-import { DealsList } from "@/components/contacts/DealsList";
 import { computeLikelihood } from "@/lib/crm/likelihood";
 import { getLatestReadyTranscriptForContact } from "@/lib/data/meeting-transcripts";
 import { ApprovePanel } from "@/components/transcripts/ApprovePanel";
@@ -87,7 +86,6 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
         stages={stages}
         tags={tags}
         activities={activities}
-        deals={deals}
         insights={insights}
         mergeCandidates={mergeCandidates}
         textTemplates={textTemplates}
@@ -218,19 +216,6 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
               <ContactDetailsCard contact={contact} tags={tags} stages={stages} contacts={mergeCandidates} />
             </Section>
           </div>
-
-          <Section sectionKey="contact-detail:deals" title="Deals" meta={`${deals.length}`} defaultOpen={false}>
-            <div className="p-[18px]">
-              <DealsList
-                deals={deals}
-                contactId={contact.id}
-                ownerId={contact.owner_id}
-                contactName={fullName(contact)}
-                contactCreatedAt={contact.created_at}
-                representing={contact.representing}
-              />
-            </div>
-          </Section>
 
           <Section sectionKey="contact-detail:tasks" title="Tasks" meta={`${openTasks.length} open`}>
             <TaskList contactId={contact.id} ownerId={contact.owner_id} tasks={[...openTasks, ...doneTasks]} />

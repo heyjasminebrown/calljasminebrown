@@ -67,9 +67,6 @@ export function ContactDetailsCard({
       stage_id: contact.stage_id,
       lead_source: contact.lead_source ?? "",
       lead_date: isoToDateInput(contact.lead_date),
-      budget_min: contact.budget_min ?? undefined,
-      budget_max: contact.budget_max ?? undefined,
-      areas_of_interest: (contact.areas_of_interest ?? []).join(", "),
       timeline: contact.timeline,
       next_follow_up_at: isoToDateInput(contact.next_follow_up_at),
       birthday: contact.birthday ?? "",
@@ -120,9 +117,6 @@ export function ContactDetailsCard({
       listing_timeline: values.listing_timeline || null,
       lead_source: values.lead_source || null,
       ...(values.lead_date ? { lead_date: dateInputToAppIso(values.lead_date) } : {}),
-      budget_min: values.budget_min && !Number.isNaN(values.budget_min) ? values.budget_min : null,
-      budget_max: values.budget_max && !Number.isNaN(values.budget_max) ? values.budget_max : null,
-      areas_of_interest: values.areas_of_interest ? values.areas_of_interest.split(",").map((s) => s.trim()).filter(Boolean) : [],
       timeline: values.timeline,
       next_follow_up_at: values.next_follow_up_at ? dateInputToAppIso(values.next_follow_up_at) : null,
       birthday: values.birthday || null,
@@ -263,18 +257,6 @@ export function ContactDetailsCard({
         <div>
           <label className={labelClass}>Next follow-up</label>
           <input type="date" {...register("next_follow_up_at")} className={fieldClass} />
-        </div>
-        <div>
-          <label className={labelClass}>Budget min</label>
-          <input type="number" step="1000" {...register("budget_min")} className={fieldClass} />
-        </div>
-        <div>
-          <label className={labelClass}>Budget max</label>
-          <input type="number" step="1000" {...register("budget_max")} className={fieldClass} />
-        </div>
-        <div className="sm:col-span-2">
-          <label className={labelClass}>Areas of interest</label>
-          <input {...register("areas_of_interest")} placeholder="Comma-separated, e.g. Downtown, Riverside" className={fieldClass} />
         </div>
 
         {showListingFields && (

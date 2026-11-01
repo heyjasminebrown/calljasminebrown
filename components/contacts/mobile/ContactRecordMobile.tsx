@@ -11,24 +11,22 @@ import { StageTagsSheet } from "@/components/contacts/mobile/StageTagsSheet";
 import { LogSheet } from "@/components/contacts/mobile/LogSheet";
 import { OverviewTab } from "@/components/contacts/mobile/OverviewTab";
 import { ActivityTab } from "@/components/contacts/mobile/ActivityTab";
-import { DealsTab } from "@/components/contacts/mobile/DealsTab";
 import { EngageStrip } from "@/components/contacts/EngageStrip";
 import { FollowUpBar } from "@/components/contacts/FollowUpBar";
 import { QuickAddMenu } from "@/components/nav/QuickAddMenu";
 import { BrandWordmark } from "@/components/brand/BrandWordmark";
 import { formatPhone } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import type { Activity, AiInsight, ContactWithRelations, Deal, PipelineStage, Tag, TextTemplate } from "@/types/database";
+import type { Activity, AiInsight, ContactWithRelations, PipelineStage, Tag, TextTemplate } from "@/types/database";
 import type { MergeCandidate } from "@/lib/data/contacts";
 
-type Tab = "overview" | "activity" | "deals";
+type Tab = "overview" | "activity";
 
 export function ContactRecordMobile({
   contact,
   stages,
   tags,
   activities,
-  deals,
   insights,
   mergeCandidates,
   textTemplates,
@@ -41,7 +39,6 @@ export function ContactRecordMobile({
   stages: PipelineStage[];
   tags: Tag[];
   activities: Activity[];
-  deals: Deal[];
   insights: AiInsight[];
   mergeCandidates: MergeCandidate[];
   textTemplates: TextTemplate[];
@@ -159,7 +156,6 @@ export function ContactRecordMobile({
           [
             ["overview", "Overview"],
             ["activity", `Activity ${activities.length}`],
-            ["deals", `Deals ${deals.length}`],
           ] as [Tab, string][]
         ).map(([value, label]) => (
           <button
@@ -191,9 +187,6 @@ export function ContactRecordMobile({
           />
         )}
         {tab === "activity" && <ActivityTab activities={activeActivities} contactId={contact.id} contactName={name} ownerId={ownerId} />}
-        {tab === "deals" && (
-          <DealsTab deals={deals} contactId={contact.id} ownerId={ownerId} contactName={name} contactCreatedAt={contact.created_at} representing={contact.representing} />
-        )}
 
         <button
           type="button"
