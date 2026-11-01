@@ -112,7 +112,11 @@ export const SHEET_PARAM_KEYS = [
   "event", "regEvent", "gender", "city", "state", "birthdayMonth", "minBudget", "archived", "quoSync", "group",
 ] as const;
 
-export const CONTACTS_V2_FILTER_KEYS = ["source", "stage", "event", "gender", "phone"] as const;
+// Every key the Filters panel edits - Apply writes exactly these (and clears
+// any left empty). Must list every section in ContactFiltersSheet, or that
+// section's choices are silently dropped. "gender" stays so Apply clears an
+// old gender filter from a saved link.
+export const CONTACTS_V2_FILTER_KEYS = ["source", "type", "stage", "tags", "event", "phone", "email", "gender"] as const;
 
 function parseContactGender(raw: string | null): ContactGender | undefined {
   if (raw === "women" || raw === "men" || raw === "unknown") return raw;
