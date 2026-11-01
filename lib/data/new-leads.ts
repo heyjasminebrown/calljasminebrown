@@ -15,13 +15,10 @@ export function isNotNewLeadSource(leadSource: string | null | undefined): boole
   return !!s && NOT_NEW_LEAD_SOURCES.some((x) => x.toLowerCase() === s);
 }
 
-// Sources an automated text campaign already handles (Conventus Text
-// Campaign) - left out of New / Uncontacted so nobody gets texted twice.
-// They still count as new leads in "New this week".
-const AUTOMATED_SOURCES = ["conventus"];
-
 // Only these Types are ever "new leads" - Clients and Referral Partners are
-// existing relationships, even when just added.
+// existing relationships, even when just added. (Conventus contacts stay
+// listed until the text campaign sends Text 1 - that outbound text counts
+// as contacted, like any other.)
 const NEW_LEAD_TYPES = ["community", "prospect"];
 
 // Same exclusion as a PostgREST .or() filter (null lead_source is kept).
@@ -84,7 +81,7 @@ export async function listNewLeadsQueue(): Promise<{ contacts: NewLeadContact[];
   const dismissedIds = new Set((dismissals ?? []).map((r) => r.contact_id as string));
 
   const eligible = candidates
-    .filter((c) => !contactedIds.has(c.id) && !dismissedIds.has(c.id) && !isNotNewLeadSource(c.lead_source) && !AUTOMATED_SOURCES.includes((c.lead_source ?? "").trim().toLowerCase()) && isTodayWorkContact(c))
+    .filter((c) => !contactedIds.has(c.id) && !dismissedIds.has(c.id) && !isNotNewLeadSource(c.lead_source) && isTodayWorkContact(c))
     .map((c) => {
       const tagRows = (c.contact_tags ?? []) as { tags?: { name?: string } | { name?: string }[] | null }[];
       const tagNames = tagRows.flatMap((row) => {
