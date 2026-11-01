@@ -9,7 +9,8 @@ import {
   listMergeCandidates,
   listTags,
 } from "@/lib/data/contacts";
-import { fullName, formatPhone, initials, RELATIONSHIP_TYPE_LABELS, stageColor, stageTint } from "@/lib/utils";
+import { ColorDot } from "@/components/ui/ColorPill";
+import { fullName, formatPhone, initials, RELATIONSHIP_TYPE_LABELS, stageColor, stageTint, relationshipTypeColor, relationshipTypeTint } from "@/lib/utils";
 import { formatLocal, isFollowUpOverdue } from "@/lib/format-time";
 import { Section } from "@/components/ui/Section";
 import { QuickActions } from "@/components/contacts/QuickActions";
@@ -107,11 +108,13 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
           <p className="mt-1.5 text-base leading-6 text-neutral-600">
             {[formatPhone(contact.phone), contact.email].filter(Boolean).join(" · ") || "No contact info on file"}
           </p>
-          <p className="mt-1 text-base leading-6 text-neutral-600">
-            {[RELATIONSHIP_TYPE_LABELS[contact.relationship_type], contact.representing ? `${contact.representing} side` : null, likelihood ? `likelihood ${likelihood}` : null]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
+          {(contact.representing || likelihood) && (
+            <p className="mt-1 text-base leading-6 text-neutral-600">
+              {[contact.representing ? `${contact.representing} side` : null, likelihood ? `likelihood ${likelihood}` : null]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+          )}
           {contact.last_event_name && (
             <p className="mt-1 text-base leading-6 text-neutral-500">
               Last event: {contact.last_event_name}
@@ -119,6 +122,13 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
             </p>
           )}
           <div className="mt-3 flex flex-wrap gap-2">
+            <span
+              className="flex h-[36px] items-center gap-1.5 rounded-full px-3 text-[14px] font-medium text-brand-700"
+              style={{ backgroundColor: relationshipTypeTint(contact.relationship_type) }}
+            >
+              <ColorDot color={relationshipTypeColor(contact.relationship_type)} className="h-2.5 w-2.5" />
+              {RELATIONSHIP_TYPE_LABELS[contact.relationship_type]}
+            </span>
             <span
               className="flex h-[36px] items-center gap-1.5 rounded-full px-3 text-[14px] font-medium text-brand-700"
               style={{ backgroundColor: stage ? stageTint(stage) : "#f5e6dc" }}

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronRight, ChevronDown, Phone, MessageSquareText, MoreHorizontal, PhoneOff, Plus, ChevronRight as ArrowRight } from "lucide-react";
-import { fullName, formatPhone, initials, RELATIONSHIP_TYPE_LABELS, TIMELINE_LABELS } from "@/lib/utils";
+import { fullName, formatPhone, initials, RELATIONSHIP_TYPE_LABELS, TIMELINE_LABELS, relationshipTypeColor } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { openQuoCall } from "@/lib/quo/call-link";
 import { StageSelector } from "@/components/contacts/StageSelector";
@@ -13,6 +13,7 @@ import { SendEmailForm } from "@/components/contacts/SendEmailForm";
 import { Select } from "@/components/ui";
 import { dateInputToAppIso, isoToDateInput } from "@/lib/format-time";
 import type { ContactWithRelations, PipelineStage } from "@/types/database";
+import { ColorDot } from "@/components/ui/ColorPill";
 
 export function ContactRow({
   contact,
@@ -60,7 +61,7 @@ export function ContactRow({
     router.refresh();
   }
   const meta = hasPhone
-    ? [RELATIONSHIP_TYPE_LABELS[contact.relationship_type], formatPhone(contact.phone), lastActivityLabel].filter(Boolean).join(" · ")
+    ? [formatPhone(contact.phone), lastActivityLabel].filter(Boolean).join(" · ")
     : null;
 
   // Local state is only flipped after the write succeeds - previously it
@@ -276,6 +277,7 @@ export function ContactRow({
           </div>
 
           <p className="mt-4 text-[15px] leading-[23px] text-neutral-700">
+            <ColorDot color={relationshipTypeColor(contact.relationship_type)} className="mr-1.5 align-middle" />
             {[RELATIONSHIP_TYPE_LABELS[contact.relationship_type], contact.representing ? `${contact.representing} side` : null].filter(Boolean).join(" · ")}
             {contact.notes ? ` — ${contact.notes}` : ""}
           </p>
@@ -307,7 +309,13 @@ function RowIdentity({ contact, meta, noPhoneBg }: { contact: ContactWithRelatio
       <div className="min-w-0 flex-1">
         <p className="truncate text-[17px] font-semibold leading-6 text-neutral-900">{fullName(contact)}</p>
         {meta ? (
-          <p className="truncate text-[15px] leading-[22px] text-neutral-600">{meta}</p>
+          <p className="flex min-w-0 items-center gap-1.5 text-[15px] leading-[22px] text-neutral-600">
+            <ColorDot color={relationshipTypeColor(contact.relationship_type)} />
+            <span className="truncate">
+              {RELATIONSHIP_TYPE_LABELS[contact.relationship_type]}
+              {meta ? ` · ${meta}` : ""}
+            </span>
+          </p>
         ) : (
           <p className="flex items-center gap-1.5 truncate text-[15px] leading-[22px] text-neutral-500">
             <PhoneOff size={15} className="shrink-0 text-neutral-400" /> No phone number · email only

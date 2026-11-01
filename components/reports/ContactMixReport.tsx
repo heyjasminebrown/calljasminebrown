@@ -1,5 +1,7 @@
 import { Card } from "@/components/ui";
 import type { ContactTypeBreakdownRow } from "@/lib/data/reports";
+import type { RelationshipType } from "@/types/database";
+import { relationshipTypeColor } from "@/lib/utils";
 
 export function ContactMixReport({ rows }: { rows: ContactTypeBreakdownRow[] }) {
   const total = rows.reduce((sum, r) => sum + r.count, 0);
@@ -19,7 +21,7 @@ export function ContactMixReport({ rows }: { rows: ContactTypeBreakdownRow[] }) 
             <div key={r.type} className="flex items-center gap-3">
               <span className="w-32 shrink-0 truncate text-xs text-neutral-500">{r.label}</span>
               <div className="h-4 flex-1 overflow-hidden rounded-full bg-neutral-100">
-                <div className="h-full rounded-full bg-brand-500" style={{ width: `${Math.max((r.count / maxCount) * 100, 4)}%` }} />
+                <div className="h-full rounded-full" style={{ width: `${Math.max((r.count / maxCount) * 100, 4)}%`, backgroundColor: relationshipTypeColor(r.type as RelationshipType) }} />
               </div>
               <span className="w-16 shrink-0 text-right text-xs font-medium text-neutral-700">
                 {r.count} ({total > 0 ? Math.round((r.count / total) * 100) : 0}%)

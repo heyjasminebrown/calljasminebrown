@@ -165,6 +165,20 @@ export function stageTint(stage: { name: string; color: string }): string {
   return `${stageColor(stage)}2e`;
 }
 
+// Type colors reuse the stage palette (same muted tones).
+const RELATIONSHIP_TYPE_COLORS: Record<RelationshipType, string> = {
+  community: STAGE_COLORS.Nurture,
+  prospect: STAGE_COLORS.Hot,
+  client: STAGE_COLORS.Warm,
+  referral_partner: STAGE_COLORS.Cold,
+};
+export function relationshipTypeColor(type: RelationshipType): string {
+  return RELATIONSHIP_TYPE_COLORS[type] ?? "#a796ab";
+}
+export function relationshipTypeTint(type: RelationshipType): string {
+  return `${relationshipTypeColor(type)}2e`;
+}
+
 // Legacy internal category (contact_type) - no longer shown as "Type".
 export const CONTACT_TYPE_LABELS: Record<string, string> = {
   buyer: "Buyer",

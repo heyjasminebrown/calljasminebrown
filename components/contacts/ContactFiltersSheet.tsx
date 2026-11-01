@@ -4,7 +4,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { X } from "lucide-react";
 import { Select } from "@/components/ui";
-import { cn, RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS } from "@/lib/utils";
+import { cn, RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, relationshipTypeColor, stageColor } from "@/lib/utils";
 import type { PipelineStage, Tag } from "@/types/database";
 import {
   CONTACTS_V2_FILTER_KEYS,
@@ -12,6 +12,7 @@ import {
   SHEET_PARAM_KEYS,
 } from "@/lib/crm/contact-filter-params";
 import { CONTACT_SOURCE_FILTERS, sourceFilterByValue } from "@/lib/crm/contact-sources";
+import { ColorDot } from "@/components/ui/ColorPill";
 
 function Section({ title, children, flush }: { title: string; children: React.ReactNode; flush?: boolean }) {
   return (
@@ -158,6 +159,7 @@ export function ContactFiltersSheet({
                   onChange={() => toggleIn("type", value)}
                   className="h-4 w-4 rounded border-neutral-300 accent-[#34223a]"
                 />
+                <ColorDot color={relationshipTypeColor(value)} />
                 {RELATIONSHIP_TYPE_LABELS[value]}
               </label>
             ))}
@@ -174,6 +176,7 @@ export function ContactFiltersSheet({
                   onChange={() => toggleIn("stage", stage.id)}
                   className="h-4 w-4 rounded border-neutral-300 accent-[#34223a]"
                 />
+                <ColorDot color={stageColor(stage)} />
                 {stage.name}
               </label>
             ))}

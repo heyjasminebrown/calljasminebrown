@@ -13,7 +13,8 @@ import { campaignsTextHref } from "@/lib/crm/campaigns-handoff";
 import { sourceChipLabel } from "@/lib/crm/contact-sources";
 import { openQuoCall } from "@/lib/quo/call-link";
 import { threadHref } from "@/lib/crm/inbox-href";
-import { fullName, initials, formatPhone, RELATIONSHIP_TYPE_LABELS, stageColor, stageTint } from "@/lib/utils";
+import { fullName, initials, formatPhone, RELATIONSHIP_TYPE_LABELS, stageColor, stageTint, relationshipTypeColor, relationshipTypeTint } from "@/lib/utils";
+import { ColorPill } from "@/components/ui/ColorPill";
 import type { ContactGroupBy } from "@/lib/crm/contact-filter-params";
 import type { ContactSegment, ContactWithRelations, PipelineStage, Tag } from "@/types/database";
 
@@ -195,17 +196,15 @@ function ContactsTable({
               {contact.email ?? <Dash />}
             </span>
             <div className="min-w-0">
-              <Chip>{RELATIONSHIP_TYPE_LABELS[contact.relationship_type] ?? contact.relationship_type}</Chip>
+              <ColorPill color={relationshipTypeColor(contact.relationship_type)} tint={relationshipTypeTint(contact.relationship_type)}>
+                {RELATIONSHIP_TYPE_LABELS[contact.relationship_type] ?? contact.relationship_type}
+              </ColorPill>
             </div>
             <div className="min-w-0">
               {stage ? (
-                <span
-                  className="inline-flex max-w-full items-center gap-1.5 truncate rounded-full px-2.5 py-0.5 text-[12px] font-medium text-[#34223a]"
-                  style={{ backgroundColor: stageTint(stage) }}
-                >
-                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: stageColor(stage) }} />
+                <ColorPill color={stageColor(stage)} tint={stageTint(stage)}>
                   {stage.name}
-                </span>
+                </ColorPill>
               ) : (
                 <Dash />
               )}

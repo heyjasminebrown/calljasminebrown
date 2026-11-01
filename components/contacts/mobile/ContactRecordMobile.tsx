@@ -15,10 +15,11 @@ import { EngageStrip } from "@/components/contacts/EngageStrip";
 import { FollowUpBar } from "@/components/contacts/FollowUpBar";
 import { QuickAddMenu } from "@/components/nav/QuickAddMenu";
 import { BrandWordmark } from "@/components/brand/BrandWordmark";
-import { formatPhone, stageColor, stageTint } from "@/lib/utils";
+import { formatPhone, stageColor, stageTint, RELATIONSHIP_TYPE_LABELS, relationshipTypeColor, relationshipTypeTint } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import type { Activity, AiInsight, ContactWithRelations, PipelineStage, Tag, TextTemplate } from "@/types/database";
 import type { MergeCandidate } from "@/lib/data/contacts";
+import { ColorDot } from "@/components/ui/ColorPill";
 
 type Tab = "overview" | "activity";
 
@@ -91,6 +92,13 @@ export function ContactRecordMobile({
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
+          <span
+            className="flex h-[36px] items-center gap-1.5 rounded-full px-3 text-[14px] font-medium text-brand-700"
+            style={{ backgroundColor: relationshipTypeTint(contact.relationship_type) }}
+          >
+            <ColorDot color={relationshipTypeColor(contact.relationship_type)} className="h-2.5 w-2.5" />
+            {RELATIONSHIP_TYPE_LABELS[contact.relationship_type]}
+          </span>
           <button
             type="button"
             onClick={() => setStageSheetOpen(true)}
