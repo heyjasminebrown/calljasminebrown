@@ -152,7 +152,7 @@ function ContactsTable({
     // "Referral Partner" 125px, "Original Email List" 136px); every row is its own
     // grid, so only fixed or fr tracks keep the columns aligned.
     <div className="overflow-x-auto rounded-[16px] border border-[#ddd7da] bg-white">
-      <div className="grid min-w-[1140px] grid-cols-[20px_minmax(150px,1.3fr)_128px_minmax(170px,1.7fr)_136px_100px_148px_96px_32px_32px] items-center gap-3 border-b border-[#ddd7da] px-4 py-2.5 text-[12px] font-semibold uppercase tracking-[.06em] text-neutral-400">
+      <div className="grid min-w-[1140px] grid-cols-[20px_minmax(150px,1.3fr)_128px_minmax(170px,1.7fr)_136px_100px_32px_32px_96px_148px] items-center gap-3 border-b border-[#ddd7da] px-4 py-2.5 text-[12px] font-semibold uppercase tracking-[.06em] text-neutral-400">
         <input
           type="checkbox"
           checked={allSelected}
@@ -168,10 +168,10 @@ function ContactsTable({
         <span>Email</span>
         <span>Type</span>
         <span>Stage</span>
-        <span>Source</span>
-        <span>Last touch</span>
         <span className="text-center">Text</span>
         <span className="text-center">Call</span>
+        <span>Last touch</span>
+        <span>Source</span>
       </div>
       {contacts.map((contact) => {
         const source = sourceChipLabel(contact.lead_source);
@@ -179,7 +179,7 @@ function ContactsTable({
         return (
           <div
             key={contact.id}
-            className="grid min-w-[1140px] grid-cols-[20px_minmax(150px,1.3fr)_128px_minmax(170px,1.7fr)_136px_100px_148px_96px_32px_32px] items-center gap-3 border-b border-neutral-100 px-4 py-3 last:border-b-0"
+            className="grid min-w-[1140px] grid-cols-[20px_minmax(150px,1.3fr)_128px_minmax(170px,1.7fr)_136px_100px_32px_32px_96px_148px] items-center gap-3 border-b border-neutral-100 px-4 py-3 last:border-b-0"
           >
             <input
               type="checkbox"
@@ -212,8 +212,6 @@ function ContactsTable({
                 <Dash />
               )}
             </div>
-            <div className="min-w-0">{source ? <Chip>{source}</Chip> : <Dash />}</div>
-            <span className="truncate text-[13px] text-neutral-500">{lastActivityLabels[contact.id] ?? "—"}</span>
             {hasUsablePhone(contact.phone) ? (
               <>
                 <Link
@@ -246,6 +244,8 @@ function ContactsTable({
                 </span>
               </>
             )}
+            <span className="truncate text-[13px] text-neutral-500">{lastActivityLabels[contact.id] ?? "—"}</span>
+            <div className="min-w-0">{source ? <Chip>{source}</Chip> : <Dash />}</div>
           </div>
         );
       })}
