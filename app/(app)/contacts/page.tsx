@@ -87,7 +87,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Pro
             <p className="mt-1.5 text-[15px] leading-[22px] text-neutral-600">
               {smartView
                 ? `${contacts.length} contact${contacts.length === 1 ? "" : "s"} match these rules`
-                : `${contacts.length} people · leads from Zillow, referrals, events, and more`}
+                : `${contacts.length} ${contacts.length === 1 ? "person" : "people"}`}
             </p>
             <CountScopeNote current="contacts" />
           </div>

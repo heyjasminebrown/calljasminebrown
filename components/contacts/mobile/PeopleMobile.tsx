@@ -161,7 +161,7 @@ export function PeopleMobile({
         <div className="min-w-0">
           <p className="font-display text-[28px] font-semibold tracking-[-0.02em] text-neutral-900">Contacts</p>
           <p className="mt-0.5 text-[13px] text-neutral-400">
-            {contacts.length} people · leads from Zillow, referrals, events, and more
+            {contacts.length} {contacts.length === 1 ? "person" : "people"}
           </p>
           <CountScopeNote current="contacts" />
         </div>

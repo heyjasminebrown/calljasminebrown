@@ -5,7 +5,7 @@ import type { ContactGender } from "@/lib/crm/contact-gender";
 export type ContactGroupBy = "none" | "stage" | "tag" | "source" | "month";
 
 // URL sentinels for registration. Contacts v2 browse is everyone by default
-// (Zillow, referrals, events, and more) — missing/empty regEvent applies
+// (every source) — missing/empty regEvent applies
 // no registration predicate. Explicit any-event is __any__; opt-out is __all__.
 export const REGISTERED_FOR_ANY_EVENT = "__any__";
 export const NOT_FILTERED_BY_REGISTRATION = "__all__";

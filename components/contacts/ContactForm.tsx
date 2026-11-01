@@ -37,6 +37,9 @@ export function ContactForm({
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
+  const [allTags, setAllTags] = useState<Tag[]>(tags);
+  const [newTagName, setNewTagName] = useState("");
+  const [tagError, setTagError] = useState("");
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(
     contact?.contact_tags.filter((ct) => ct.tags).map((ct) => ct.tags!.id) ?? defaultTagIds ?? [],
   );
@@ -80,7 +83,7 @@ export function ContactForm({
         },
   });
 
-  const agentTag = tags.find((t) => t.name === "Agent");
+  const agentTag = allTags.find((t) => t.name === "Agent");
   const showReferralFee = agentTag != null && selectedTagIds.includes(agentTag.id);
 
   const watchedEmail = watch("email");
@@ -216,6 +219,36 @@ export function ContactForm({
     setSelectedTagIds((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]));
   }
 
+  // A new tag is created right away and selected; it's attached to the
+  // contact when the form is saved, like any other selected tag.
+  async function createTag() {
+    const name = newTagName.trim();
+    if (!name) return;
+    setTagError("");
+    const existing = allTags.find((t) => t.name.toLowerCase() === name.toLowerCase());
+    if (existing) {
+      setNewTagName("");
+      if (!selectedTagIds.includes(existing.id)) toggleTag(existing.id);
+      return;
+    }
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      setTagError("Your session expired. Please sign in again.");
+      return;
+    }
+    const { data, error } = await supabase.from("tags").insert({ owner_id: user.id, name, color: "#79657e" }).select("*").single();
+    if (error || !data) {
+      setTagError(`Couldn't create tag: ${error?.message ?? "unknown error"}`);
+      return;
+    }
+    setAllTags((prev) => [...prev, data as Tag].sort((a, b) => a.name.localeCompare(b.name)));
+    setSelectedTagIds((prev) => [...prev, data.id]);
+    setNewTagName("");
+  }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 pb-10">
       <Card className="space-y-4">
@@ -341,7 +374,7 @@ export function ContactForm({
       <Card className="space-y-3">
         <h2 className="text-sm font-semibold text-neutral-700">Tags</h2>
         <div className="flex flex-wrap gap-2">
-          {tags.map((tag) => {
+          {allTags.map((tag) => {
             const active = selectedTagIds.includes(tag.id);
             return (
               <button
@@ -359,6 +392,23 @@ export function ContactForm({
             );
           })}
         </div>
+        <div className="flex gap-2">
+          <Input
+            value={newTagName}
+            onChange={(e) => setNewTagName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void createTag();
+              }
+            }}
+            placeholder={allTags.length ? "Tap a tag above, or type a new one" : "Type a tag name, e.g. Pre-Approved"}
+          />
+          <Button type="button" variant="secondary" onClick={() => void createTag()} disabled={!newTagName.trim()}>
+            Add
+          </Button>
+        </div>
+        {tagError && <p className="text-sm text-red-600">{tagError}</p>}
         {showReferralFee && (
           <div>
             <Label htmlFor="referral_fee">Referral fee</Label>

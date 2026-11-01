@@ -148,8 +148,11 @@ function ContactsTable({
   const allSelected = contacts.length > 0 && contacts.every((c) => selected.has(c.id));
 
   return (
+    // Type/Stage/Source/Last touch tracks are fixed to the widest pill (measured:
+    // "Referral Partner" 125px, "Original Email List" 136px); every row is its own
+    // grid, so only fixed or fr tracks keep the columns aligned.
     <div className="overflow-x-auto rounded-[16px] border border-[#ddd7da] bg-white">
-      <div className="grid min-w-[1080px] grid-cols-[20px_minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,0.9fr)_minmax(0,0.8fr)_minmax(0,1fr)_minmax(0,0.9fr)_32px_32px] items-center gap-3 border-b border-[#ddd7da] px-4 py-2.5 text-[12px] font-semibold uppercase tracking-[.06em] text-neutral-400">
+      <div className="grid min-w-[1140px] grid-cols-[20px_minmax(150px,1.3fr)_128px_minmax(170px,1.7fr)_136px_100px_148px_96px_32px_32px] items-center gap-3 border-b border-[#ddd7da] px-4 py-2.5 text-[12px] font-semibold uppercase tracking-[.06em] text-neutral-400">
         <input
           type="checkbox"
           checked={allSelected}
@@ -176,7 +179,7 @@ function ContactsTable({
         return (
           <div
             key={contact.id}
-            className="grid min-w-[1080px] grid-cols-[20px_minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,0.9fr)_minmax(0,0.8fr)_minmax(0,1fr)_minmax(0,0.9fr)_32px_32px] items-center gap-3 border-b border-neutral-100 px-4 py-3 last:border-b-0"
+            className="grid min-w-[1140px] grid-cols-[20px_minmax(150px,1.3fr)_128px_minmax(170px,1.7fr)_136px_100px_148px_96px_32px_32px] items-center gap-3 border-b border-neutral-100 px-4 py-3 last:border-b-0"
           >
             <input
               type="checkbox"

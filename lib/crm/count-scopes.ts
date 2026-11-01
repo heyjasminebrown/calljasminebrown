@@ -3,7 +3,7 @@
 
 export const COUNT_SCOPE = {
   contacts:
-    "This number is whoever matches the current Contacts filters (everyone by default — Zillow, referrals, events, and more). Not archived, not spam.",
+    "This number is whoever matches the current Contacts filters (everyone by default). Not archived, not spam.",
   pipeline:
     "This number is people in active stages only (not closed, lost, or trash). Not archived, not spam. Closed stages can still appear as columns below — they are not in this count.",
   reports:
