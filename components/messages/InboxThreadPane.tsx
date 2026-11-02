@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ExternalLink, Phone } from "lucide-react";
-import { markInboxThreadSeen } from "@/app/(app)/messages/seen-actions";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, CircleCheck, ExternalLink, Phone } from "lucide-react";
+import { markInboxThreadSeen, markNoReplyNeeded } from "@/app/(app)/messages/seen-actions";
 import { InboxBubbles } from "@/components/messages/InboxBubbles";
 import { InboxComposer } from "@/components/messages/InboxComposer";
 import { ScrollToBottomOnLoad } from "@/components/messages/ScrollToBottomOnLoad";
@@ -26,9 +27,44 @@ function StageChips({ stageName }: { stageName: string | null }) {
   );
 }
 
-function ThreadActions({ phone, contactId }: { phone: string | null; contactId: string }) {
+function NoReplyNeededButton({ contactId }: { contactId: string }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function dismiss() {
+    setBusy(true);
+    setError(null);
+    const result = await markNoReplyNeeded(contactId);
+    setBusy(false);
+    if (!result.ok) {
+      setError(`Couldn't clear it: ${result.error}`);
+      return;
+    }
+    router.refresh();
+  }
+
   return (
-    <div className="flex shrink-0 items-center gap-4">
+    <span className="inline-flex flex-col">
+      <button
+        type="button"
+        onClick={dismiss}
+        disabled={busy}
+        className="inline-flex items-center gap-1.5 text-[14px] font-medium disabled:opacity-50"
+        style={{ color: MESSAGES_TERRACOTTA }}
+      >
+        <CircleCheck size={16} />
+        {busy ? "Clearing…" : "No reply needed"}
+      </button>
+      {error && <span className="text-[12px] text-red-600">{error}</span>}
+    </span>
+  );
+}
+
+function ThreadActions({ phone, contactId, needsReply }: { phone: string | null; contactId: string; needsReply?: boolean }) {
+  return (
+    <div className="flex shrink-0 flex-wrap items-center gap-4">
+      {needsReply && <NoReplyNeededButton contactId={contactId} />}
       {phone && (
         <button
           type="button"
@@ -80,7 +116,7 @@ export function InboxThreadPane({
               <ArrowLeft size={18} />
               Messages
             </Link>
-            <ThreadActions phone={thread.phone} contactId={thread.contactId} />
+            <ThreadActions phone={thread.phone} contactId={thread.contactId} needsReply={thread.needsReply} />
           </div>
           <p className="mt-2 truncate text-[18px] font-semibold text-neutral-900">{name}</p>
           {phoneLabel && <p className="mt-0.5 truncate text-[13px] text-neutral-400">{phoneLabel}</p>}
@@ -122,7 +158,7 @@ export function InboxThreadPane({
             {phoneLabel && <p className="mt-0.5 text-[13px] text-neutral-400">{phoneLabel}</p>}
             <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
               <StageChips stageName={thread.stageName} />
-              <ThreadActions phone={thread.phone} contactId={thread.contactId} />
+              <ThreadActions phone={thread.phone} contactId={thread.contactId} needsReply={thread.needsReply} />
             </div>
           </div>
         </div>

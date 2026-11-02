@@ -1,4 +1,5 @@
 import type { Activity } from "@/types/database";
+import { isOptOutMessage } from "@/lib/crm/consent";
 
 export const MISSED_CALL_STATUSES = new Set(["missed", "no-answer", "no_answer", "busy", "voicemail"]);
 
@@ -33,7 +34,9 @@ export function isMissedCall(activity: Pick<Activity, "type" | "direction" | "me
 export function isConversationOwed(activity: Pick<Activity, "type" | "direction" | "needs_reply" | "metadata" | "reply_dismissed_at">): boolean {
   if (activity.reply_dismissed_at) return false;
   if (activity.type === "text") {
-    return activity.direction === "inbound" && activity.needs_reply !== false;
+    // An opt-out (STOP) never needs a reply.
+    const body = (activity as { body?: string | null }).body;
+    return activity.direction === "inbound" && activity.needs_reply !== false && !(body && isOptOutMessage(body));
   }
   if (activity.type === "call") {
     return isMissedCall(activity);

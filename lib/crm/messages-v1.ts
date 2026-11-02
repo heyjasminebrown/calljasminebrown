@@ -1,6 +1,7 @@
 import { formatLocal } from "@/lib/format-time";
 import { displayFullName, formatPhone } from "@/lib/utils";
 import type { Activity } from "@/types/database";
+import { isOptOutMessage } from "@/lib/crm/consent";
 
 type SmsConversationSource = {
   contact: {
@@ -49,6 +50,7 @@ export type OpenSmsThread = {
   stageName: string | null;
   messages: SmsThreadMessage[];
   draft?: string;
+  needsReply?: boolean;
 };
 
 export function parseMessagesFilter(raw: string | undefined | null): MessagesFilter {
@@ -58,10 +60,12 @@ export function parseMessagesFilter(raw: string | undefined | null): MessagesFil
 }
 
 // Needs reply = last SMS inbound with no outbound since. Calls are ignored.
-export function smsNeedsReply(activitiesNewestFirst: Pick<Activity, "type" | "direction">[]): boolean {
+// Not if she marked it "No reply needed" (reply_dismissed_at), or if it's
+// an opt-out (STOP) - there's nothing to say back to that.
+export function smsNeedsReply(activitiesNewestFirst: Pick<Activity, "type" | "direction" | "reply_dismissed_at" | "body">[]): boolean {
   for (const activity of activitiesNewestFirst) {
     if (activity.type !== "text") continue;
-    return activity.direction === "inbound";
+    return activity.direction === "inbound" && !activity.reply_dismissed_at && !isOptOutMessage(activity.body ?? "");
   }
   return false;
 }

@@ -58,6 +58,7 @@ export default async function MessageThreadPage({
     stageName: contact.pipeline_stages?.name ?? null,
     messages,
     draft: draft || firstTouchBody,
+    needsReply: conversations.find((c) => c.contact.id === contact.id)?.smsNeedsReply ?? false,
   };
 
   return (
