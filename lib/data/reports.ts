@@ -135,65 +135,8 @@ export async function getLeadSourceReport(): Promise<LeadSourceReportRow[]> {
 
 export type CommissionTrendMonth = { key: string; label: string; grossCommission: number; dealCount: number };
 
-// Gross, not net - same tradeoff as getLeadSourceReport (net requires
-// walking every deal in a cap year in closing-date order, which only gives
-// a correct number across the full history, not a single month in
-// isolation).
-export async function getCommissionTrend(): Promise<CommissionTrendMonth[]> {
-  const supabase = await createClient();
-  const months = lastNMonths(6);
-  const { data: deals } = await supabase
-    .from("deals")
-    .select("gross_commission, closed_at")
-    .eq("status", "won")
-    .gte("closed_at", months[0].start.toISOString());
-
-  return months.map((m) => {
-    const inMonth = (deals ?? []).filter((d) => {
-      const t = new Date(d.closed_at).getTime();
-      return t >= m.start.getTime() && t < m.end.getTime();
-    });
-    return {
-      key: m.key,
-      label: m.label,
-      grossCommission: inMonth.reduce((sum, d) => sum + (d.gross_commission ?? 0), 0),
-      dealCount: inMonth.length,
-    };
-  });
-}
-
 export type DealForecastMonth = { key: string; label: string; grossCommission: number; dealCount: number };
 export type DealForecastData = { months: DealForecastMonth[]; otherCount: number; otherGrossCommission: number };
-
-// Pending deals grouped by expected_closing_date - closed_at is the
-// fallback (it doubles as the projected close date on a pending deal, same
-// as it's the actual close date on a won one). Anything that doesn't land
-// in the next 6 months (past-due pending deals included) goes in "other"
-// rather than silently vanishing from the total.
-export async function getDealForecast(): Promise<DealForecastData> {
-  const supabase = await createClient();
-  const { data: deals } = await supabase.from("deals").select("gross_commission, expected_closing_date, closed_at").eq("status", "pending");
-
-  const months = nextNMonths(6);
-  const monthResults: DealForecastMonth[] = months.map((m) => ({ key: m.key, label: m.label, grossCommission: 0, dealCount: 0 }));
-  let otherCount = 0;
-  let otherGrossCommission = 0;
-
-  for (const d of deals ?? []) {
-    const dateStr = d.expected_closing_date ?? d.closed_at;
-    const t = dateStr ? new Date(dateStr).getTime() : NaN;
-    const idx = months.findIndex((m) => t >= m.start.getTime() && t < m.end.getTime());
-    if (idx === -1) {
-      otherCount += 1;
-      otherGrossCommission += d.gross_commission ?? 0;
-    } else {
-      monthResults[idx].dealCount += 1;
-      monthResults[idx].grossCommission += d.gross_commission ?? 0;
-    }
-  }
-
-  return { months: monthResults, otherCount, otherGrossCommission };
-}
 
 export type ContactTypeBreakdownRow = { type: string; label: string; count: number };
 
@@ -372,38 +315,6 @@ export async function getJourneyStageBreakdown(): Promise<JourneyStageRow[]> {
 }
 
 export type CommissionRateTrendMonth = { key: string; label: string; avgRate: number | null; dealCount: number };
-
-export async function getCommissionRateTrend(): Promise<CommissionRateTrendMonth[]> {
-  const supabase = await createClient();
-  const months = lastNMonths(6);
-  const { data: deals } = await supabase
-    .from("deals")
-    .select("gross_commission, sale_price, closed_at")
-    .eq("status", "won")
-    .gte("closed_at", months[0].start.toISOString());
-
-  return months.map((m) => {
-    const inMonth = (deals ?? []).filter((d) => {
-      const t = new Date(d.closed_at).getTime();
-      return t >= m.start.getTime() && t < m.end.getTime();
-    });
-    const rates = inMonth
-      .filter((d) => d.sale_price && d.gross_commission)
-      .map((d) => (d.gross_commission! / d.sale_price!) * 100);
-    return {
-      key: m.key,
-      label: m.label,
-      avgRate: rates.length > 0 ? rates.reduce((a, b) => a + b, 0) / rates.length : null,
-      dealCount: inMonth.length,
-    };
-  });
-}
-
-// The original app also had a getCapYearComparison report here, walking
-// won deals through a brokerage-specific commission-cap formula
-// (lib/crm/commission.ts) - intentionally excluded from this chassis
-// (see README). getCommissionTrend/getCommissionRateTrend/getDealForecast
-// below stay, since they only use the deal's own gross_commission.
 
 export type TaskTrendMonth = { key: string; label: string; created: number; completed: number };
 

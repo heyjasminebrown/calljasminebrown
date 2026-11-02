@@ -13,13 +13,9 @@ import {
   getLeadEngagementBreakdown,
   getSequenceEngagementReport,
   getTaskCompletionTrend,
-  getCommissionTrend,
-  getCommissionRateTrend,
-  getDealForecast,
 } from "@/lib/data/reports";
 import Link from "next/link";
 import { getMetrics } from "@/lib/data/metrics";
-import { formatCurrency } from "@/lib/utils";
 import { Section } from "@/components/ui/Section";
 import { QuestionExtras } from "@/components/reports/QuestionExtras";
 import { LeadSourceReport } from "@/components/reports/LeadSourceReport";
@@ -36,9 +32,6 @@ import { FollowUpRateTrendReport } from "@/components/reports/FollowUpRateTrendR
 import { LeadEngagementReport } from "@/components/reports/LeadEngagementReport";
 import { SequenceEngagementReport } from "@/components/reports/SequenceEngagementReport";
 import { TaskCompletionTrendReport } from "@/components/reports/TaskCompletionTrendReport";
-import { CommissionTrendReport } from "@/components/reports/CommissionTrendReport";
-import { CommissionRateTrendReport } from "@/components/reports/CommissionRateTrendReport";
-import { DealForecastReport } from "@/components/reports/DealForecastReport";
 import { CountScopeNote } from "@/components/CountScopeNote";
 import { ScorecardReport } from "@/components/reports/ScorecardReport";
 import { getScorecard, getYearScorecard } from "@/lib/data/scorecard";
@@ -71,9 +64,6 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
     leadEngagement,
     sequenceEngagement,
     taskTrend,
-    commissionTrend,
-    commissionRateTrend,
-    dealForecast,
     metrics,
   ] = await Promise.all([
     getLeadSourceReport(),
@@ -91,15 +81,11 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
     getLeadEngagementBreakdown(),
     getSequenceEngagementReport(),
     getTaskCompletionTrend(),
-    getCommissionTrend(),
-    getCommissionRateTrend(),
-    getDealForecast(),
     getMetrics("month"),
   ]);
 
   const topSource = [...leadSourceRows].sort((a, b) => b.contactCount - a.contactCount)[0] ?? null;
   const speedToLeadHours = metrics.speedToLead.current;
-  const forecastTotal = dealForecast.months.reduce((sum, m) => sum + m.grossCommission, 0) + dealForecast.otherGrossCommission;
 
   const summaryLines = [
     `${newLeadsMonth.total} new leads this month${topSource ? `, most from ${topSource.source}` : ""}.`,
@@ -112,7 +98,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
     <div className="mx-auto max-w-3xl px-4 py-6">
       <h1 className="font-serif text-2xl font-semibold text-neutral-900 sm:text-[28px]">Reports</h1>
       <p className="mt-1 text-[15px] text-neutral-500">
-        Where your leads actually come from, which sources turn into closed business, and what&apos;s coming next.
+        Where your leads come from, how fast you follow up, and how they convert.
       </p>
       <CountScopeNote current="reports" />
 
@@ -167,18 +153,6 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                 { key: "staleLeads", label: "Stale leads", content: <StaleLeadsReport buckets={staleLeads} /> },
                 { key: "duplicateRisk", label: "Duplicate risk", content: <DuplicateRiskReport pairs={duplicatePairs} /> },
                 { key: "sequences", label: "Sequence engagement", content: <SequenceEngagementReport rows={sequenceEngagement} /> },
-              ]}
-            />
-          </div>
-        </Section>
-
-        <Section sectionKey="reports:money" title="What am I on track to earn?" meta={`${formatCurrency(forecastTotal)} forecast`} defaultOpen={false}>
-          <div className="p-[18px]">
-            <CommissionTrendReport months={commissionTrend} />
-            <QuestionExtras
-              items={[
-                { key: "dealForecast", label: "Deal forecast", content: <DealForecastReport data={dealForecast} /> },
-                { key: "commissionRate", label: "Commission rate trend", content: <CommissionRateTrendReport months={commissionRateTrend} /> },
               ]}
             />
           </div>
