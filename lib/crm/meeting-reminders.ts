@@ -31,10 +31,10 @@ const RULES: Record<Kind, { key: string; before: number; quietAfterBooking: numb
 export function reminderText(kind: Kind, firstName: string, startsAt: string): string {
   const time = formatInTimeZone(startsAt, TZ, "h:mm a");
   const first = firstName.trim() || "there";
-  if (kind === "1h") return `Hi ${first}, I'll be calling you at ${time} ET. Talk soon!`;
+  if (kind === "1h") return `Hi! I'll call you at ${time} ET. Talk soon!`;
   const tomorrow = formatInTimeZone(new Date(Date.now() + 24 * HOUR), TZ, "yyyy-MM-dd");
   const day = formatInTimeZone(startsAt, TZ, "yyyy-MM-dd") === tomorrow ? "tomorrow" : formatInTimeZone(startsAt, TZ, "EEEE, MMM d");
-  return `Hi ${first}, just a reminder: I'll call you ${day} at ${time} ET. Reply here if you need a different time.`;
+  return `Hi ${first}, just a reminder: I'll call you ${day} at ${time} ET. Let me know if anything comes up and you need to reschedule.`;
 }
 
 export type MeetingRow = {
