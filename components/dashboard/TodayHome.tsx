@@ -27,7 +27,7 @@ export function TodayHome({
 }) {
   const greeting = timeOfDayGreeting();
   const leads = buildTextAndNextLeads(today.newLeads);
-  const upcoming = today.calendar.slice(0, 2);
+  const upcoming = today.calendar.slice(0, 5);
   const tasks = openTasksForToday(today.myTasks);
 
   return (
@@ -46,6 +46,7 @@ export function TodayHome({
           Couldn&apos;t load new leads: {today.newLeadsError}
         </p>
       )}
+      {upcoming.length > 0 && <TodayUpcomingEvents items={upcoming} />}
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
         <h2 className={TODAY_LABEL}>Scorecard</h2>
         <TodayPeriodSwitcher period={scorecard.period} />
@@ -72,7 +73,6 @@ export function TodayHome({
           <TextAndNextDialer leads={leads} />
         </div>
       </section>
-      {upcoming.length > 0 && <TodayUpcomingEvents items={upcoming} />}
     </div>
   );
 }
