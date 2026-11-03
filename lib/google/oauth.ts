@@ -5,7 +5,7 @@ const SCOPES = [
   "https://www.googleapis.com/auth/gmail.readonly",
   "https://www.googleapis.com/auth/gmail.send",
   "https://www.googleapis.com/auth/userinfo.email",
-  // Lets the CRM create Calendar events (with a Google Meet link) and email
+  // Lets the CRM create Calendar events and email
   // the invite to an attendee - added after Gmail sync/send already
   // existed, so anyone who connected before this scope was added needs to
   // disconnect and reconnect once before scheduling a meeting will work.

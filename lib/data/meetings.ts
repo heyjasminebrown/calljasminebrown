@@ -11,7 +11,6 @@ export type UpcomingMeeting = {
   contactName: string;
   startsAt: string;
   title: string;
-  meetLink: string | null;
   durationMinutes: number | null;
 };
 
@@ -61,14 +60,13 @@ export async function listUpcomingMeetings(opts: { days?: number; limit?: number
   return {
     meetings: rows.map((r) => {
       const contact = r.contacts as unknown as { first_name: string; last_name: string | null };
-      const meta = (r.metadata ?? {}) as { meet_link?: string | null; duration_minutes?: number | null };
+      const meta = (r.metadata ?? {}) as { duration_minutes?: number | null };
       return {
         id: r.id as string,
         contactId: r.contact_id as string,
         contactName: `${contact.first_name} ${contact.last_name ?? ""}`.trim(),
         startsAt: r.occurred_at as string,
         title: ((r.body as string | null) ?? "Meeting").replace(/^Scheduled: /, ""),
-        meetLink: meta.meet_link ?? null,
         durationMinutes: typeof meta.duration_minutes === "number" ? meta.duration_minutes : null,
       };
     }),

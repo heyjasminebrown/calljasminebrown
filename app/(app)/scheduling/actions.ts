@@ -113,6 +113,7 @@ export async function approveBooking(requestId: string) {
     description: description || undefined,
     startAt: request.starts_at,
     durationMinutes: durationMinutes > 0 ? durationMinutes : 30,
+    location: `Phone call: ${request.visitor_phone}`,
   });
   if (!invite.ok) return { ok: false as const, error: invite.error };
 
@@ -126,7 +127,7 @@ export async function approveBooking(requestId: string) {
     const message = buildBookingConfirmedMessage({
       visitorFirstName: request.visitor_name.split(" ")[0] || request.visitor_name,
       startsAt: request.starts_at,
-      meetLink: invite.meetLink,
+      phone: request.visitor_phone,
     });
     await sendTextToContact(request.contact_id, request.visitor_phone, message);
 
@@ -135,7 +136,7 @@ export async function approveBooking(requestId: string) {
       direction: "none",
       occurred_at: request.starts_at,
       body: `${request.calendar_name ?? "Meeting"} (${durationMinutes > 0 ? durationMinutes : 30} min) booked via scheduling link${request.questions ? ` · Topic: ${request.questions}` : ""}`,
-      metadata: { google_event_id: invite.eventId, meet_link: invite.meetLink, booking_request_id: request.id },
+      metadata: { google_event_id: invite.eventId, booking_request_id: request.id },
     });
   }
 

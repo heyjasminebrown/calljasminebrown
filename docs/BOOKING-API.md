@@ -55,15 +55,17 @@ Don't cache this response; fetch it when the page opens.
 - `website` is a honeypot: render it as a hidden field and send it empty. If it's filled the
   request pretends to succeed and books nothing.
 
+Meetings are **phone calls** (Jasmine calls them at the number they give; no video link).
+
 What the CRM does: finds or creates the contact, re-checks the time, creates the Google
-Calendar event with a Meet link, emails the invite to the guest and to her Outlook
+Calendar event (location "Phone call: <their number>"), emails the invite to the guest and to her Outlook
 (jbrown@cvlending.com), logs the meeting on the contact, texts a confirmation, notifies her.
 
 Responses:
 
 | Status | Body | Show the visitor |
 |---|---|---|
-| 200 | `{ ok: true, confirmed: true, meetLink, startsAt, endsAt, calendar }` | "You're booked" - invite on its way to their email, text confirmation coming |
+| 200 | `{ ok: true, confirmed: true, startsAt, endsAt, calendar }` | "You're booked - Jasmine will call you at <phone>" - invite on its way to their email, text confirmation coming |
 | 200 | `{ ok: true, confirmed: false, ... }` | "Request received - Jasmine will confirm shortly" (Google refused; she approves it in the CRM) |
 | 400 | `{ ok: false, error }` | `error` (missing/invalid field) |
 | 404 | `{ ok: false, error }` | `error` (calendar paused or unknown) |

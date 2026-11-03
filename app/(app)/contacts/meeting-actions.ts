@@ -18,7 +18,7 @@ export async function scheduleMeeting(
   if (!input.title.trim()) return { ok: false as const, error: "Give the meeting a title" };
   if (!input.startAt) return { ok: false as const, error: "Pick a date and time" };
 
-  const { data: contact } = await supabase.from("contacts").select("id, first_name, last_name, email").eq("id", contactId).maybeSingle();
+  const { data: contact } = await supabase.from("contacts").select("id, first_name, last_name, email, phone").eq("id", contactId).maybeSingle();
   if (!contact) return { ok: false as const, error: "Contact not found" };
   if (!contact.email) return { ok: false as const, error: "This contact doesn't have an email on file - add one first" };
 
@@ -33,6 +33,8 @@ export async function scheduleMeeting(
     description: input.notes?.trim() || undefined,
     startAt: input.startAt,
     durationMinutes: input.durationMinutes,
+    // Meetings are phone calls (no video link).
+    location: contact.phone ? `Phone call: ${contact.phone}` : "Phone call",
   });
   if (!result.ok) return result;
 
@@ -43,12 +45,11 @@ export async function scheduleMeeting(
     body: `Scheduled: ${title}`,
     metadata: {
       google_event_id: result.eventId,
-      meet_link: result.meetLink,
       html_link: result.htmlLink,
       duration_minutes: input.durationMinutes,
       notes: input.notes?.trim() || null,
     },
   });
 
-  return { ok: true as const, meetLink: result.meetLink };
+  return { ok: true as const };
 }

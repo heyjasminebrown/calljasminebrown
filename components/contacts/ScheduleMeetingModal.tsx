@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { fromZonedTime } from "date-fns-tz";
-import { X, Video, Copy, Check } from "lucide-react";
+import { X, Phone } from "lucide-react";
 import { Button, Input, Select, Textarea } from "@/components/ui";
 import { scheduleMeeting } from "@/app/(app)/contacts/meeting-actions";
 import { APP_TIMEZONE } from "@/lib/format-time";
@@ -66,8 +66,7 @@ export function ScheduleMeetingModal({
     : [{ value: timeZone, label: timeZone.replace(/_/g, " ").split("/").pop()! }, ...TIMEZONE_OPTIONS];
   const [notes, setNotes] = useState("");
   const [sending, setSending] = useState(false);
-  const [result, setResult] = useState<{ ok: true; meetLink: string | null } | { ok: false; error: string } | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [result, setResult] = useState<{ ok: true } | { ok: false; error: string } | null>(null);
 
   async function send() {
     if (!title.trim() || !startAt) return;
@@ -83,21 +82,13 @@ export function ScheduleMeetingModal({
     if (outcome.ok) router.refresh();
   }
 
-  async function copyLink() {
-    if (result?.ok && result.meetLink) {
-      await navigator.clipboard.writeText(result.meetLink);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  }
-
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-4">
       <div className="flex max-h-[85vh] w-full max-w-md flex-col rounded-t-2xl bg-white shadow-xl sm:rounded-2xl">
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-neutral-100 px-5 py-4">
           <div>
-            <p className="font-serif text-xl font-semibold text-neutral-900">Schedule a meeting</p>
-            <p className="mt-0.5 text-xs text-neutral-500">{email ? `Google Meet invite to ${email}` : contactName}</p>
+            <p className="font-serif text-xl font-semibold text-neutral-900">Schedule a call</p>
+            <p className="mt-0.5 text-xs text-neutral-500">{email ? `Phone call invite to ${email}` : contactName}</p>
           </div>
           <button onClick={onClose} className="shrink-0 rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100">
             <X size={18} />
@@ -108,19 +99,11 @@ export function ScheduleMeetingModal({
           {result?.ok ? (
             <div className="space-y-3">
               <div className="flex items-start gap-2 rounded-xl bg-emerald-50 px-3.5 py-3 text-sm text-emerald-800">
-                <Video size={16} className="mt-0.5 shrink-0" />
+                <Phone size={16} className="mt-0.5 shrink-0" />
                 <span>
-                  Meeting scheduled and the invite is on its way to <span className="font-semibold">{email}</span>.
+                  Call scheduled and the invite is on its way to <span className="font-semibold">{email}</span>.
                 </span>
               </div>
-              {result.meetLink && (
-                <div className="flex items-center gap-2 rounded-xl border border-neutral-200 px-3.5 py-2.5">
-                  <span className="min-w-0 flex-1 truncate text-sm text-neutral-600">{result.meetLink}</span>
-                  <Button variant="secondary" size="sm" onClick={copyLink} className="shrink-0">
-                    {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? "Copied" : "Copy"}
-                  </Button>
-                </div>
-              )}
               <Button onClick={onClose} className="w-full">
                 Done
               </Button>
@@ -166,7 +149,7 @@ export function ScheduleMeetingModal({
               </div>
 
               {email ? (
-                <p className="text-xs text-neutral-400">Creates a Google Calendar event with a Google Meet link and emails {email} the invite.</p>
+                <p className="text-xs text-neutral-400">Puts the call on your Google Calendar (and Outlook) and emails {email} the invite.</p>
               ) : (
                 <p className="text-xs text-red-600">This contact doesn&apos;t have an email on file - add one before scheduling.</p>
               )}
@@ -174,7 +157,7 @@ export function ScheduleMeetingModal({
               {result && !result.ok && <p className="text-sm text-red-600">{result.error}</p>}
 
               <Button onClick={send} disabled={sending || !title.trim() || !startAt || !email} className="w-full">
-                <Video size={15} /> {sending ? "Scheduling…" : "Schedule & send invite"}
+                <Phone size={15} /> {sending ? "Scheduling…" : "Schedule & send invite"}
               </Button>
             </>
           )}

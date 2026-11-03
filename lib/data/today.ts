@@ -212,7 +212,6 @@ export type TodayCalendarItem = {
   href: string;
   meta?: string;
   registeredCount?: number;
-  meetLink?: string | null;
 };
 
 export async function getTodayData() {
@@ -243,7 +242,6 @@ export async function getTodayData() {
     startsAt: m.startsAt,
     href: `/contacts/${m.contactId}`,
     meta: m.title,
-    meetLink: m.meetLink,
   }));
 
   return {

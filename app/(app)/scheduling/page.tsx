@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
 import {
   listBookingCalendars,
   listPendingBookingRequests,
@@ -76,11 +75,6 @@ export default async function SchedulingPage() {
                   <p className="text-sm text-neutral-500">{formatLocal(m.startsAt, "EEE, MMM d 'at' h:mm a")}</p>
                   <p className="truncate text-xs text-neutral-400">{m.title}</p>
                 </div>
-                {m.meetLink && (
-                  <a href={m.meetLink} target="_blank" rel="noreferrer" className="flex shrink-0 items-center gap-1 text-sm font-medium text-[#34223a]">
-                    <ExternalLink size={14} /> Meet
-                  </a>
-                )}
               </div>
             ))
           )}

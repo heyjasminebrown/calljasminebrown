@@ -28,9 +28,9 @@ type Body = {
 
 // POST /api/booking/book  (JSON body above)
 // Books the time for real: finds or creates the contact, re-checks the
-// slot, creates the Google event (Meet link, invite to them and to her
+// slot, creates the Google event (a phone call; invite to them and to her
 // Outlook), logs it, texts a confirmation and notifies her.
-//   200 { ok: true, confirmed: true, meetLink, startsAt, endsAt, calendar }
+//   200 { ok: true, confirmed: true, startsAt, endsAt, calendar }
 //   200 { ok: true, confirmed: false, ... }  Google refused; waits for her approval
 //   400 bad input · 404 unknown calendar · 409 time no longer open
 export async function POST(request: NextRequest) {
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
   const source = body.source?.trim().slice(0, 60) || "Website";
   const slug = body.calendar?.trim().toLowerCase() || null;
 
-  if (body.website) return json(request, { ok: true, confirmed: true, meetLink: null }); // bot
+  if (body.website) return json(request, { ok: true, confirmed: true }); // bot
   if (!name || !phone || !email) return json(request, { ok: false, error: "Name, phone and email are required." }, 400);
   if (name.length > 120 || phone.length > 40 || email.length > 200) return json(request, { ok: false, error: "That's too long." }, 400);
   if (!EMAIL.test(email)) return json(request, { ok: false, error: "That email doesn't look right - check it and try again." }, 400);
@@ -104,7 +104,6 @@ export async function POST(request: NextRequest) {
     return json(request, {
       ok: true,
       confirmed: result.confirmed,
-      meetLink: result.meetLink,
       startsAt: slot.startAt,
       endsAt: slot.endAt,
       calendar: toPublicCalendar(calendar),

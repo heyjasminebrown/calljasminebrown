@@ -850,7 +850,11 @@ export interface QuoteView {
 }
 
 export type Weekday = "sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
-export type WeeklyHours = Record<Weekday, { enabled: boolean; start: string; end: string }>;
+export type TimeRange = { start: string; end: string };
+// start/end = the day's first start and last end. `ranges`, when present,
+// are the actual bookable windows (e.g. 9-12 and 2-4).
+export type DayHours = { enabled: boolean; start: string; end: string; ranges?: TimeRange[] };
+export type WeeklyHours = Record<Weekday, DayHours>;
 
 export interface BookingCalendar {
   id: string;

@@ -13,7 +13,7 @@ import type { BookingCalendar } from "@/types/database";
 // Shared by the CRM's own /book page and the booking API that
 // heyjasminebrown.com/meet calls: which calendars are open, and turning a
 // chosen time into a real meeting (Google event + Meet + invites, contact
-// timeline, confirmation text, notification).
+// timeline, confirmation text, notification). Meetings are phone calls.
 
 export type PublicCalendar = { slug: string; name: string; description: string | null; durationMinutes: number };
 
@@ -65,7 +65,7 @@ export type BookingSession = {
   stage: string;
 };
 
-export type FinalizeResult = { ok: true; confirmed: boolean; meetLink: string | null } | { ok: false; error: string; taken?: boolean };
+export type FinalizeResult = { ok: true; confirmed: boolean } | { ok: false; error: string; taken?: boolean };
 
 // The booking_requests row already has its time. Re-check the slot, then
 // book it. If Google refuses, the request is kept as pending for her to
@@ -87,7 +87,13 @@ export async function finalizeBooking(
 
   const topic = topicInput?.trim() || null;
   const durationMinutes = Math.max(5, Math.round((new Date(session.ends_at).getTime() - new Date(session.starts_at).getTime()) / 60_000));
-  const description = [topic ? `Topic: ${topic}` : null, `Phone: ${session.visitor_phone}`, `Booked online (${calendar.name})`].filter(Boolean).join("\n");
+  const description = [
+    `Phone call: ${OWNER_FIRST_NAME} will call ${session.visitor_name} at ${session.visitor_phone}.`,
+    topic ? `Topic: ${topic}` : null,
+    `Booked online (${calendar.name})`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   const invite = await createMeetingInvite(admin, ownerId, {
     attendeeEmail: session.visitor_email,
@@ -96,6 +102,7 @@ export async function finalizeBooking(
     description,
     startAt: session.starts_at,
     durationMinutes,
+    location: `Phone call: ${session.visitor_phone}`,
   });
 
   const now = new Date().toISOString();
@@ -112,7 +119,7 @@ export async function finalizeBooking(
     await admin.from("booking_requests").update({ questions: topic, stage: "pending", submitted_at: now }).eq("id", session.id);
     await reportFailure(`A booking couldn't be added to your Google Calendar - approve it on Schedule (${session.visitor_name}, ${when})`, invite.error);
     await notifyNewLead(admin, ownerId, { title: session.visitor_name, body: `Requested ${when} - couldn't auto-book, approve it`, url: "/scheduling" });
-    return { ok: true, confirmed: false, meetLink: null };
+    return { ok: true, confirmed: false };
   }
 
   const { error: updateError } = await admin
@@ -129,14 +136,13 @@ export async function finalizeBooking(
       body: `${calendar.name} (${durationMinutes} min) booked online${topic ? ` · Topic: ${topic}` : ""}`,
       metadata: {
         google_event_id: invite.eventId,
-        meet_link: invite.meetLink,
         html_link: invite.htmlLink,
         booking_request_id: session.id,
         calendar_id: calendar.id,
         duration_minutes: durationMinutes,
       },
     });
-    await textConfirmation(admin, ownerId, session.contact_id, session.visitor_phone, session.visitor_name, session.starts_at, invite.meetLink);
+    await textConfirmation(admin, ownerId, session.contact_id, session.visitor_phone, session.visitor_name, session.starts_at);
   }
 
   await notifyNewLead(admin, ownerId, {
@@ -145,7 +151,7 @@ export async function finalizeBooking(
     url: session.contact_id ? `/contacts/${session.contact_id}` : "/scheduling",
   });
 
-  return { ok: true, confirmed: true, meetLink: invite.meetLink };
+  return { ok: true, confirmed: true };
 }
 
 async function textConfirmation(
@@ -155,11 +161,10 @@ async function textConfirmation(
   phone: string,
   visitorName: string,
   startsAt: string,
-  meetLink: string | null,
 ) {
   const { data: contact } = await admin.from("contacts").select("opted_out_at").eq("id", contactId).maybeSingle();
   if (contact?.opted_out_at) return;
-  const body = buildBookingConfirmedMessage({ visitorFirstName: visitorName.split(" ")[0] || visitorName, startsAt, meetLink });
+  const body = buildBookingConfirmedMessage({ visitorFirstName: visitorName.split(" ")[0] || visitorName, startsAt, phone });
   const result = await sendQuoText(phone, body);
   if (!result.ok) {
     await reportFailure(`Booking confirmation text to ${visitorName} failed`, result.error, { contactId });

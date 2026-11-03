@@ -1,5 +1,4 @@
 import { google } from "googleapis";
-import { randomUUID } from "crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getAuthorizedGoogleClient } from "@/lib/google/oauth";
 import { reportFailure } from "@/lib/errors/report-failure";
@@ -15,10 +14,12 @@ export type CreateMeetingInput = {
   description?: string;
   startAt: string; // ISO
   durationMinutes: number;
+  // Shown as the event's location, e.g. "Phone call: (404) 555-1234".
+  location?: string;
 };
 
 export type CreateMeetingResult =
-  | { ok: true; eventId: string; meetLink: string | null; htmlLink: string | null }
+  | { ok: true; eventId: string; htmlLink: string | null }
   | { ok: false; error: string };
 
 export type UpcomingCalendarEvent = {
@@ -67,12 +68,9 @@ export async function listUpcomingEvents(admin: SupabaseClient, ownerId: string,
   }
 }
 
-// Google only attaches a Meet link to an event that explicitly requests
-// conference data (conferenceDataVersion + a hangoutsMeet createRequest) -
-// a plain calendar event has no video link at all. sendUpdates: "all" is
-// what actually emails the invite to the attendee; without it the event is
-// created silently and only she'd ever see it on her own calendar.
-// The guest, plus her Outlook work calendar so the meeting shows there too.
+// sendUpdates: "all" is what actually emails the invite to the guest (and
+// her Outlook); without it the event is created silently. Meetings are
+// phone calls - no video link is added.
 function meetingAttendees(input: CreateMeetingInput) {
   const list: { email: string; displayName?: string }[] = [];
   if (input.attendeeEmail) list.push({ email: input.attendeeEmail, displayName: input.attendeeName });
@@ -95,24 +93,17 @@ export async function createMeetingInvite(admin: SupabaseClient, ownerId: string
       calendarId: "primary",
       // Always "all": her Outlook copy arrives as an invite too.
       sendUpdates: "all",
-      conferenceDataVersion: 1,
       requestBody: {
         summary: input.title,
         description: input.description,
+        location: input.location,
         start: { dateTime: start.toISOString() },
         end: { dateTime: end.toISOString() },
         attendees: meetingAttendees(input),
-        conferenceData: {
-          createRequest: {
-            requestId: randomUUID(),
-            conferenceSolutionKey: { type: "hangoutsMeet" },
-          },
-        },
       },
     });
 
-    const meetLink = data.conferenceData?.entryPoints?.find((e) => e.entryPointType === "video")?.uri ?? null;
-    return { ok: true, eventId: data.id ?? "", meetLink, htmlLink: data.htmlLink ?? null };
+    return { ok: true, eventId: data.id ?? "", htmlLink: data.htmlLink ?? null };
   } catch (err) {
     console.error("Google Calendar event creation failed", err);
     const message = err instanceof Error ? err.message : "Failed to create the meeting";

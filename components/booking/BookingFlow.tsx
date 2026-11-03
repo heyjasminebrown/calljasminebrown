@@ -109,7 +109,7 @@ export function BookingFlow({
   const [email, setEmail] = useState(fixtureStep && fixtureStep !== "info" ? "jordan@example.com" : "");
   const [selectedSlot, setSelectedSlot] = useState<string | null>(fixtureStep === "details" || fixtureStep === "done" ? sampleSlots[2]?.startAt ?? null : null);
   const [topic, setTopic] = useState("");
-  const [result, setResult] = useState<{ confirmed: boolean; meetLink: string | null } | null>(null);
+  const [result, setResult] = useState<{ confirmed: boolean } | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -181,7 +181,7 @@ export function BookingFlow({
     const booked = await confirmBooking(sessionId, { topic });
     setSubmitting(false);
     if (booked.ok) {
-      setResult({ confirmed: booked.confirmed, meetLink: booked.meetLink });
+      setResult({ confirmed: booked.confirmed });
       setStep("done");
     } else {
       setError(booked.error);
@@ -236,7 +236,7 @@ export function BookingFlow({
                   You&apos;re <em>booked!</em>
                 </h2>
                 <p>
-                  {data.calendar.name} with {OWNER_FIRST_NAME} on {when} ET. A calendar invite with the video link is on its way to {email}, and you&apos;ll get a text confirmation at {phone}.
+                  {OWNER_FIRST_NAME} will call you at {phone} on {when} ET. A calendar invite is on its way to {email}, and you&apos;ll get a text confirmation.
                 </p>
               </>
             )}
@@ -270,7 +270,7 @@ export function BookingFlow({
                 <h1>
                   {data.calendar.name} with <em>{OWNER_FIRST_NAME}</em>
                 </h1>
-                <p>{data.durationMinutes} minutes · video call</p>
+                <p>{data.durationMinutes} minutes · phone call</p>
               </div>
               <span className="bk-stepn">Step {STEP_NUMBER[step]} of 3</span>
             </div>

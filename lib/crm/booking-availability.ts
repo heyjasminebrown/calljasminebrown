@@ -3,6 +3,7 @@ import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { listUpcomingEvents } from "@/lib/google/calendar";
 import { listOutlookBusy } from "@/lib/outlook/busy";
 import { APP_TIMEZONE } from "@/lib/format-time";
+import { dayRanges } from "@/lib/crm/booking-calendars";
 import type { WeeklyHours, Weekday } from "@/types/database";
 
 const WEEKDAY_KEYS: Weekday[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
@@ -122,18 +123,21 @@ export async function computeAvailableSlots(
     const hours = settings.weeklyHours[WEEKDAY_KEYS[new Date(y, m - 1, d).getDay()]];
     if (!hours?.enabled) continue;
 
-    const dayStart = fromZonedTime(`${dayKey} ${hours.start}:00`, APP_TIMEZONE).getTime();
-    const dayEnd = fromZonedTime(`${dayKey} ${hours.end}:00`, APP_TIMEZONE).getTime();
+    // Each window of the day (e.g. 9-12 and 2-4) gets its own start times.
+    for (const range of dayRanges(hours)) {
+      const rangeStart = fromZonedTime(`${dayKey} ${range.start}:00`, APP_TIMEZONE).getTime();
+      const rangeEnd = fromZonedTime(`${dayKey} ${range.end}:00`, APP_TIMEZONE).getTime();
 
-    for (let t = dayStart; t + durationMs <= dayEnd; t += stepMs) {
-      if (t < notBefore.getTime()) continue;
-      const slotEnd = t + durationMs;
-      if (busy.some((b) => t < b.end && slotEnd > b.start)) continue;
+      for (let t = rangeStart; t + durationMs <= rangeEnd; t += stepMs) {
+        if (t < notBefore.getTime()) continue;
+        const slotEnd = t + durationMs;
+        if (busy.some((b) => t < b.end && slotEnd > b.start)) continue;
 
-      const startIso = new Date(t).toISOString();
-      if (!slotVisible(ownerId, startIso, settings.visibleSlotPct)) continue;
+        const startIso = new Date(t).toISOString();
+        if (!slotVisible(ownerId, startIso, settings.visibleSlotPct)) continue;
 
-      slots.push({ startAt: startIso, endAt: new Date(slotEnd).toISOString() });
+        slots.push({ startAt: startIso, endAt: new Date(slotEnd).toISOString() });
+      }
     }
   }
 

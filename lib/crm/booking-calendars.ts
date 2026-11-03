@@ -1,5 +1,17 @@
 import type { AvailabilitySettings } from "@/lib/crm/booking-availability";
-import type { BookingCalendar, WeeklyHours, Weekday } from "@/types/database";
+import type { BookingCalendar, DayHours, TimeRange, WeeklyHours, Weekday } from "@/types/database";
+
+// A day's bookable windows, earliest first.
+export function dayRanges(hours: DayHours): TimeRange[] {
+  const ranges = hours.ranges?.length ? hours.ranges : [{ start: hours.start, end: hours.end }];
+  return [...ranges].sort((a, b) => a.start.localeCompare(b.start));
+}
+
+// Sets a day's windows (keeping start/end = first start / last end).
+export function withRanges(day: DayHours, ranges: TimeRange[]): DayHours {
+  const sorted = [...ranges].sort((a, b) => a.start.localeCompare(b.start));
+  return { ...day, ranges: sorted, start: sorted[0]?.start ?? day.start, end: sorted[sorted.length - 1]?.end ?? day.end };
+}
 
 // Pure helpers shared by the Schedule tab (client) and the public booking
 // page (server). No server-only imports.
@@ -47,21 +59,29 @@ export function formatDuration(minutes: number): string {
   return m ? `${h} hr ${m} min` : `${h} hr`;
 }
 
-// "Mon-Fri, 10:00 AM-6:00 PM" style summary for the calendar cards.
+function fmtTime(t: string) {
+  const [h, m] = t.split(":").map(Number);
+  const suffix = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 || 12;
+  return m ? `${h12}:${String(m).padStart(2, "0")} ${suffix}` : `${h12} ${suffix}`;
+}
+
+function rangesLabel(day: DayHours) {
+  return dayRanges(day)
+    .map((r) => `${fmtTime(r.start)}-${fmtTime(r.end)}`)
+    .join(", ");
+}
+
+// "Mon-Fri, 9 AM-12 PM, 2 PM-4 PM" style summary for the calendar cards.
 export function hoursSummary(hours: WeeklyHours): string {
   const on = DAY_ORDER.filter((d) => hours[d]?.enabled);
   if (on.length === 0) return "No days available";
-  const fmt = (t: string) => {
-    const [h, m] = t.split(":").map(Number);
-    const suffix = h >= 12 ? "PM" : "AM";
-    const h12 = h % 12 || 12;
-    return m ? `${h12}:${String(m).padStart(2, "0")} ${suffix}` : `${h12} ${suffix}`;
-  };
-  const sameHours = on.every((d) => hours[d].start === hours[on[0]].start && hours[d].end === hours[on[0]].end);
+  const label = rangesLabel(hours[on[0]]);
+  const same = on.every((d) => rangesLabel(hours[d]) === label);
   const idx = on.map((d) => DAY_ORDER.indexOf(d));
   const contiguous = idx.every((v, i) => i === 0 || v === idx[i - 1] + 1);
   const days = contiguous && on.length > 2 ? `${DAY_LABELS[on[0]]}-${DAY_LABELS[on[on.length - 1]]}` : on.map((d) => DAY_LABELS[d]).join(", ");
-  return sameHours ? `${days}, ${fmt(hours[on[0]].start)}-${fmt(hours[on[0]].end)}` : `${days} (varied hours)`;
+  return same ? `${days}, ${label}` : `${days} (varied hours)`;
 }
 
 export type CalendarInput = {
@@ -89,8 +109,12 @@ export function validateCalendar(input: CalendarInput): string | null {
   const on = DAY_ORDER.filter((d) => input.weeklyHours[d]?.enabled);
   if (on.length === 0) return "Turn on at least one day.";
   for (const d of on) {
-    const { start, end } = input.weeklyHours[d];
-    if (!/^\d{2}:\d{2}$/.test(start) || !/^\d{2}:\d{2}$/.test(end) || start >= end) return `${DAY_LABELS[d]}: the end time must be after the start time.`;
+    const ranges = dayRanges(input.weeklyHours[d]);
+    if (ranges.length === 0) return `${DAY_LABELS[d]}: add at least one time range, or uncheck the day.`;
+    for (const [i, { start, end }] of ranges.entries()) {
+      if (!/^\d{2}:\d{2}$/.test(start) || !/^\d{2}:\d{2}$/.test(end) || start >= end) return `${DAY_LABELS[d]}: each end time must be after its start time.`;
+      if (i > 0 && start < ranges[i - 1].end) return `${DAY_LABELS[d]}: the time ranges overlap (${fmtTime(ranges[i - 1].start)}-${fmtTime(ranges[i - 1].end)} and ${fmtTime(start)}-${fmtTime(end)}).`;
+    }
   }
   return null;
 }

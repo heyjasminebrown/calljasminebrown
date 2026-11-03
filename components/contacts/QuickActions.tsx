@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Phone, MessageSquare, Mail, Video, CalendarClock, Instagram } from "lucide-react";
+import { Phone, MessageSquare, Mail, CalendarPlus, CalendarClock, Instagram } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { openQuoCall, openQuoText } from "@/lib/quo/call-link";
 import { ScheduleMeetingModal } from "@/components/contacts/ScheduleMeetingModal";
@@ -60,7 +60,7 @@ export function QuickActions({
       <ActionButton onClick={() => phone && openQuoCall(phone)} icon={Phone} label="Call" disabled={!phone} />
       <ActionButton onClick={() => phone && openQuoText(phone)} icon={MessageSquare} label="Text" disabled={!phone} />
       <ActionButton onClick={() => setComposing(true)} icon={Mail} label="Email" disabled={!email} />
-      <ActionButton onClick={() => setScheduling(true)} icon={Video} label="Meet" disabled={!email} />
+      <ActionButton onClick={() => setScheduling(true)} icon={CalendarPlus} label="Schedule" disabled={!email} />
       <ActionButton onClick={() => setSendingSchedulingLink(true)} icon={CalendarClock} label="Book" disabled={!phone} />
       {instagramSenderId && <ActionButton onClick={() => setMessagingInstagram(true)} icon={Instagram} label="Instagram" />}
       {composing && email && (

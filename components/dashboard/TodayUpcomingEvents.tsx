@@ -34,11 +34,6 @@ export function TodayUpcomingEvents({ items }: { items: TodayCalendarItem[] }) {
                     {[daysOutLabel(item.startsAt), formatLocal(item.startsAt, "h:mm a"), item.meta, registered].filter(Boolean).join(" · ")}
                   </p>
                 </div>
-                {item.meetLink && (
-                  <a href={item.meetLink} target="_blank" rel="noreferrer" className="shrink-0 text-[13px] font-medium text-[#34223a]">
-                    Join
-                  </a>
-                )}
                 <Link href={item.href} className="inline-flex shrink-0 items-center gap-0.5 text-[13px] font-medium text-[#34223a]">
                   View
                   <ChevronRight size={15} />

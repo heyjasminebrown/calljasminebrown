@@ -11,9 +11,17 @@ import {
   setBookingCalendarActive,
   setDefaultBookingCalendar,
 } from "@/app/(app)/scheduling/calendar-actions";
-import { DAY_LABELS, DAY_ORDER, DEFAULT_WEEKLY_HOURS, formatDuration, hoursSummary, slugify, type CalendarInput } from "@/lib/crm/booking-calendars";
+import { DAY_LABELS, DAY_ORDER, DEFAULT_WEEKLY_HOURS, dayRanges, formatDuration, hoursSummary, slugify, withRanges, type CalendarInput } from "@/lib/crm/booking-calendars";
 import { cn } from "@/lib/utils";
-import type { BookingCalendar, Weekday } from "@/types/database";
+import type { BookingCalendar, TimeRange, Weekday } from "@/types/database";
+
+// A new range starts an hour after the day's last one ends (1 hour long).
+function nextRange(ranges: TimeRange[]): TimeRange {
+  const last = ranges.reduce((max, r) => (r.end > max ? r.end : max), "09:00");
+  const [h, m] = last.split(":").map(Number);
+  const pad = (n: number) => String(Math.min(n, 23)).padStart(2, "0");
+  return { start: `${pad(h + 1)}:${String(m).padStart(2, "0")}`, end: `${pad(h + 2)}:${String(m).padStart(2, "0")}` };
+}
 
 const DURATIONS = [15, 20, 30, 45, 60, 90, 120];
 const INTERVALS: { value: number | null; label: string }[] = [
@@ -61,7 +69,7 @@ export function BookingCalendarsPanel({ calendars, publicBase, crmBase }: { cale
     <div className="space-y-3 p-4">
       <p className="text-sm text-neutral-500">
         Each calendar is its own booking link with its own length and hours. Your main calendar opens at{" "}
-        <span className="font-medium text-neutral-700">{publicBase.replace(/^https?:\/\//, "")}</span>. Times already busy on your Google Calendar never show.
+        <span className="font-medium text-neutral-700">{publicBase.replace(/^https?:\/\//, "")}</span>. Times already busy on your Google or Outlook calendar never show.
       </p>
       {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
@@ -136,6 +144,11 @@ export function BookingCalendarsPanel({ calendars, publicBase, crmBase }: { cale
                 <ExternalLink size={14} />
               </a>
             </div>
+            {cal.is_default && (
+              <p className="mt-1.5 text-xs text-neutral-400">
+                Main calendar, so the short link above opens it. Its own link, {publicBase.replace(/^https?:\/\//, "")}/{cal.slug}, works too.
+              </p>
+            )}
           </div>
         );
       })}
@@ -172,11 +185,23 @@ function CalendarEditor({ calendar, publicBase, onClose }: { calendar: BookingCa
   const set = <K extends keyof CalendarInput>(key: K, value: CalendarInput[K]) => setForm((f) => ({ ...f, [key]: value }));
   const setDay = (day: Weekday, patch: Partial<CalendarInput["weeklyHours"][Weekday]>) =>
     setForm((f) => ({ ...f, weeklyHours: { ...f.weeklyHours, [day]: { ...f.weeklyHours[day], ...patch } } }));
+  // Times are edited unsorted (so a row doesn't jump while typing); saving sorts them.
+  const setRanges = (day: Weekday, ranges: TimeRange[]) =>
+    setForm((f) => ({ ...f, weeklyHours: { ...f.weeklyHours, [day]: { ...f.weeklyHours[day], ranges, start: ranges[0]?.start ?? "09:00", end: ranges[ranges.length - 1]?.end ?? "17:00" } } }));
+  const copyToAll = (from: Weekday) =>
+    setForm((f) => {
+      const ranges = dayRanges(f.weeklyHours[from]);
+      const next = { ...f.weeklyHours };
+      for (const d of DAY_ORDER) if (next[d].enabled) next[d] = withRanges(next[d], ranges);
+      return { ...f, weeklyHours: next };
+    });
 
   async function save() {
     setSaving(true);
     setError("");
-    const result = await saveBookingCalendar(form);
+    const sorted = { ...form.weeklyHours };
+    for (const d of DAY_ORDER) sorted[d] = withRanges(sorted[d], dayRanges(sorted[d]));
+    const result = await saveBookingCalendar({ ...form, weeklyHours: sorted });
     setSaving(false);
     if (!result.ok) {
       setError(result.error);
@@ -220,6 +245,11 @@ function CalendarEditor({ calendar, publicBase, onClose }: { calendar: BookingCa
                 }}
               />
             </div>
+            {calendar?.is_default && (
+              <p className="mt-1 text-xs text-neutral-400">
+                This is your main calendar, so {publicBase.replace(/^https?:\/\//, "")} opens it too. That&apos;s the link to share.
+              </p>
+            )}
           </div>
           <div>
             <Label>Description (shown on the booking page)</Label>
@@ -269,20 +299,55 @@ function CalendarEditor({ calendar, publicBase, onClose }: { calendar: BookingCa
             <div className="space-y-1.5">
               {DAY_ORDER.map((day) => {
                 const h = form.weeklyHours[day];
+                const ranges = dayRanges(h);
                 return (
-                  <div key={day} className="flex flex-wrap items-center gap-2">
-                    <label className="flex w-16 shrink-0 items-center gap-1.5 text-sm font-medium text-neutral-700">
+                  <div key={day} className="flex items-start gap-2 border-b border-neutral-100 pb-2 last:border-b-0">
+                    <label className="flex h-[42px] w-16 shrink-0 items-center gap-1.5 text-sm font-medium text-neutral-700">
                       <input type="checkbox" checked={h.enabled} onChange={(e) => setDay(day, { enabled: e.target.checked })} />
                       {DAY_LABELS[day]}
                     </label>
                     {h.enabled ? (
-                      <>
-                        <Input type="time" className="!w-32" value={h.start} onChange={(e) => setDay(day, { start: e.target.value })} aria-label={`${DAY_LABELS[day]} start`} />
-                        <span className="text-sm text-neutral-400">to</span>
-                        <Input type="time" className="!w-32" value={h.end} onChange={(e) => setDay(day, { end: e.target.value })} aria-label={`${DAY_LABELS[day]} end`} />
-                      </>
+                      <div className="min-w-0 flex-1 space-y-1.5">
+                        {ranges.map((r, i) => (
+                          <div key={i} className="flex flex-wrap items-center gap-1.5">
+                            <Input
+                              type="time"
+                              className="!w-[8.5rem] !px-2.5"
+                              value={r.start}
+                              onChange={(e) => setRanges(day, ranges.map((x, j) => (j === i ? { ...x, start: e.target.value } : x)))}
+                              aria-label={`${DAY_LABELS[day]} start ${i + 1}`}
+                            />
+                            <span className="text-sm text-neutral-400">to</span>
+                            <Input
+                              type="time"
+                              className="!w-[8.5rem] !px-2.5"
+                              value={r.end}
+                              onChange={(e) => setRanges(day, ranges.map((x, j) => (j === i ? { ...x, end: e.target.value } : x)))}
+                              aria-label={`${DAY_LABELS[day]} end ${i + 1}`}
+                            />
+                            {ranges.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => setRanges(day, ranges.filter((_, j) => j !== i))}
+                                className="rounded-lg p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600"
+                                aria-label={`Remove ${DAY_LABELS[day]} hours ${i + 1}`}
+                              >
+                                <X size={15} />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] font-medium text-[#34223a]">
+                          <button type="button" onClick={() => setRanges(day, [...ranges, nextRange(ranges)])}>
+                            + Add hours
+                          </button>
+                          <button type="button" onClick={() => copyToAll(day)}>
+                            Copy to all checked days
+                          </button>
+                        </div>
+                      </div>
                     ) : (
-                      <span className="text-sm text-neutral-400">Unavailable</span>
+                      <span className="flex h-[42px] items-center text-sm text-neutral-400">Unavailable</span>
                     )}
                   </div>
                 );

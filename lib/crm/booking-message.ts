@@ -9,10 +9,9 @@ function describeWhen(startsAtIso: string): string {
   return formatInTimeZone(startsAtIso, APP_TIMEZONE, "EEEE, MMM d 'at' h:mm a");
 }
 
-export function buildBookingConfirmedMessage(input: { visitorFirstName: string; startsAt: string; meetLink: string | null }): string {
+export function buildBookingConfirmedMessage(input: { visitorFirstName: string; startsAt: string; phone: string }): string {
   const when = describeWhen(input.startsAt);
-  const meet = input.meetLink ? ` Video call link: ${input.meetLink}` : "";
-  return `Thanks for booking - looking forward to meeting with you on ${when} ET!${meet}`;
+  return `Thanks for booking, ${input.visitorFirstName}! I'll call you at ${input.phone} on ${when} ET. Talk soon!`;
 }
 
 export function buildBookingDeclinedMessage(input: { visitorFirstName: string; startsAt: string; rebookLink: string }): string {

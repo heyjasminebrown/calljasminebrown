@@ -16,7 +16,7 @@ export type { PublicCalendar };
 // owner account, not a user session.
 //
 // Booking is instant: the last step creates the Google Calendar event
-// (with a Meet link and an emailed invite), texts a confirmation, logs
+// (a phone call, with an emailed invite), texts a confirmation, logs
 // the meeting on the contact and notifies her. If Google refuses, the
 // request is kept as pending for her to approve on Schedule instead of
 // being lost, and the failure is reported.
@@ -172,17 +172,17 @@ export async function selectBookingSlot(sessionId: string, startsAt: string): Pr
 export async function confirmBooking(
   sessionId: string,
   input: { topic: string },
-): Promise<{ ok: true; confirmed: boolean; meetLink: string | null } | { ok: false; error: string }> {
+): Promise<{ ok: true; confirmed: boolean } | { ok: false; error: string }> {
   if (!OWNER_ID) return { ok: false, error: "server not configured" };
   const admin = createAdminClient();
 
   const { session, calendar } = await sessionAndCalendar(admin, OWNER_ID, sessionId);
   if (!session || !session.starts_at || !session.ends_at) return { ok: false, error: "Pick a time first." };
-  if (session.stage === "approved") return { ok: true, confirmed: true, meetLink: null };
+  if (session.stage === "approved") return { ok: true, confirmed: true };
   if (!ACTIVE_STAGES.has(session.stage)) return { ok: false, error: "This booking session isn't active anymore - refresh the page." };
   if (!calendar) return { ok: false, error: "This calendar isn't taking bookings right now." };
 
   const result = await finalizeBooking(admin, OWNER_ID, session, calendar, input.topic);
   if (!result.ok && result.taken) return { ok: false, error: "Sorry - that time was just taken. Go back and pick another." };
-  return result.ok ? { ok: true, confirmed: result.confirmed, meetLink: result.meetLink } : { ok: false, error: result.error };
+  return result.ok ? { ok: true, confirmed: result.confirmed } : { ok: false, error: result.error };
 }
