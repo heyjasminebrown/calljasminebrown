@@ -2,6 +2,7 @@ import { google } from "googleapis";
 import { randomUUID } from "crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getAuthorizedGoogleClient } from "@/lib/google/oauth";
+import { reportFailure } from "@/lib/errors/report-failure";
 
 export type CreateMeetingInput = {
   // null when the only contact info on hand is a phone number (e.g. a
@@ -59,7 +60,8 @@ export async function listUpcomingEvents(admin: SupabaseClient, ownerId: string,
         attendeeEmails: (e.attendees ?? []).map((a) => a.email).filter((email): email is string => !!email),
       }));
   } catch (err) {
-    console.error("Google Calendar list failed", err);
+    // Not silent: the booking page uses this to know when she's busy.
+    await reportFailure("Couldn't read your Google Calendar (booking times may show you as free)", err);
     return [];
   }
 }

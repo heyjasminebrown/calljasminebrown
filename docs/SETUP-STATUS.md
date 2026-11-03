@@ -1,7 +1,7 @@
 # CRM setup status
 
 Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-curie-mb14vu`
-(Vercel production branch). Supabase migrations through 0087 have been run.
+(Vercel production branch). Supabase migrations through 0087 have been run. **0088 (booking calendars) needs to be run.**
 
 ## Done
 - Supabase, Vercel, sign-in, Gmail + Calendar (Google Workspace, Internal app), Gmail Sync now
@@ -25,6 +25,17 @@ Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-cur
   enforced; each contact goes through a campaign once. "Right after" timing, Duplicate,
   "skip anyone already in" other campaigns, and "add everyone who already matches".
 - Public pages show (404) 383-5256; emails signed just "Jasmine Brown" (no company name)
+
+## Booking / Schedule
+- More -> Schedule: booking calendars (Calendly-style: name, link, length, days/hours,
+  buffer, how far ahead, minimum notice; duplicate, pause, delete, main calendar).
+- Public page books instantly: Google Calendar event + Meet link + emailed invite,
+  confirmation text, meeting on the contact (new contacts get Source "Website"), push.
+  If Google refuses, the booking waits under Schedule -> "Needs your approval".
+- heyjasminebrown.com/meet (main calendar) and /meet/<link> embed the CRM's /book page.
+- Upcoming Meetings on Today = every CRM meeting (bookings, meetings scheduled from a
+  contact, Calendly), cancelled Google events dropped.
+- Next: read the Outlook calendar (jbrown@cvlending.com) too, and add bookings to it.
 
 ## Quo
 - A2P approved; calls and texts log; `TEXT_AUTOMATION_ENABLED=true` is on.

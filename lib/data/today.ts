@@ -4,7 +4,8 @@ import { relativeTime, isTodayLocal, endOfLocalDayIso } from "@/lib/format-time"
 import { filterByQueue } from "@/lib/crm/contact-queue-filter";
 import { listContacts } from "@/lib/data/contacts";
 import { listNewLeadsQueue, NEW_LEAD_SOURCE_FILTER } from "@/lib/data/new-leads";
-import { listAbandonedBookingFollowUps, listPendingBookingRequests, listUpcomingApprovedBookingRequests } from "@/lib/data/scheduling";
+import { listAbandonedBookingFollowUps, listPendingBookingRequests } from "@/lib/data/scheduling";
+import { listUpcomingMeetings } from "@/lib/data/meetings";
 import { isTodayWorkContact } from "@/lib/crm/today-eligible";
 import { listConversations } from "@/lib/data/messages";
 import type { PipelineStage } from "@/types/database";
@@ -211,6 +212,7 @@ export type TodayCalendarItem = {
   href: string;
   meta?: string;
   registeredCount?: number;
+  meetLink?: string | null;
 };
 
 export async function getTodayData() {
@@ -230,23 +232,19 @@ export async function getTodayData() {
       listAbandonedBookingFollowUps(),
       getQuietLeadsGroup(),
       listConversations({ spam: true }),
-      listUpcomingApprovedBookingRequests(),
+      listUpcomingMeetings({ days: 14, limit: 8 }),
     ]);
 
-  // Only source of Today calendar items in this chassis is booked meetings
-  // (Calendly-style scheduling). The original app also merged in its own
-  // meetup/event roster here - that whole feature is intentionally not
-  // part of this chassis; see README.
-  const calendar: TodayCalendarItem[] = upcomingMeetings
-    .filter((m) => m.starts_at)
-    .map((m) => ({
-      id: `meeting-${m.id}`,
-      title: m.contact_name ? m.contact_name : m.visitor_name || "Client meeting",
-      startsAt: m.starts_at as string,
-      href: "/scheduling",
-      meta: "Booked meeting",
-    }))
-    .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
+  // Every CRM meeting in the next two weeks: online bookings, meetings
+  // scheduled from a contact, Calendly.
+  const calendar: TodayCalendarItem[] = upcomingMeetings.meetings.map((m) => ({
+    id: `meeting-${m.id}`,
+    title: m.contactName,
+    startsAt: m.startsAt,
+    href: `/contacts/${m.contactId}`,
+    meta: m.title,
+    meetLink: m.meetLink,
+  }));
 
   return {
     stages,

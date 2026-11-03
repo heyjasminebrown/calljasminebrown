@@ -100,7 +100,8 @@ export async function approveBooking(requestId: string) {
   const contactTypeLabel = BOOKING_CONTACT_TYPE_OPTIONS.find((o) => o.value === request.contact_type)?.label;
   const description = [
     contactTypeLabel ? `${contactTypeLabel}` : null,
-    request.questions ? `Questions: ${request.questions}` : null,
+    request.questions ? `Topic: ${request.questions}` : null,
+    `Phone: ${request.visitor_phone}`,
   ]
     .filter(Boolean)
     .join("\n");
@@ -108,7 +109,7 @@ export async function approveBooking(requestId: string) {
   const invite = await createMeetingInvite(admin, user.id, {
     attendeeEmail: request.visitor_email,
     attendeeName: request.visitor_name,
-    title: `Meeting with ${request.visitor_name}`,
+    title: request.calendar_name ? `${request.calendar_name}: ${request.visitor_name}` : `Meeting with ${request.visitor_name}`,
     description: description || undefined,
     startAt: request.starts_at,
     durationMinutes: durationMinutes > 0 ? durationMinutes : 30,
@@ -133,7 +134,7 @@ export async function approveBooking(requestId: string) {
       type: "meeting",
       direction: "none",
       occurred_at: request.starts_at,
-      body: `Booked via scheduling link`,
+      body: `${request.calendar_name ?? "Meeting"} (${durationMinutes > 0 ? durationMinutes : 30} min) booked via scheduling link${request.questions ? ` · Topic: ${request.questions}` : ""}`,
       metadata: { google_event_id: invite.eventId, meet_link: invite.meetLink, booking_request_id: request.id },
     });
   }

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { ABANDONED_BOOKING_STAGES, ABANDONMENT_DELAY_MS } from "@/lib/crm/booking-abandonment";
-import type { SchedulingSettings, BookingRequest, WeeklyHours } from "@/types/database";
+import { DEFAULT_WEEKLY_HOURS as STARTING_HOURS } from "@/lib/crm/booking-calendars";
+import type { SchedulingSettings, BookingRequest, WeeklyHours, BookingCalendar } from "@/types/database";
 
 const DEFAULT_WEEKLY_HOURS: WeeklyHours = {
   mon: { enabled: true, start: "10:00", end: "18:00" },
@@ -108,4 +109,33 @@ export async function listAbandonedBookingFollowUps(): Promise<BookingRequestWit
     .limit(30);
 
   return (data ?? []).map(withContactName);
+}
+
+// Her booking calendars, main one first. Recreates the starting "Intro
+// call" if she has none (so the public page never has nothing to show).
+export async function listBookingCalendars(): Promise<{ calendars: BookingCalendar[]; error: string | null }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { calendars: [], error: "Not signed in" };
+
+  const load = () =>
+    supabase.from("booking_calendars").select("*").order("is_default", { ascending: false }).order("sort_order").order("created_at");
+  let { data, error } = await load();
+  if (error) return { calendars: [], error: error.message };
+  if ((data ?? []).length === 0) {
+    const { error: createError } = await supabase.from("booking_calendars").insert({
+      owner_id: user.id,
+      name: "Intro call",
+      slug: "intro-call",
+      duration_minutes: 20,
+      weekly_hours: STARTING_HOURS,
+      is_default: true,
+    });
+    if (createError) return { calendars: [], error: createError.message };
+    ({ data, error } = await load());
+    if (error) return { calendars: [], error: error.message };
+  }
+  return { calendars: (data ?? []) as BookingCalendar[], error: null };
 }

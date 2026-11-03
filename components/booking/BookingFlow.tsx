@@ -3,24 +3,57 @@
 import { useEffect, useState } from "react";
 import { formatInTimeZone } from "date-fns-tz";
 import { CalendarClock, Check, LayoutGrid, List } from "lucide-react";
-import { getBookingFlowData, startBookingSession, selectBookingSlot, submitBookingDetails, type BookingFlowData } from "@/app/book/booking-actions";
+import { getBookingFlowData, startBookingSession, selectBookingSlot, confirmBooking, type BookingFlowData, type PublicCalendar } from "@/app/book/booking-actions";
 import { CalendarGridView } from "@/components/booking/CalendarGridView";
 import { ListView } from "@/components/booking/ListView";
 import { BookingSteps } from "@/components/booking/BookingSteps";
-import { BOOKING_CONTACT_TYPE_OPTIONS } from "@/lib/crm/booking-form-options";
 import { APP_TIMEZONE } from "@/lib/format-time";
 import { OWNER_FIRST_NAME } from "@/lib/brand/identity";
 import type { Slot } from "@/lib/crm/booking-availability";
-import type { BookingContactType } from "@/types/database";
 import "./booking.css";
 
-type Step = "info" | "time" | "details" | "done";
-const STEP_NUMBER: Record<Step, number> = { info: 1, time: 2, details: 3, done: 3 };
+type Step = "choose" | "info" | "time" | "details" | "done";
+const STEP_NUMBER: Record<Step, number> = { choose: 1, info: 1, time: 2, details: 3, done: 3 };
 
 function parseFixture(value: string | null | undefined): Step | null {
   if (value === "info" || value === "time" || value === "details" || value === "done") return value;
   return null;
 }
+
+// Embedded on heyjasminebrown.com/meet: tell the parent page how tall the
+// booking flow is, so the frame grows with it (no inner scrollbar).
+function useReportHeight(enabled: boolean) {
+  useEffect(() => {
+    if (!enabled || typeof window === "undefined" || window.parent === window) return;
+    // Measure the booking content itself (the page's own height never
+    // drops below the frame's, so it could only ever grow).
+    const target = () => document.querySelector<HTMLElement>("main.bk");
+    const send = () => {
+      const el = target();
+      if (el) window.parent.postMessage({ type: "cjb-booking-height", height: Math.ceil(el.getBoundingClientRect().height) }, "*");
+    };
+    send();
+    const observer = new ResizeObserver(send);
+    const watch = () => {
+      const el = target();
+      if (el) observer.observe(el);
+    };
+    watch();
+    // The <main> is swapped between loading and loaded states.
+    const mutations = new MutationObserver(() => {
+      observer.disconnect();
+      watch();
+      send();
+    });
+    mutations.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      observer.disconnect();
+      mutations.disconnect();
+    };
+  }, [enabled]);
+}
+
+const TZ_NOTE = "Times are Eastern (ET)";
 
 // Stable sample times for screenshots. Never written, and never used unless
 // ?fixture= is set. The anchor is fixed so server and client markup match.
@@ -48,19 +81,24 @@ function fixtureSlots(): Slot[] {
 
 export function BookingFlow({
   slug,
+  calendarSlug = null,
+  embed = false,
   presentation = "page",
-  onClose,
   fixture = null,
 }: {
   slug: string | null;
+  calendarSlug?: string | null;
+  embed?: boolean;
   presentation?: "page" | "sheet";
-  onClose?: () => void;
   fixture?: string | null;
 }) {
+  useReportHeight(embed);
   const fixtureStep = parseFixture(fixture);
   const sampleSlots = fixtureStep ? fixtureSlots() : [];
+  const sampleCalendar: PublicCalendar = { slug: "intro-call", name: "Intro call", description: null, durationMinutes: 20 };
+  const [chosen, setChosen] = useState<string | null>(calendarSlug);
   const [data, setData] = useState<BookingFlowData | null | "loading">(
-    fixtureStep ? { durationMinutes: 20, prefill: null, slots: sampleSlots } : "loading",
+    fixtureStep ? { calendar: sampleCalendar, choices: null, durationMinutes: 20, prefill: null, slots: sampleSlots } : "loading",
   );
   const [step, setStep] = useState<Step>(fixtureStep ?? "info");
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -68,10 +106,10 @@ export function BookingFlow({
 
   const [name, setName] = useState(fixtureStep && fixtureStep !== "info" ? "Jordan Sample" : "");
   const [phone, setPhone] = useState(fixtureStep && fixtureStep !== "info" ? "(555) 010-0000" : "");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(fixtureStep && fixtureStep !== "info" ? "jordan@example.com" : "");
   const [selectedSlot, setSelectedSlot] = useState<string | null>(fixtureStep === "details" || fixtureStep === "done" ? sampleSlots[2]?.startAt ?? null : null);
-  const [contactType, setContactType] = useState<BookingContactType | "">("");
-  const [questions, setQuestions] = useState("");
+  const [topic, setTopic] = useState("");
+  const [result, setResult] = useState<{ confirmed: boolean; meetLink: string | null } | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -79,35 +117,41 @@ export function BookingFlow({
   useEffect(() => {
     if (fixtureStep) return;
     let cancelled = false;
-    getBookingFlowData(slug).then((result) => {
+    setData("loading");
+    getBookingFlowData(slug, chosen).then((loaded) => {
       if (cancelled) return;
-      setData(result);
-      if (result?.prefill) {
-        setName(result.prefill.name);
-        setPhone(result.prefill.phone);
-        setEmail(result.prefill.email);
+      setData(loaded);
+      if (loaded?.choices && !chosen) setStep("choose");
+      else setStep((s) => (s === "choose" ? "info" : s));
+      if (loaded?.prefill) {
+        setName(loaded.prefill.name);
+        setPhone(loaded.prefill.phone);
+        setEmail(loaded.prefill.email);
       }
     });
     return () => {
       cancelled = true;
     };
-  }, [slug, fixtureStep]);
+  }, [slug, chosen, fixtureStep]);
+
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const infoReady = !!name.trim() && !!phone.trim() && emailOk;
 
   async function submitInfo() {
-    if (!name.trim() || !phone.trim()) return;
+    if (!infoReady || data === "loading" || !data) return;
     if (fixtureStep) {
       setStep("time");
       return;
     }
     setSubmitting(true);
     setError("");
-    const result = await startBookingSession({ slug, name: name.trim(), phone: phone.trim(), email: email.trim() });
+    const started = await startBookingSession({ slug, calendarSlug: data.calendar.slug, name: name.trim(), phone: phone.trim(), email: email.trim() });
     setSubmitting(false);
-    if (result.ok) {
-      setSessionId(result.sessionId);
+    if (started.ok) {
+      setSessionId(started.sessionId);
       setStep("time");
     } else {
-      setError(result.error);
+      setError(started.error);
     }
   }
 
@@ -120,10 +164,10 @@ export function BookingFlow({
     if (!sessionId) return;
     setSubmitting(true);
     setError("");
-    const result = await selectBookingSlot(sessionId, selectedSlot);
+    const picked = await selectBookingSlot(sessionId, selectedSlot);
     setSubmitting(false);
-    if (result.ok) setStep("details");
-    else setError(result.error);
+    if (picked.ok) setStep("details");
+    else setError(picked.error);
   }
 
   async function submitDetails() {
@@ -134,13 +178,14 @@ export function BookingFlow({
     if (!sessionId) return;
     setSubmitting(true);
     setError("");
-    const result = await submitBookingDetails(sessionId, {
-      contactType: contactType || null,
-      questions,
-    });
+    const booked = await confirmBooking(sessionId, { topic });
     setSubmitting(false);
-    if (result.ok) setStep("done");
-    else setError(result.error);
+    if (booked.ok) {
+      setResult({ confirmed: booked.confirmed, meetLink: booked.meetLink });
+      setStep("done");
+    } else {
+      setError(booked.error);
+    }
   }
 
   // The original app had a second "sheet" presentation here, embedded
@@ -148,9 +193,11 @@ export function BookingFlow({
   // only ever renders the standalone "page" presentation; add your own
   // embedded variant if you need one.
 
+  const mainClass = embed ? "bk bk-embed" : "bk";
+
   if (data === "loading") {
     return (
-      <main className="bk">
+      <main className={mainClass}>
         <p className="bk-empty">Loading…</p>
       </main>
     );
@@ -158,32 +205,43 @@ export function BookingFlow({
 
   if (!data) {
     return (
-      <main className="bk">
-        <p className="bk-empty">This link isn&apos;t valid anymore. Ask {OWNER_FIRST_NAME} to send a fresh one.</p>
+      <main className={mainClass}>
+        <p className="bk-empty">This booking link isn&apos;t available right now. Please reach out to {OWNER_FIRST_NAME} directly.</p>
       </main>
     );
   }
 
+  const when = selectedSlot ? formatInTimeZone(selectedSlot, APP_TIMEZONE, "EEEE, MMM d 'at' h:mm a") : "";
+
   return (
-    <main className="bk">
+    <main className={mainClass}>
       <div className="bk-col">
         {step === "done" ? (
           <div className="bk-card bk-done">
             <div className="bk-check">
               <Check size={22} />
             </div>
-            <h2>
-              Request <em>sent!</em>
-            </h2>
-            <p>
-              {selectedSlot && (
-                <>
-                  {formatInTimeZone(selectedSlot, APP_TIMEZONE, "EEEE, MMM d 'at' h:mm a")} — {OWNER_FIRST_NAME} will confirm shortly and text you at {phone}.
-                </>
-              )}
-            </p>
+            {result?.confirmed === false ? (
+              <>
+                <h2>
+                  Request <em>received!</em>
+                </h2>
+                <p>
+                  {when} ET — {OWNER_FIRST_NAME} will confirm shortly and text you at {phone}.
+                </p>
+              </>
+            ) : (
+              <>
+                <h2>
+                  You&apos;re <em>booked!</em>
+                </h2>
+                <p>
+                  {data.calendar.name} with {OWNER_FIRST_NAME} on {when} ET. A calendar invite with the video link is on its way to {email}, and you&apos;ll get a text confirmation at {phone}.
+                </p>
+              </>
+            )}
           </div>
-        ) : (
+        ) : step === "choose" && data.choices ? (
           <>
             <div className="bk-head">
               <CalendarClock size={22} />
@@ -191,11 +249,38 @@ export function BookingFlow({
                 <h1>
                   Book time with <em>{OWNER_FIRST_NAME}</em>
                 </h1>
-                <p>{data.durationMinutes} minutes</p>
+                <p>Pick the kind of meeting</p>
+              </div>
+            </div>
+            <div className="bk-choices">
+              {data.choices.map((c) => (
+                <button key={c.slug} type="button" className="bk-card bk-choice" onClick={() => setChosen(c.slug)}>
+                  <b>{c.name}</b>
+                  <span>{c.durationMinutes} minutes</span>
+                  {c.description && <small>{c.description}</small>}
+                </button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="bk-head">
+              <CalendarClock size={22} />
+              <div>
+                <h1>
+                  {data.calendar.name} with <em>{OWNER_FIRST_NAME}</em>
+                </h1>
+                <p>{data.durationMinutes} minutes · video call</p>
               </div>
               <span className="bk-stepn">Step {STEP_NUMBER[step]} of 3</span>
             </div>
-            <BookingSteps step={step} />
+            {data.calendar.description && <p className="bk-desc">{data.calendar.description}</p>}
+            {data.choices && step === "info" && (
+              <button type="button" className="bk-back" onClick={() => setStep("choose")}>
+                ← Other meeting types
+              </button>
+            )}
+            <BookingSteps step={step === "choose" ? "info" : step} />
             <div className="bk-card">
               {step === "info" && (
                 <>
@@ -213,15 +298,13 @@ export function BookingFlow({
                   </div>
                   <div className="bk-field">
                     <label htmlFor="book-email">
-                      Email <small>(optional)</small>
+                      Email <small>(required - your calendar invite goes here)</small>
                     </label>
-                    <input id="book-email" value={email} onChange={(e) => setEmail(e.target.value)} type="email" autoComplete="email" />
+                    <input id="book-email" value={email} onChange={(e) => setEmail(e.target.value)} type="email" required autoComplete="email" />
                   </div>
                   {error && <p className="bk-error">{error}</p>}
-                  {(!name.trim() || !phone.trim()) && (
-                    <p className="bk-hint">Add your name and phone to continue — {OWNER_FIRST_NAME} uses them to confirm the meeting.</p>
-                  )}
-                  <button type="button" className="bk-primary" onClick={submitInfo} disabled={submitting || !name.trim() || !phone.trim()}>
+                  {!infoReady && <p className="bk-hint">Add your name, phone and email to see available times.</p>}
+                  <button type="button" className="bk-primary" onClick={submitInfo} disabled={submitting || !infoReady}>
                     {submitting ? "…" : "Next"}
                   </button>
                 </>
@@ -230,6 +313,7 @@ export function BookingFlow({
               {step === "time" && (
                 <>
                   <div className="bk-views">
+                    <span className="bk-tz">{TZ_NOTE}</span>
                     <div>
                       <button type="button" className={view === "calendar" ? "on" : ""} onClick={() => setView("calendar")}>
                         <LayoutGrid size={12} /> Calendar
@@ -239,7 +323,9 @@ export function BookingFlow({
                       </button>
                     </div>
                   </div>
-                  {view === "calendar" ? (
+                  {data.slots.length === 0 ? (
+                    <p className="bk-empty">No open times right now - check back soon or reach out to {OWNER_FIRST_NAME} directly.</p>
+                  ) : view === "calendar" ? (
                     <CalendarGridView slots={data.slots} selected={selectedSlot} onSelect={setSelectedSlot} />
                   ) : (
                     <ListView slots={data.slots} selected={selectedSlot} onSelect={setSelectedSlot} />
@@ -258,28 +344,12 @@ export function BookingFlow({
 
               {step === "details" && (
                 <>
-                  <p className="bk-prep">Help me prepare for this meeting:</p>
-                  {selectedSlot && <p className="bk-picked">{formatInTimeZone(selectedSlot, APP_TIMEZONE, "EEEE, MMM d 'at' h:mm a")}</p>}
+                  {selectedSlot && <p className="bk-picked">{when} ET</p>}
                   <div className="bk-field">
-                    <span className="bk-label">
-                      What best describes you? <small>(optional)</small>
-                    </span>
-                    <div className="bk-chips">
-                      {BOOKING_CONTACT_TYPE_OPTIONS.map((o) => {
-                        const active = contactType === o.value;
-                        return (
-                          <button key={o.value} type="button" className={active ? "sel" : ""} onClick={() => setContactType(active ? "" : o.value)}>
-                            {o.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  <div className="bk-field">
-                    <label htmlFor="book-questions">
-                      Anything you&apos;d like to share or specific topics you&apos;d like to cover? <small>(optional)</small>
+                    <label htmlFor="book-topic">
+                      What would you like to talk about? <small>(optional)</small>
                     </label>
-                    <textarea id="book-questions" value={questions} onChange={(e) => setQuestions(e.target.value)} rows={3} />
+                    <textarea id="book-topic" value={topic} onChange={(e) => setTopic(e.target.value)} rows={3} />
                   </div>
                   {error && <p className="bk-error">{error}</p>}
                   <div className="bk-nav" style={{ border: 0, paddingTop: 4, marginTop: 6 }}>
@@ -287,10 +357,9 @@ export function BookingFlow({
                       Back
                     </button>
                     <button type="button" className="bk-primary" onClick={submitDetails} disabled={submitting}>
-                      {submitting ? "Sending…" : "Request this time"}
+                      {submitting ? "Booking…" : "Book it"}
                     </button>
                   </div>
-                  <p className="bk-conf">{OWNER_FIRST_NAME} confirms every request before it&apos;s final.</p>
                 </>
               )}
             </div>

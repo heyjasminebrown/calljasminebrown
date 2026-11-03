@@ -12,7 +12,7 @@ function describeWhen(startsAtIso: string): string {
 export function buildBookingConfirmedMessage(input: { visitorFirstName: string; startsAt: string; meetLink: string | null }): string {
   const when = describeWhen(input.startsAt);
   const meet = input.meetLink ? ` Video call link: ${input.meetLink}` : "";
-  return `Thanks for booking - looking forward to meeting with you on ${when}!${meet}`;
+  return `Thanks for booking - looking forward to meeting with you on ${when} ET!${meet}`;
 }
 
 export function buildBookingDeclinedMessage(input: { visitorFirstName: string; startsAt: string; rebookLink: string }): string {

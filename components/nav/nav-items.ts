@@ -6,6 +6,7 @@ import {
   Mail,
   BarChart3,
   Settings,
+  CalendarDays,
   Menu,
   type LucideIcon,
 } from "lucide-react";
@@ -25,6 +26,7 @@ export const PRIMARY_NAV_ITEMS: NavItem[] = [
 
 export const MORE_NAV_ITEMS: NavItem[] = [
   { href: "/sequences", label: "Campaigns", icon: Mail, hint: "Email and text campaigns" },
+  { href: "/scheduling", label: "Schedule", icon: CalendarDays, hint: "Booking calendars and meetings" },
   { href: "/reports", label: "Reports", icon: BarChart3 },
   { href: "/settings", label: "Settings", icon: Settings },
 ];

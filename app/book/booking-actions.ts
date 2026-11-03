@@ -2,58 +2,88 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { computeAvailableSlots, type Slot } from "@/lib/crm/booking-availability";
+import { availabilityFor, DEFAULT_WEEKLY_HOURS } from "@/lib/crm/booking-calendars";
 import { findOrCreateContact } from "@/lib/crm/find-or-create-contact";
 import { upsertActivity } from "@/lib/crm/activities";
+import { createMeetingInvite } from "@/lib/google/calendar";
+import { sendQuoText } from "@/lib/quo/send-message";
+import { buildBookingConfirmedMessage } from "@/lib/crm/booking-message";
 import { notifyNewLead } from "@/lib/push/send-push";
-import { BOOKING_CONTACT_TYPE_OPTIONS } from "@/lib/crm/booking-form-options";
-import type { SchedulingSettings, WeeklyHours, BookingContactType } from "@/types/database";
+import { reportFailure } from "@/lib/errors/report-failure";
+import { OWNER_FIRST_NAME } from "@/lib/brand/identity";
+import type { BookingCalendar } from "@/types/database";
 
-// Public, unauthenticated by design - shared by both /book (generic, no
-// slug) and /book/[slug] (contact-prefilled) - every action here goes
-// through the admin client scoped to the single owner account, not a
-// user session. Same pattern as app/n/[slug]/actions.ts.
+// Public, unauthenticated by design - shared by /book (her default
+// calendar, or ?calendar=<link>) and /book/[slug] (a contact-prefilled
+// link). Every action goes through the admin client scoped to the single
+// owner account, not a user session.
+//
+// Booking is instant: the last step creates the Google Calendar event
+// (with a Meet link and an emailed invite), texts a confirmation, logs
+// the meeting on the contact and notifies her. If Google refuses, the
+// request is kept as pending for her to approve on Schedule instead of
+// being lost, and the failure is reported.
 const OWNER_ID = process.env.CRM_OWNER_USER_ID;
 const SLUG_FORMAT = /^[A-Za-z0-9_-]{8}$/;
-
-const DEFAULT_WEEKLY_HOURS: WeeklyHours = {
-  mon: { enabled: true, start: "10:00", end: "18:00" },
-  tue: { enabled: true, start: "10:00", end: "18:00" },
-  wed: { enabled: true, start: "10:00", end: "18:00" },
-  thu: { enabled: true, start: "10:00", end: "18:00" },
-  fri: { enabled: true, start: "10:00", end: "18:00" },
-  sat: { enabled: false, start: "10:00", end: "18:00" },
-  sun: { enabled: false, start: "10:00", end: "18:00" },
-};
-
-// A booking link (or the bare /book address) can be used before she's
-// ever opened Settings > Scheduling (the row that lazily creates
-// scheduling_settings) - falls back to the same defaults that row would
-// get, so the public page always works.
-// Public intro calls are 20 minutes. CRM scheduling settings can still
-// store another length for meetings she books herself.
-const PUBLIC_INTRO_MINUTES = 20;
-
-function withDefaults(row: SchedulingSettings | null) {
-  return {
-    durationMinutes: row?.duration_minutes ?? 30,
-    daysOut: row?.days_out ?? 14,
-    visibleSlotPct: row?.visible_slot_pct ?? 50,
-    bufferMinutes: row?.buffer_minutes ?? 15,
-    weeklyHours: row?.weekly_hours ?? DEFAULT_WEEKLY_HOURS,
-  };
-}
-
+const CALENDAR_SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const ACTIVE_STAGES = new Set(["info", "time_selected", "pending"]);
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type Admin = ReturnType<typeof createAdminClient>;
+
+export type PublicCalendar = { slug: string; name: string; description: string | null; durationMinutes: number };
 
 export type BookingFlowData = {
+  calendar: PublicCalendar;
+  // Set when the page was opened without a specific calendar and she has
+  // more than one active: the visitor picks one first.
+  choices: PublicCalendar[] | null;
   durationMinutes: number;
   prefill: { name: string; phone: string; email: string } | null;
   slots: Slot[];
 };
 
-export async function getBookingFlowData(slug: string | null): Promise<BookingFlowData | null> {
+function toPublic(c: BookingCalendar): PublicCalendar {
+  return { slug: c.slug, name: c.name, description: c.description, durationMinutes: c.duration_minutes };
+}
+
+async function activeCalendars(admin: Admin, ownerId: string): Promise<BookingCalendar[]> {
+  const { data, error } = await admin
+    .from("booking_calendars")
+    .select("*")
+    .eq("owner_id", ownerId)
+    .order("sort_order")
+    .order("created_at");
+  if (error) throw new Error(`Couldn't load booking calendars: ${error.message}`);
+  let rows = (data ?? []) as BookingCalendar[];
+  if (rows.length === 0) {
+    // Never left with no calendar at all: recreate the starting one.
+    const { data: created, error: createError } = await admin
+      .from("booking_calendars")
+      .insert({ owner_id: ownerId, name: "Intro call", slug: "intro-call", duration_minutes: 20, weekly_hours: DEFAULT_WEEKLY_HOURS, is_default: true })
+      .select("*");
+    if (createError) throw new Error(`Couldn't create the default booking calendar: ${createError.message}`);
+    rows = (created ?? []) as BookingCalendar[];
+  }
+  return rows.filter((c) => c.active);
+}
+
+async function resolveCalendar(admin: Admin, ownerId: string, calendarSlug: string | null): Promise<{ calendar: BookingCalendar | null; all: BookingCalendar[] }> {
+  const all = await activeCalendars(admin, ownerId);
+  if (calendarSlug) return { calendar: all.find((c) => c.slug === calendarSlug) ?? null, all };
+  return { calendar: all.find((c) => c.is_default) ?? all[0] ?? null, all };
+}
+
+async function loadCalendarById(admin: Admin, ownerId: string, id: string | null): Promise<BookingCalendar | null> {
+  if (!id) return (await resolveCalendar(admin, ownerId, null)).calendar;
+  const { data } = await admin.from("booking_calendars").select("*").eq("owner_id", ownerId).eq("id", id).maybeSingle();
+  return (data as BookingCalendar | null) ?? null;
+}
+
+export async function getBookingFlowData(slug: string | null, calendarSlug: string | null = null): Promise<BookingFlowData | null> {
   if (!OWNER_ID) return null;
   if (slug && !SLUG_FORMAT.test(slug)) return null;
+  if (calendarSlug && !CALENDAR_SLUG.test(calendarSlug)) return null;
 
   const admin = createAdminClient();
 
@@ -63,30 +93,41 @@ export async function getBookingFlowData(slug: string | null): Promise<BookingFl
     if (!link) return null;
     const { data: contact } = await admin.from("contacts").select("first_name, last_name, phone, email").eq("id", link.contact_id).maybeSingle();
     if (contact) {
-      prefill = { name: `${contact.first_name} ${contact.last_name}`.trim(), phone: contact.phone ?? "", email: contact.email ?? "" };
+      prefill = { name: `${contact.first_name} ${contact.last_name ?? ""}`.trim(), phone: contact.phone ?? "", email: contact.email ?? "" };
     }
   }
 
-  const { data: settingsRow } = await admin.from("scheduling_settings").select("*").eq("owner_id", OWNER_ID).maybeSingle();
-  const settings = { ...withDefaults(settingsRow as SchedulingSettings | null), durationMinutes: PUBLIC_INTRO_MINUTES };
-
-  const slots = await computeAvailableSlots(admin, OWNER_ID, settings);
-  return { durationMinutes: PUBLIC_INTRO_MINUTES, prefill, slots };
+  try {
+    const { calendar, all } = await resolveCalendar(admin, OWNER_ID, calendarSlug);
+    if (!calendar) return null;
+    const slots = await computeAvailableSlots(admin, OWNER_ID, availabilityFor(calendar));
+    return {
+      calendar: toPublic(calendar),
+      choices: !calendarSlug && !slug && all.length > 1 ? all.map(toPublic) : null,
+      durationMinutes: calendar.duration_minutes,
+      prefill,
+      slots,
+    };
+  } catch (err) {
+    await reportFailure("Booking page couldn't load available times", err);
+    return null;
+  }
 }
 
 // Step 1: name/phone/email. Creates the booking_requests row right away
-// (stage 'info') and resolves/creates the contact immediately - this is
-// what makes an abandoned attempt visible to her on /scheduling even if
-// they never pick a time at all.
+// (stage 'info') and finds or creates the contact - so someone who stops
+// partway still shows on Schedule under "Started but didn't book".
 export async function startBookingSession(input: {
   slug: string | null;
+  calendarSlug: string;
   name: string;
   phone: string;
   email: string;
 }): Promise<{ ok: true; sessionId: string } | { ok: false; error: string }> {
-  if (!OWNER_ID) return { ok: false, error: "This link isn't set up yet." };
+  if (!OWNER_ID) return { ok: false, error: "This page isn't set up yet." };
   if (input.slug && !SLUG_FORMAT.test(input.slug)) return { ok: false, error: "This link isn't valid." };
-  if (!input.name.trim() || !input.phone.trim()) return { ok: false, error: "Name and phone are required." };
+  if (!input.name.trim() || !input.phone.trim() || !input.email.trim()) return { ok: false, error: "Name, phone and email are required." };
+  if (!EMAIL.test(input.email.trim())) return { ok: false, error: "That email doesn't look right - check it and try again." };
 
   const admin = createAdminClient();
 
@@ -97,14 +138,24 @@ export async function startBookingSession(input: {
     linkId = link.id;
   }
 
+  let calendar: BookingCalendar | null;
+  try {
+    calendar = (await resolveCalendar(admin, OWNER_ID, input.calendarSlug)).calendar;
+  } catch (err) {
+    await reportFailure("Booking page couldn't load the calendar", err);
+    return { ok: false, error: "Something went wrong on our end - please try again in a minute." };
+  }
+  if (!calendar) return { ok: false, error: "This calendar isn't taking bookings right now." };
+
   const nameParts = input.name.trim().split(/\s+/);
   const contact = await findOrCreateContact(admin, OWNER_ID, {
-    email: input.email.trim() || null,
+    email: input.email.trim(),
     phone: input.phone.trim(),
     firstName: nameParts[0],
     lastName: nameParts.slice(1).join(" ") || null,
-    leadSource: "Scheduling page",
+    leadSource: "Website",
   });
+  if (!contact) await reportFailure("Booking page couldn't find or create a contact", { name: input.name, phone: input.phone, email: input.email });
 
   const { data: created, error } = await admin
     .from("booking_requests")
@@ -114,31 +165,39 @@ export async function startBookingSession(input: {
       contact_id: contact?.id ?? null,
       visitor_name: input.name.trim(),
       visitor_phone: input.phone.trim(),
-      visitor_email: input.email.trim() || null,
+      visitor_email: input.email.trim(),
+      calendar_id: calendar.id,
+      calendar_name: calendar.name,
       stage: "info",
     })
     .select("id")
     .single();
-  if (error || !created) return { ok: false, error: "Couldn't start that - try again." };
+  if (error || !created) {
+    await reportFailure("Booking page couldn't start a booking", error?.message);
+    return { ok: false, error: "Couldn't start that - try again." };
+  }
 
   return { ok: true, sessionId: created.id as string };
 }
 
-// Step 2: pick a time. Re-validates against a fresh availability
-// computation rather than trusting the slot the browser last saw -
-// guards both a real race (someone else grabbed it a second ago) and a
-// guessed/replayed time that was never actually shown (including one
-// hidden by the "looks busier" filter).
+async function sessionAndCalendar(admin: Admin, ownerId: string, sessionId: string) {
+  const { data: session } = await admin.from("booking_requests").select("*").eq("id", sessionId).eq("owner_id", ownerId).maybeSingle();
+  if (!session) return { session: null, calendar: null };
+  const calendar = await loadCalendarById(admin, ownerId, session.calendar_id ?? null);
+  return { session, calendar };
+}
+
+// Step 2: pick a time. Re-validated against fresh availability rather than
+// trusting the slot the browser last saw.
 export async function selectBookingSlot(sessionId: string, startsAt: string): Promise<{ ok: true } | { ok: false; error: string }> {
   if (!OWNER_ID) return { ok: false, error: "server not configured" };
   const admin = createAdminClient();
 
-  const { data: session } = await admin.from("booking_requests").select("id, stage").eq("id", sessionId).eq("owner_id", OWNER_ID).maybeSingle();
-  if (!session || !ACTIVE_STAGES.has(session.stage)) return { ok: false, error: "This booking session isn't active anymore." };
+  const { session, calendar } = await sessionAndCalendar(admin, OWNER_ID, sessionId);
+  if (!session || !ACTIVE_STAGES.has(session.stage)) return { ok: false, error: "This booking session isn't active anymore - refresh the page." };
+  if (!calendar) return { ok: false, error: "This calendar isn't taking bookings right now." };
 
-  const { data: settingsRow } = await admin.from("scheduling_settings").select("*").eq("owner_id", OWNER_ID).maybeSingle();
-  const settings = { ...withDefaults(settingsRow as SchedulingSettings | null), durationMinutes: PUBLIC_INTRO_MINUTES };
-  const slots = await computeAvailableSlots(admin, OWNER_ID, settings);
+  const slots = await computeAvailableSlots(admin, OWNER_ID, availabilityFor(calendar), sessionId);
   const slot = slots.find((s) => s.startAt === startsAt);
   if (!slot) return { ok: false, error: "That time isn't available anymore - pick another." };
 
@@ -151,87 +210,122 @@ export async function selectBookingSlot(sessionId: string, startsAt: string): Pr
   return { ok: true };
 }
 
-// Step 3: who they are, notes, questions. Moves the session to
-// 'pending' - ready for her review - enriches the contact record right
-// away (not gated on her approving), and notifies her with the full
-// picture so she has everything she needs before deciding.
-export async function submitBookingDetails(
+// Step 3: what they want to talk about, then book it.
+export async function confirmBooking(
   sessionId: string,
-  input: { contactType: BookingContactType | null; questions: string },
-): Promise<{ ok: true } | { ok: false; error: string }> {
+  input: { topic: string },
+): Promise<{ ok: true; confirmed: boolean; meetLink: string | null } | { ok: false; error: string }> {
   if (!OWNER_ID) return { ok: false, error: "server not configured" };
   const admin = createAdminClient();
 
-  const { data: session } = await admin.from("booking_requests").select("*").eq("id", sessionId).eq("owner_id", OWNER_ID).maybeSingle();
-  if (!session || !session.starts_at) return { ok: false, error: "Pick a time first." };
-  if (!ACTIVE_STAGES.has(session.stage)) return { ok: false, error: "This booking session isn't active anymore." };
+  const { session, calendar } = await sessionAndCalendar(admin, OWNER_ID, sessionId);
+  if (!session || !session.starts_at || !session.ends_at) return { ok: false, error: "Pick a time first." };
+  if (session.stage === "approved") return { ok: true, confirmed: true, meetLink: null };
+  if (!ACTIVE_STAGES.has(session.stage)) return { ok: false, error: "This booking session isn't active anymore - refresh the page." };
+  if (!calendar) return { ok: false, error: "This calendar isn't taking bookings right now." };
 
-  const questions = input.questions.trim() || null;
-
-  const { error } = await admin
-    .from("booking_requests")
-    .update({
-      contact_type: input.contactType,
-      questions,
-      stage: "pending",
-      submitted_at: new Date().toISOString(),
-    })
-    .eq("id", sessionId);
-  if (error) return { ok: false, error: "Couldn't save that - try again." };
-
-  if (session.contact_id) {
-    await enrichContactFromBooking(admin, OWNER_ID, session.contact_id, sessionId, {
-      contactType: input.contactType,
-      questions,
-    });
+  // Still free? (Someone else may have booked it, or her calendar changed.)
+  const slots = await computeAvailableSlots(admin, OWNER_ID, availabilityFor(calendar), sessionId);
+  if (!slots.some((s) => s.startAt === new Date(session.starts_at).toISOString())) {
+    await admin.from("booking_requests").update({ stage: "info", starts_at: null, ends_at: null }).eq("id", sessionId);
+    return { ok: false, error: "Sorry - that time was just taken. Go back and pick another." };
   }
 
-  const contactTypeLabel = BOOKING_CONTACT_TYPE_OPTIONS.find((o) => o.value === input.contactType)?.label;
-  const when = new Date(session.starts_at).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
-  const bodyParts = [when, contactTypeLabel].filter(Boolean);
+  const topic = input.topic.trim() || null;
+  const durationMinutes = Math.max(5, Math.round((new Date(session.ends_at).getTime() - new Date(session.starts_at).getTime()) / 60_000));
+  const description = [
+    topic ? `Topic: ${topic}` : null,
+    `Phone: ${session.visitor_phone}`,
+    `Booked online (${calendar.name})`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const invite = await createMeetingInvite(admin, OWNER_ID, {
+    attendeeEmail: session.visitor_email,
+    attendeeName: session.visitor_name,
+    title: `${calendar.name}: ${session.visitor_name} & ${OWNER_FIRST_NAME}`,
+    description,
+    startAt: session.starts_at,
+    durationMinutes,
+  });
+
+  const now = new Date().toISOString();
+  const when = new Date(session.starts_at).toLocaleString("en-US", {
+    timeZone: "America/New_York",
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+  if (!invite.ok) {
+    // Keep it as a request she can approve, rather than losing it.
+    await admin.from("booking_requests").update({ questions: topic, stage: "pending", submitted_at: now }).eq("id", sessionId);
+    await reportFailure(
+      `A booking couldn't be added to your Google Calendar - approve it on Schedule (${session.visitor_name}, ${when})`,
+      invite.error,
+    );
+    await notifyNewLead(admin, OWNER_ID, { title: session.visitor_name, body: `Requested ${when} - couldn't auto-book, approve it`, url: "/scheduling" });
+    return { ok: true, confirmed: false, meetLink: null };
+  }
+
+  const { error: updateError } = await admin
+    .from("booking_requests")
+    .update({ questions: topic, stage: "approved", submitted_at: now, decided_at: now, google_event_id: invite.eventId })
+    .eq("id", sessionId);
+  if (updateError) await reportFailure("A booking was added to Google Calendar but not saved in the CRM", updateError.message, { sessionId });
+
+  if (session.contact_id) {
+    await upsertActivity(admin, OWNER_ID, session.contact_id, "scheduling", "booking_request_id", session.id, {
+      type: "meeting",
+      direction: "none",
+      occurred_at: session.starts_at,
+      body: `${calendar.name} (${durationMinutes} min) booked online${topic ? ` · Topic: ${topic}` : ""}`,
+      metadata: {
+        google_event_id: invite.eventId,
+        meet_link: invite.meetLink,
+        html_link: invite.htmlLink,
+        booking_request_id: session.id,
+        calendar_id: calendar.id,
+        duration_minutes: durationMinutes,
+      },
+    });
+    await textConfirmation(admin, OWNER_ID, session.contact_id, session.visitor_phone, session.visitor_name, session.starts_at, invite.meetLink);
+  }
 
   await notifyNewLead(admin, OWNER_ID, {
     title: session.visitor_name,
-    body: `Requested ${bodyParts.join(" · ")} - review it`,
-    url: "/scheduling",
+    body: `Booked ${calendar.name} for ${when}`,
+    url: session.contact_id ? `/contacts/${session.contact_id}` : "/scheduling",
   });
 
-  return { ok: true };
+  return { ok: true, confirmed: true, meetLink: invite.meetLink };
 }
 
-// Fills in what's still missing rather than overwriting anything real -
-// same enrich-don't-clobber philosophy as findOrCreateContact's own
-// enrichContact. Notes/questions always get logged as a fresh activity
-// though, since those are new information from this specific booking,
-// not a field correction.
-async function enrichContactFromBooking(
-  admin: ReturnType<typeof createAdminClient>,
+async function textConfirmation(
+  admin: Admin,
   ownerId: string,
   contactId: string,
-  sessionId: string,
-  input: { contactType: BookingContactType | null; questions: string | null },
+  phone: string,
+  visitorName: string,
+  startsAt: string,
+  meetLink: string | null,
 ) {
-  const { data: contact } = await admin.from("contacts").select("contact_type").eq("id", contactId).maybeSingle();
-  if (contact) {
-    const patch: Record<string, unknown> = {};
-    if (input.contactType && contact.contact_type === "other") patch.contact_type = input.contactType;
-    if (Object.keys(patch).length > 0) {
-      await admin.from("contacts").update(patch).eq("id", contactId);
-    }
+  const { data: contact } = await admin.from("contacts").select("opted_out_at").eq("id", contactId).maybeSingle();
+  if (contact?.opted_out_at) return;
+  const body = buildBookingConfirmedMessage({ visitorFirstName: visitorName.split(" ")[0] || visitorName, startsAt, meetLink });
+  const result = await sendQuoText(phone, body);
+  if (!result.ok) {
+    await reportFailure(`Booking confirmation text to ${visitorName} failed`, result.error, { contactId });
+    return;
   }
-
-  const noteParts = [input.questions ? `Questions: ${input.questions}` : null].filter(Boolean);
-  if (noteParts.length === 0) return;
-
-  // Distinct dedupe field from the "booked" confirmation activity
-  // approveBooking logs (both key off the same sessionId, but they're
-  // two different activities - a shared dedupe_field would collide and
-  // silently overwrite one with the other).
-  await upsertActivity(admin, ownerId, contactId, "scheduling", "booking_request_notes_id", sessionId, {
-    type: "note",
-    direction: "none",
+  await upsertActivity(admin, ownerId, contactId, "quo", "quo_message_id", result.quoMessageId, {
+    type: "text",
+    direction: "outbound",
     occurred_at: new Date().toISOString(),
-    body: `Filled out before booking time - ${noteParts.join(" · ")}`,
-    metadata: { booking_request_id: sessionId },
+    body,
+    metadata: { quo_message_id: result.quoMessageId, sent_from_crm: true, booking_confirmation: true },
   });
 }

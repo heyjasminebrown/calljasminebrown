@@ -852,6 +852,25 @@ export interface QuoteView {
 export type Weekday = "sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
 export type WeeklyHours = Record<Weekday, { enabled: boolean; start: string; end: string }>;
 
+export interface BookingCalendar {
+  id: string;
+  owner_id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  duration_minutes: number;
+  slot_interval_minutes: number | null;
+  weekly_hours: WeeklyHours;
+  days_out: number;
+  buffer_minutes: number;
+  min_notice_hours: number;
+  active: boolean;
+  is_default: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface SchedulingSettings {
   owner_id: string;
   duration_minutes: number;
@@ -908,6 +927,8 @@ export interface BookingRequest {
   proposed_starts_at: string | null;
   proposed_ends_at: string | null;
   propose_token: string | null;
+  calendar_id?: string | null;
+  calendar_name?: string | null;
 }
 
 export interface EventRecord {

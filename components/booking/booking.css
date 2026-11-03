@@ -453,3 +453,58 @@
     padding: 40px 22px;
   }
 }
+
+/* Embedded on heyjasminebrown.com/meet: the site provides the page. */
+.bk.bk-embed {
+  background: transparent;
+  padding: 8px 4px 24px;
+  min-height: 0;
+}
+.bk-desc {
+  margin: -6px 0 14px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.bk-back {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: #34223a;
+  font-weight: 500;
+}
+.bk-choices {
+  display: grid;
+  gap: 12px;
+}
+.bk-card.bk-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+.bk-choice b {
+  font-size: 17px;
+  font-weight: 600;
+  color: #34223a;
+}
+.bk-choice span {
+  font-size: 14px;
+}
+.bk-choice small {
+  font-size: 14px;
+  line-height: 1.45;
+}
+.bk-tz {
+  font-size: 12px;
+  margin-right: auto;
+}
+
+/* Embedded: let the host page's card show through, and size to content. */
+html:has(.bk-embed),
+body:has(.bk-embed),
+.bk-shell:has(.bk-embed) {
+  background: transparent !important;
+  min-height: 0 !important;
+}

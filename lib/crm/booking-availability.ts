@@ -27,7 +27,15 @@ export type AvailabilitySettings = {
   visibleSlotPct: number;
   bufferMinutes: number;
   weeklyHours: WeeklyHours;
+  // Booking calendars: earliest bookable time is now + this many hours.
+  minNoticeHours?: number;
+  // Start times every N minutes (default: the meeting length).
+  slotIntervalMinutes?: number | null;
 };
+
+// Someone who picked a time but never finished holds it this long, then
+// it's open again (it used to stay held forever).
+const UNFINISHED_HOLD_MS = 30 * 60 * 1000;
 
 export type BusyInterval = { start: number; end: number };
 
@@ -44,7 +52,7 @@ export async function collectBusyIntervals(
     listUpcomingEvents(admin, ownerId, timeMin, timeMax),
     admin
       .from("booking_requests")
-      .select("id, starts_at, ends_at, proposed_starts_at, proposed_ends_at, stage")
+      .select("id, starts_at, ends_at, proposed_starts_at, proposed_ends_at, stage, created_at")
       .eq("owner_id", ownerId)
       .in("stage", ["time_selected", "pending", "approved", "time_proposed"]),
   ]);
@@ -55,6 +63,7 @@ export async function collectBusyIntervals(
   }));
   for (const b of heldSlots ?? []) {
     if (excludeRequestId && b.id === excludeRequestId) continue;
+    if (b.stage === "time_selected" && Date.now() - new Date(b.created_at).getTime() > UNFINISHED_HOLD_MS) continue;
     // A proposed-new-time request no longer occupies the original slot
     // (that time was released when she offered a different one) - hold
     // the proposed wall-clock instead, or two visitors can both land on
@@ -80,15 +89,21 @@ export function intervalOverlapsBusy(startIso: string, endIso: string, busy: Bus
 // ones that reached her review queue), subtracted from her configured
 // weekly hours - then the visible_slot_pct filter is applied last, on
 // top of what's genuinely open.
-export async function computeAvailableSlots(admin: SupabaseClient, ownerId: string, settings: AvailabilitySettings): Promise<Slot[]> {
+export async function computeAvailableSlots(
+  admin: SupabaseClient,
+  ownerId: string,
+  settings: AvailabilitySettings,
+  excludeRequestId?: string,
+): Promise<Slot[]> {
   const now = new Date();
   const timeMin = now.toISOString();
   const timeMax = new Date(now.getTime() + settings.daysOut * 24 * 60 * 60 * 1000).toISOString();
-  const busy = await collectBusyIntervals(admin, ownerId, timeMin, timeMax, settings.bufferMinutes);
+  const busy = await collectBusyIntervals(admin, ownerId, timeMin, timeMax, settings.bufferMinutes, excludeRequestId);
 
   const durationMs = settings.durationMinutes * 60_000;
+  const stepMs = (settings.slotIntervalMinutes || settings.durationMinutes) * 60_000;
   const slots: Slot[] = [];
-  const notBefore = new Date(now);
+  const notBefore = new Date(now.getTime() + (settings.minNoticeHours ?? 0) * 60 * 60 * 1000);
   notBefore.setMinutes(Math.ceil(notBefore.getMinutes() / 30) * 30, 0, 0);
 
   for (let dayOffset = 0; dayOffset <= settings.daysOut; dayOffset++) {
@@ -106,7 +121,7 @@ export async function computeAvailableSlots(admin: SupabaseClient, ownerId: stri
     const dayStart = fromZonedTime(`${dayKey} ${hours.start}:00`, APP_TIMEZONE).getTime();
     const dayEnd = fromZonedTime(`${dayKey} ${hours.end}:00`, APP_TIMEZONE).getTime();
 
-    for (let t = dayStart; t + durationMs <= dayEnd; t += durationMs) {
+    for (let t = dayStart; t + durationMs <= dayEnd; t += stepMs) {
       if (t < notBefore.getTime()) continue;
       const slotEnd = t + durationMs;
       if (busy.some((b) => t < b.end && slotEnd > b.start)) continue;

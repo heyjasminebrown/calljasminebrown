@@ -20,5 +20,5 @@ export const viewport: Viewport = {
 };
 
 export default function BookLayout({ children }: { children: React.ReactNode }) {
-  return <div className="min-h-dvh bg-[#ebeaeb]">{children}</div>;
+  return <div className="bk-shell min-h-dvh bg-[#ebeaeb]">{children}</div>;
 }
