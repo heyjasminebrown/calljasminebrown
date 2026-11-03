@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { listUpcomingEvents } from "@/lib/google/calendar";
+import { listOutlookBusy } from "@/lib/outlook/busy";
 import { APP_TIMEZONE } from "@/lib/format-time";
 import type { WeeklyHours, Weekday } from "@/types/database";
 
@@ -48,8 +49,9 @@ export async function collectBusyIntervals(
   excludeRequestId?: string,
 ): Promise<BusyInterval[]> {
   const bufferMs = bufferMinutes * 60_000;
-  const [events, { data: heldSlots }] = await Promise.all([
+  const [events, outlookBusy, { data: heldSlots }] = await Promise.all([
     listUpcomingEvents(admin, ownerId, timeMin, timeMax),
+    listOutlookBusy(timeMin, timeMax),
     admin
       .from("booking_requests")
       .select("id, starts_at, ends_at, proposed_starts_at, proposed_ends_at, stage, created_at")
@@ -61,6 +63,8 @@ export async function collectBusyIntervals(
     start: new Date(e.startAt).getTime() - bufferMs,
     end: new Date(e.endAt).getTime() + bufferMs,
   }));
+  // Her Outlook work calendar counts as busy too.
+  for (const b of outlookBusy) busy.push({ start: b.start - bufferMs, end: b.end + bufferMs });
   for (const b of heldSlots ?? []) {
     if (excludeRequestId && b.id === excludeRequestId) continue;
     if (b.stage === "time_selected" && Date.now() - new Date(b.created_at).getTime() > UNFINISHED_HOLD_MS) continue;

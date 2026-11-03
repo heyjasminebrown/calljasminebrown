@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getAuthorizedGoogleClient } from "@/lib/google/oauth";
 import { reportFailure } from "@/lib/errors/report-failure";
+import { OWNER_NAME, WORK_CALENDAR_EMAIL } from "@/lib/brand/identity";
 
 export type CreateMeetingInput = {
   // null when the only contact info on hand is a phone number (e.g. a
@@ -71,6 +72,16 @@ export async function listUpcomingEvents(admin: SupabaseClient, ownerId: string,
 // a plain calendar event has no video link at all. sendUpdates: "all" is
 // what actually emails the invite to the attendee; without it the event is
 // created silently and only she'd ever see it on her own calendar.
+// The guest, plus her Outlook work calendar so the meeting shows there too.
+function meetingAttendees(input: CreateMeetingInput) {
+  const list: { email: string; displayName?: string }[] = [];
+  if (input.attendeeEmail) list.push({ email: input.attendeeEmail, displayName: input.attendeeName });
+  if (WORK_CALENDAR_EMAIL && WORK_CALENDAR_EMAIL.toLowerCase() !== input.attendeeEmail?.toLowerCase()) {
+    list.push({ email: WORK_CALENDAR_EMAIL, displayName: OWNER_NAME });
+  }
+  return list.length ? list : undefined;
+}
+
 export async function createMeetingInvite(admin: SupabaseClient, ownerId: string, input: CreateMeetingInput): Promise<CreateMeetingResult> {
   const client = await getAuthorizedGoogleClient(admin, ownerId);
   if (!client) return { ok: false, error: "Google isn't connected. Connect it in Settings first." };
@@ -82,14 +93,15 @@ export async function createMeetingInvite(admin: SupabaseClient, ownerId: string
   try {
     const { data } = await calendar.events.insert({
       calendarId: "primary",
-      sendUpdates: input.attendeeEmail ? "all" : "none",
+      // Always "all": her Outlook copy arrives as an invite too.
+      sendUpdates: "all",
       conferenceDataVersion: 1,
       requestBody: {
         summary: input.title,
         description: input.description,
         start: { dateTime: start.toISOString() },
         end: { dateTime: end.toISOString() },
-        attendees: input.attendeeEmail ? [{ email: input.attendeeEmail, displayName: input.attendeeName }] : undefined,
+        attendees: meetingAttendees(input),
         conferenceData: {
           createRequest: {
             requestId: randomUUID(),

@@ -50,6 +50,10 @@ export const OWNER_HEADSHOT_SRC = "/images/owner-headshot.jpg";
  * links, and anywhere an email/SMS needs a link back into the app. Set
  * APP_BASE_URL in your environment; this is just the fallback for local
  * dev when that env var isn't set. */
+// Her Outlook work calendar. Every meeting the CRM puts on her Google
+// Calendar also invites this address, so it lands on Outlook too.
+export const WORK_CALENDAR_EMAIL = process.env.OUTLOOK_CALENDAR_EMAIL || "jbrown@cvlending.com";
+
 // Public booking page on her website (heyjasminebrown.com/meet embeds the
 // CRM's /book page). A calendar's own link is <this>/<calendar link>.
 export const PUBLIC_BOOKING_URL = process.env.NEXT_PUBLIC_PUBLIC_BOOKING_URL || "https://heyjasminebrown.com/meet";

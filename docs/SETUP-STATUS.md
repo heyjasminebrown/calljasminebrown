@@ -1,7 +1,7 @@
 # CRM setup status
 
 Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-curie-mb14vu`
-(Vercel production branch). Supabase migrations through 0087 have been run. **0088 (booking calendars) needs to be run.**
+(Vercel production branch). Supabase migrations through 0088 have been run.
 
 ## Done
 - Supabase, Vercel, sign-in, Gmail + Calendar (Google Workspace, Internal app), Gmail Sync now
@@ -35,7 +35,9 @@ Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-cur
 - heyjasminebrown.com/meet (main calendar) and /meet/<link> embed the CRM's /book page.
 - Upcoming Meetings on Today = every CRM meeting (bookings, meetings scheduled from a
   contact, Calendly), cancelled Google events dropped.
-- Next: read the Outlook calendar (jbrown@cvlending.com) too, and add bookings to it.
+- Outlook (jbrown@cvlending.com): busy times read from the published ICS link
+  (`OUTLOOK_CALENDAR_ICS_URL` in Vercel) so bookings never land on Outlook meetings; every
+  CRM meeting invite also invites jbrown@cvlending.com (`OUTLOOK_CALENDAR_EMAIL` to change).
 
 ## Quo
 - A2P approved; calls and texts log; `TEXT_AUTOMATION_ENABLED=true` is on.
