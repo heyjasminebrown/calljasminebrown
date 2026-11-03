@@ -79,6 +79,8 @@ function ThreadActions({ phone, contactId, needsReply }: { phone: string | null;
       <Link
         href={`/contacts/${contactId}`}
         data-contact-open={contactId}
+        target="_blank"
+        rel="noopener"
         className="inline-flex items-center gap-1.5 text-[14px] font-medium"
         style={{ color: MESSAGES_TERRACOTTA }}
       >

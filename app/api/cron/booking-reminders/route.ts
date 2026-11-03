@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isAuthorizedCronRequest } from "@/lib/cron-auth";
 import { sendAbandonedBookingFollowUps } from "@/lib/crm/booking-abandonment";
 import { sendBookingRequestReminders } from "@/lib/crm/booking-reminders";
+import { sendMeetingReminders } from "@/lib/crm/meeting-reminders";
 import { reportFailure } from "@/lib/errors/report-failure";
 
 const OWNER_ID = process.env.CRM_OWNER_USER_ID;
@@ -19,7 +20,14 @@ export async function GET(request: NextRequest) {
   try {
     const sent = await sendBookingRequestReminders(admin, OWNER_ID);
     const abandoned = await sendAbandonedBookingFollowUps(admin, OWNER_ID);
-    return NextResponse.json({ ok: true, sent, abandoned });
+    // Reminder texts to the person: 24 hours and 1 hour before each call.
+    let reminders = 0;
+    try {
+      reminders = await sendMeetingReminders(admin, OWNER_ID);
+    } catch (err) {
+      await reportFailure("Meeting reminder texts failed", err);
+    }
+    return NextResponse.json({ ok: true, sent, abandoned, reminders });
   } catch (err) {
     await reportFailure("Booking-reminders cron failed", err);
     return NextResponse.json({ ok: false, error: err instanceof Error ? err.message : "booking reminders failed" }, { status: 500 });
