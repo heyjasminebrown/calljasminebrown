@@ -51,7 +51,9 @@ function allDayBlock(start: Flagged, end: Flagged | undefined): BusyBlock {
   return { start: s, end: e };
 }
 
-export function busyBlocksFromIcs(text: string, timeMin: number, timeMax: number): BusyBlock[] {
+export type IcsStats = { events: number; repeating: number; skippedFree: number; busyStatuses: Record<string, number> };
+
+export function busyBlocksFromIcs(text: string, timeMin: number, timeMax: number, stats?: IcsStats): BusyBlock[] {
   const data = ical.sync.parseICS(text);
   const blocks: BusyBlock[] = [];
   const push = (b: BusyBlock) => {
@@ -61,6 +63,13 @@ export function busyBlocksFromIcs(text: string, timeMin: number, timeMax: number
   for (const item of Object.values(data)) {
     if (!item || item.type !== "VEVENT") continue;
     const ev = item as VEvent;
+    if (stats) {
+      stats.events++;
+      if (ev.rrule) stats.repeating++;
+      if (!blocksTime(ev)) stats.skippedFree++;
+      const key = `${String((ev as unknown as Record<string, unknown>)["MICROSOFT-CDO-BUSYSTATUS"] ?? "none")}/${ev.transparency ?? "none"}`;
+      stats.busyStatuses[key] = (stats.busyStatuses[key] ?? 0) + 1;
+    }
     if (!ev.start) continue;
     const start = ev.start as Flagged;
     const end = (ev.end as Flagged | undefined) ?? undefined;
@@ -106,10 +115,42 @@ export function busyBlocksFromIcs(text: string, timeMin: number, timeMax: number
 export async function listOutlookBusy(timeMin: string, timeMax: string): Promise<BusyBlock[]> {
   try {
     const text = await fetchIcs();
-    if (!text) return [];
+    if (!text) {
+      await reportFailure("Outlook calendar isn't connected: OUTLOOK_CALENDAR_ICS_URL isn't available to the CRM. Check it's saved for Production in Vercel, then redeploy");
+      return [];
+    }
     return busyBlocksFromIcs(text, new Date(timeMin).getTime(), new Date(timeMax).getTime());
   } catch (err) {
     await reportFailure("Couldn't read your Outlook calendar (booking times may show you as free when you're busy in Outlook)", err);
     return [];
+  }
+}
+
+// For the Schedule tab's "Connected calendars" check: what the CRM actually
+// sees from the Outlook link (never the link itself - it's a secret).
+export type OutlookCheck =
+  | { configured: false }
+  | { configured: true; ok: false; host: string; error: string }
+  | { configured: true; ok: true; host: string; bytes: number; stats: IcsStats; blocks: BusyBlock[] };
+
+export async function checkOutlookCalendar(days = 7): Promise<OutlookCheck> {
+  const raw = process.env.OUTLOOK_CALENDAR_ICS_URL;
+  if (!raw) return { configured: false };
+  let host = "unknown";
+  try {
+    host = new URL(raw.trim().replace(/^webcal:\/\//i, "https://")).host;
+  } catch {
+    return { configured: true, ok: false, host, error: "The saved value isn't a web link. Paste the ICS link from Outlook (it starts with https:// and ends in .ics)." };
+  }
+  try {
+    cache = null;
+    const text = await fetchIcs();
+    if (!text) return { configured: false };
+    const stats: IcsStats = { events: 0, repeating: 0, skippedFree: 0, busyStatuses: {} };
+    const now = Date.now();
+    const blocks = busyBlocksFromIcs(text, now, now + days * 24 * 60 * 60 * 1000, stats).sort((a, b) => a.start - b.start);
+    return { configured: true, ok: true, host, bytes: text.length, stats, blocks };
+  } catch (err) {
+    return { configured: true, ok: false, host, error: err instanceof Error ? err.message : String(err) };
   }
 }

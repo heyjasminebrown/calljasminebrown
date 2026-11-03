@@ -12,6 +12,7 @@ import { BookingRequestRow } from "@/components/scheduling/BookingRequestRow";
 import { ProposedRequestRow } from "@/components/scheduling/ProposedRequestRow";
 import { AbandonedSessionRow } from "@/components/scheduling/AbandonedSessionRow";
 import { BookingCalendarsPanel } from "@/components/scheduling/BookingCalendarsPanel";
+import { CalendarStatus } from "@/components/scheduling/CalendarStatus";
 import { baseUrl } from "@/lib/crm/sequences";
 import { formatLocal } from "@/lib/format-time";
 import { PUBLIC_BOOKING_URL } from "@/lib/brand/identity";
@@ -54,6 +55,10 @@ export default async function SchedulingPage() {
           ) : (
             <BookingCalendarsPanel calendars={calendars.calendars} publicBase={PUBLIC_BOOKING_URL} crmBase={baseUrl()} />
           )}
+        </Section>
+
+        <Section sectionKey="scheduling:connected" title="Connected calendars" meta="Google + Outlook" defaultOpen>
+          <CalendarStatus />
         </Section>
 
         <Section sectionKey="scheduling:upcoming" title="Upcoming meetings" meta={`${upcoming.meetings.length}`} defaultOpen>
