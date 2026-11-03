@@ -4,7 +4,6 @@ import { listUpcomingEvents } from "@/lib/google/calendar";
 import { sendQuoText } from "@/lib/quo/send-message";
 import { upsertActivity } from "@/lib/crm/activities";
 import { reportFailure } from "@/lib/errors/report-failure";
-import { formatPhone } from "@/lib/utils";
 
 // Reminder texts for every CRM meeting (online bookings, approved
 // requests, calls scheduled from a contact): 24 hours and 1 hour before.
@@ -29,13 +28,13 @@ const RULES: Record<Kind, { key: string; before: number; quietAfterBooking: numb
   "1h": { key: "reminder_1h_sent_at", before: 1 * HOUR, quietAfterBooking: 1 * HOUR, notWithin: 10 * 60 * 1000 },
 };
 
-export function reminderText(kind: Kind, firstName: string, startsAt: string, phone: string): string {
+export function reminderText(kind: Kind, firstName: string, startsAt: string): string {
   const time = formatInTimeZone(startsAt, TZ, "h:mm a");
   const first = firstName.trim() || "there";
-  if (kind === "1h") return `Hi ${first}, I'll be calling you at ${time} ET, about an hour from now, at ${phone}. Talk soon!`;
+  if (kind === "1h") return `Hi ${first}, I'll be calling you at ${time} ET. Talk soon!`;
   const tomorrow = formatInTimeZone(new Date(Date.now() + 24 * HOUR), TZ, "yyyy-MM-dd");
   const day = formatInTimeZone(startsAt, TZ, "yyyy-MM-dd") === tomorrow ? "tomorrow" : formatInTimeZone(startsAt, TZ, "EEEE, MMM d");
-  return `Hi ${first}, just a reminder: I'll call you ${day} at ${time} ET at ${phone}. Reply here if you need a different time.`;
+  return `Hi ${first}, just a reminder: I'll call you ${day} at ${time} ET. Reply here if you need a different time.`;
 }
 
 export type MeetingRow = {
@@ -108,7 +107,7 @@ export async function sendMeetingReminders(admin: SupabaseClient, ownerId: strin
     }
     m.metadata = { ...(m.metadata ?? {}), [rule.key]: claimedAt };
 
-    const body = reminderText(kind, c.first_name, m.occurred_at, formatPhone(phone) || phone);
+    const body = reminderText(kind, c.first_name, m.occurred_at);
     const result = await sendQuoText(phone, body);
     if (!result.ok) {
       await reportFailure(`${kind === "24h" ? "24-hour" : "1-hour"} reminder text to ${c.first_name} failed`, result.error, { contactId: m.contact_id });
