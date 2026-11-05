@@ -130,7 +130,8 @@ export function parseQuoCall(body: AnyRecord): ParsedQuoCall {
     direction,
     counterpartNumber: direction === "outbound" ? to : from,
     ownNumber: direction === "outbound" ? from : to,
-    durationSeconds: typeof obj.duration === "number" ? obj.duration : null,
+    // Transcript events send fractional seconds (e.g. 44.12081); stored as whole seconds.
+    durationSeconds: typeof obj.duration === "number" && Number.isFinite(obj.duration) ? Math.round(obj.duration) : null,
     status: asString(obj.status),
     occurredAt: asString(obj.completedAt) ?? asString(obj.createdAt) ?? new Date().toISOString(),
     recordingUrl: asString(voicemail?.recordingUrl) ?? asString(media?.[0]?.url) ?? asString(recording?.url) ?? asString(obj.recordingUrl) ?? asString((obj.recordings as AnyRecord[] | undefined)?.[0]?.url),
