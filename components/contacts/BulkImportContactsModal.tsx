@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { bulkImportContacts } from "@/app/(app)/contacts/actions";
 import { Button, Textarea, Select, Input, Label } from "@/components/ui";
-import { fullName, RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, DEFAULT_RELATIONSHIP_TYPE, PIPELINE_STAGE_NAMES, DEFAULT_STAGE_NAME } from "@/lib/utils";
-import { X, AlertTriangle, Upload } from "lucide-react";
+import { cn, TAG_CHIP_SELECTED, fullName, RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, DEFAULT_RELATIONSHIP_TYPE, PIPELINE_STAGE_NAMES, DEFAULT_STAGE_NAME } from "@/lib/utils";
+import { X, AlertTriangle, Upload, Check } from "lucide-react";
 import { parseBulkContacts, type ParsedContactRow } from "@/lib/crm/bulk-import-contacts";
 import type { RelationshipType, Tag } from "@/types/database";
 
@@ -27,7 +27,7 @@ export function BulkImportContactsModal({
   const [text, setText] = useState("");
   const [fileName, setFileName] = useState("");
   const [parsed, setParsed] = useState<{ rows: ParsedContactRow[]; unmatchedHeaders: string[] } | null>(null);
-  const [tagId, setTagId] = useState(tags[0]?.id ?? "");
+  const [tagIds, setTagIds] = useState<string[]>([]);
   const [creatingTag, setCreatingTag] = useState(false);
   const [newTagName, setNewTagName] = useState("");
   const [leadSource, setLeadSource] = useState("");
@@ -64,7 +64,7 @@ export function BulkImportContactsModal({
       .single();
     if (data) {
       tags.push(data as Tag);
-      setTagId(data.id);
+      setTagIds((prev) => [...prev, data.id]);
     }
     setNewTagName("");
     setCreatingTag(false);
@@ -74,7 +74,7 @@ export function BulkImportContactsModal({
     if (validRows.length === 0) return;
     setSaving(true);
     setError("");
-    const tagName = tags.find((t) => t.id === tagId)?.name ?? null;
+    const tagNames = tags.filter((t) => tagIds.includes(t.id)).map((t) => t.name);
     const totals = { created: 0, matched: 0, failed: 0 };
     let done = 0;
     setProgress(0);
@@ -83,7 +83,7 @@ export function BulkImportContactsModal({
       // let the button show real progress instead of a frozen "Importing…".
       for (let i = 0; i < validRows.length; i += IMPORT_BATCH_SIZE) {
         const batch = validRows.slice(i, i + IMPORT_BATCH_SIZE);
-        const outcome = await bulkImportContacts(batch, tagName, leadSource.trim() || "CSV import", {
+        const outcome = await bulkImportContacts(batch, tagNames, leadSource.trim() || "CSV import", {
           relationshipType,
           stageName: stageName || null,
         });
@@ -267,7 +267,7 @@ export function BulkImportContactsModal({
             </div>
 
             <div>
-              <Label htmlFor="import-tag">Tag everyone imported with</Label>
+              <Label>Tag everyone imported with {tagIds.length > 0 && <span className="font-normal text-neutral-400">({tagIds.length} selected)</span>}</Label>
               {creatingTag ? (
                 <div className="flex gap-2">
                   <Input autoFocus placeholder="New tag name" value={newTagName} onChange={(e) => setNewTagName(e.target.value)} />
@@ -279,19 +279,33 @@ export function BulkImportContactsModal({
                   </Button>
                 </div>
               ) : (
-                <Select
-                  id="import-tag"
-                  value={tagId}
-                  onChange={(e) => (e.target.value === "__new__" ? setCreatingTag(true) : setTagId(e.target.value))}
-                >
-                  <option value="">No tag</option>
-                  {tags.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
-                    </option>
-                  ))}
-                  <option value="__new__">+ Create new tag…</option>
-                </Select>
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((t) => {
+                    const on = tagIds.includes(t.id);
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => setTagIds((prev) => (on ? prev.filter((id) => id !== t.id) : [...prev, t.id]))}
+                        className={cn(
+                          "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium",
+                          on ? `border-transparent ${TAG_CHIP_SELECTED}` : "border-neutral-200 text-neutral-600 hover:bg-neutral-50",
+                        )}
+                      >
+                        {on && <Check size={14} />}
+                        {t.name}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => setCreatingTag(true)}
+                    className="rounded-full border border-dashed border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-500"
+                  >
+                    + New tag
+                  </button>
+                </div>
               )}
             </div>
 

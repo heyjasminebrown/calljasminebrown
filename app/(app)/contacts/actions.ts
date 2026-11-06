@@ -118,7 +118,8 @@ export async function sendEmailToContact(contactId: string, toEmail: string, sub
 
 export async function bulkImportContacts(
   rows: ParsedContactRow[],
-  tagName: string | null,
+  // Every tag here is added to each imported contact.
+  tagNames: string[],
   leadSource: string,
   // The import's defaults, used when a row has no Type / Stage column value.
   // stageName null = no stage.
@@ -192,7 +193,7 @@ export async function bulkImportContacts(
     }
     if (result.wasCreated) created++;
     else matched++;
-    if (tagName) await addTagByName(supabase, user.id, result.id, tagName);
+    for (const tagName of tagNames) await addTagByName(supabase, user.id, result.id, tagName);
   }
 
   return { ok: true as const, created, matched, failed };
