@@ -96,7 +96,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Pro
             >
               <Download size={14} /> Export
             </a>
-            {user && <BulkImportContactsButton tags={tags} ownerId={user.id} />}
+            {user && <BulkImportContactsButton tags={tags} ownerId={user.id} sources={leadSources} />}
             <Link
               href="/contacts/new"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-3 py-1.5 text-sm font-medium text-peach hover:bg-brand-700"

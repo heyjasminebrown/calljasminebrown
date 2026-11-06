@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { bulkImportContacts } from "@/app/(app)/contacts/actions";
 import { Button, Textarea, Select, Input, Label } from "@/components/ui";
-import { cn, TAG_CHIP_SELECTED, fullName, RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, DEFAULT_RELATIONSHIP_TYPE, PIPELINE_STAGE_NAMES, DEFAULT_STAGE_NAME } from "@/lib/utils";
+import { cn, TAG_CHIP_SELECTED, LEAD_SOURCES, fullName, RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, DEFAULT_RELATIONSHIP_TYPE, PIPELINE_STAGE_NAMES, DEFAULT_STAGE_NAME } from "@/lib/utils";
 import { X, AlertTriangle, Upload, Check } from "lucide-react";
 import { parseBulkContacts, type ParsedContactRow } from "@/lib/crm/bulk-import-contacts";
 import type { RelationshipType, Tag } from "@/types/database";
@@ -15,10 +15,12 @@ const IMPORT_BATCH_SIZE = 50;
 
 export function BulkImportContactsModal({
   tags,
+  sources,
   ownerId,
   onClose,
 }: {
   tags: Tag[];
+  sources: string[];
   ownerId: string;
   onClose: () => void;
 }) {
@@ -31,6 +33,9 @@ export function BulkImportContactsModal({
   const [creatingTag, setCreatingTag] = useState(false);
   const [newTagName, setNewTagName] = useState("");
   const [leadSource, setLeadSource] = useState("");
+  const [newSource, setNewSource] = useState(false);
+  // The standard sources plus any others already used on contacts.
+  const sourceOptions = [...new Set([...LEAD_SOURCES, ...sources])].sort((a, b) => a.localeCompare(b));
   const [relationshipType, setRelationshipType] = useState<RelationshipType>(DEFAULT_RELATIONSHIP_TYPE);
   // "" = no stage.
   const [stageName, setStageName] = useState<string>(DEFAULT_STAGE_NAME);
@@ -226,12 +231,47 @@ export function BulkImportContactsModal({
 
             <div>
               <Label htmlFor="import-lead-source">Source (how did they come in?)</Label>
-              <Input
-                id="import-lead-source"
-                placeholder="e.g. Eventbrite - House Hacking Meetup"
-                value={leadSource}
-                onChange={(e) => setLeadSource(e.target.value)}
-              />
+              {newSource ? (
+                <div className="flex gap-2">
+                  <Input
+                    id="import-lead-source"
+                    autoFocus
+                    placeholder="New source name"
+                    value={leadSource}
+                    onChange={(e) => setLeadSource(e.target.value)}
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => {
+                      setNewSource(false);
+                      setLeadSource("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <Select
+                  id="import-lead-source"
+                  value={leadSource}
+                  onChange={(e) => {
+                    if (e.target.value === "__new__") {
+                      setNewSource(true);
+                      setLeadSource("");
+                    } else setLeadSource(e.target.value);
+                  }}
+                >
+                  <option value="">Pick a source…</option>
+                  {sourceOptions.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                  <option value="__new__">+ New source…</option>
+                </Select>
+              )}
               <p className="mt-1 text-xs text-neutral-400">
                 Only applied to brand-new contacts — anyone already on file keeps their original source. Anyone
                 imported with a phone number shows up in Event calls automatically.
