@@ -92,6 +92,8 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/api/track") ||
     // Public booking API for heyjasminebrown.com/meet (open times + book).
     request.nextUrl.pathname.startsWith("/api/booking/") ||
+    // Website sign-ups (checks its own LEADS_API_SECRET).
+    request.nextUrl.pathname === "/api/leads" ||
     request.nextUrl.pathname.startsWith("/api/auth/gmail/callback");
   const isPublicAsset =
     request.nextUrl.pathname.startsWith("/manifest.json") ||
