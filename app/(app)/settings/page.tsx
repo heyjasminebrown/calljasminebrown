@@ -25,6 +25,9 @@ import { OptOutList } from "@/components/settings/OptOutList";
 import { SpamFiltersCard } from "@/components/settings/SpamFiltersCard";
 import { KnownPersonallyList } from "@/components/settings/KnownPersonallyList";
 import { SignOutButton } from "@/components/nav/SignOutButton";
+import { TeamCard } from "@/components/settings/TeamCard";
+import { isTeamMember } from "@/lib/supabase/team-identity";
+import { appBaseUrl } from "@/lib/brand/identity";
 import { RATE_PRODUCT } from "@/lib/crm/rate-feed";
 import { getDisabledSpamReasons } from "@/lib/crm/spam-signals";
 import { Card, Button } from "@/components/ui";
@@ -85,6 +88,19 @@ export default async function SettingsPage({
   ]);
   const allowlist = (allowlistRows ?? []).map((r) => ({ id: r.id as string, phone: r.phone as string, createdAt: r.created_at as string }));
   const knownPersonallyContacts = (knownPersonallyRows ?? []).map((c) => ({ id: c.id, name: `${c.first_name} ${c.last_name}`.trim() }));
+
+  // Team (owner only). Before migration 0089 the table doesn't exist yet.
+  const teamMember = isTeamMember(user);
+  const team = teamMember
+    ? null
+    : await supabase
+        .from("crm_team_members")
+        .select("id, email, created_at")
+        .order("created_at")
+        .then(({ data, error }) => ({
+          members: (data ?? []).map((m) => ({ id: m.id as string, email: m.email as string, createdAt: m.created_at as string })),
+          error: error ? (error.code === "42P01" || /does not exist|schema cache/i.test(error.message) ? "run the latest database update (0089) in Supabase first" : error.message) : null,
+        }));
 
   const stageCounts: Record<string, number> = {};
   for (const row of stageCountRows ?? []) {
@@ -169,6 +185,15 @@ export default async function SettingsPage({
       {user && (
         <Card id="text-templates">
           <TextTemplatesManager templates={textTemplates} ownerId={user.id} />
+        </Card>
+      )}
+
+      {team && <TeamCard members={team.members} loadError={team.error} loginUrl={`${appBaseUrl()}/login`} />}
+      {teamMember && (
+        <Card>
+          <p className="text-sm text-neutral-600">
+            You&apos;re signed in as <span className="font-semibold">{String(user?.user_metadata?.crm_member_email ?? "")}</span>, working in this CRM as a team member.
+          </p>
         </Card>
       )}
 

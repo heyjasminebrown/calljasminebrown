@@ -1,7 +1,7 @@
 # CRM setup status
 
 Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-curie-mb14vu`
-(Vercel production branch). Supabase migrations through 0088 have been run.
+(Vercel production branch). Supabase migrations through 0088 have been run. **0089 (team logins) needs to be run.**
 
 ## Done
 - Supabase, Vercel, sign-in, Gmail + Calendar (Google Workspace, Internal app), Gmail Sync now
@@ -38,6 +38,11 @@ Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-cur
 - Outlook (jbrown@cvlending.com): busy times read from the published ICS link
   (`OUTLOOK_CALENDAR_ICS_URL` in Vercel) so bookings never land on Outlook meetings; every
   CRM meeting invite also invites jbrown@cvlending.com (`OUTLOOK_CALENDAR_EMAIL` to change).
+
+## Team logins
+- Settings -> Team: add a helper's email; they sign in at /login with their own email and work
+  in this CRM (same data). Database rules use crm_owner_id() (migration 0089); in the app,
+  auth.getUser() returns the owner's id for a team member (lib/supabase/team-identity.ts).
 
 ## Quo
 - A2P approved; calls and texts log; `TEXT_AUTOMATION_ENABLED=true` is on.
