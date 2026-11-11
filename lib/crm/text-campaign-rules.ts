@@ -21,6 +21,8 @@ export type CampaignInput = {
   skipCampaignIds: string[];
   // Anyone with one of these tags is never texted by this campaign.
   skipTagIds: string[];
+  // Anyone who texted back after one of these campaigns reached them.
+  skipRepliedCampaignIds: string[];
 };
 
 export const TRIGGER_LABELS: Record<TriggerType, string> = {

@@ -22,6 +22,7 @@ export async function saveTextCampaign(input: CampaignInput): Promise<Result> {
     trigger_value: input.triggerValue.trim(),
     skip_campaign_ids: input.skipCampaignIds.filter((id) => id !== input.id),
     skip_tag_ids: [...new Set(input.skipTagIds)],
+    skip_replied_campaign_ids: input.skipRepliedCampaignIds.filter((id) => id !== input.id && !input.skipCampaignIds.includes(id)),
     steps: input.steps.map((s) => ({
       id: s.id,
       label: s.label,
@@ -72,7 +73,7 @@ async function existingMatches(campaignId: string): Promise<Matching> {
   const supabase = await createClient();
   const { data: c, error } = await supabase
     .from("text_campaigns")
-    .select("id, trigger_type, trigger_value, skip_campaign_ids, skip_tag_ids")
+    .select("id, trigger_type, trigger_value, skip_campaign_ids, skip_tag_ids, skip_replied_campaign_ids")
     .eq("id", campaignId)
     .single();
   if (error || !c) return { ok: false, error: error?.message ?? "Campaign not found" };
@@ -106,6 +107,28 @@ async function existingMatches(campaignId: string): Promise<Matching> {
       if (e3) return { ok: false, error: e3.message };
       for (const r of tagged ?? []) done.add(r.contact_id as string);
       if (!tagged || tagged.length < 1000) break;
+    }
+  }
+  // Anyone who texted back after a "skip people who replied" campaign reached them.
+  const repliedCampaigns = (c.skip_replied_campaign_ids as string[] | null) ?? [];
+  if (repliedCampaigns.length > 0) {
+    const { data: past, error: e4 } = await supabase.from("text_automation_enrollments").select("contact_id, enrolled_at").in("campaign_id", repliedCampaigns);
+    if (e4) return { ok: false, error: e4.message };
+    const since = new Map<string, string>();
+    for (const r of past ?? []) {
+      const prev = since.get(r.contact_id as string);
+      if (!prev || (r.enrolled_at as string) < prev) since.set(r.contact_id as string, r.enrolled_at as string);
+    }
+    const contactIds = [...since.keys()];
+    for (let i = 0; i < contactIds.length; i += 100) {
+      const { data: inbound, error: e5 } = await supabase
+        .from("activities")
+        .select("contact_id, occurred_at")
+        .eq("type", "text")
+        .eq("direction", "inbound")
+        .in("contact_id", contactIds.slice(i, i + 100));
+      if (e5) return { ok: false, error: e5.message };
+      for (const a of inbound ?? []) if ((a.occurred_at as string) >= since.get(a.contact_id as string)!) done.add(a.contact_id as string);
     }
   }
   return { ok: true, contactIds: ids.filter((id) => !done.has(id)) };

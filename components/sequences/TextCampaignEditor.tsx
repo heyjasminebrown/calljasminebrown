@@ -17,6 +17,7 @@ export type EditableCampaign = {
   steps: CampaignStepInput[];
   skip_campaign_ids?: string[];
   skip_tag_ids?: string[];
+  skip_replied_campaign_ids?: string[];
 };
 
 // 1-30 days, plus a longer saved value so it still shows.
@@ -54,6 +55,12 @@ export function TextCampaignEditor({
   const [steps, setSteps] = useState<CampaignStepInput[]>(campaign?.steps.length ? campaign.steps : [blankStep()]);
   const [skipIds, setSkipIds] = useState<string[]>(campaign?.skip_campaign_ids ?? []);
   const [skipTagIds, setSkipTagIds] = useState<string[]>(campaign?.skip_tag_ids ?? []);
+  const [skipRepliedIds, setSkipRepliedIds] = useState<string[]>(campaign?.skip_replied_campaign_ids ?? []);
+  const skipModeOf = (id: string) => (skipIds.includes(id) ? "all" : skipRepliedIds.includes(id) ? "replied" : "none");
+  function setSkipMode(id: string, mode: "none" | "all" | "replied") {
+    setSkipIds((prev) => (mode === "all" ? [...prev.filter((x) => x !== id), id] : prev.filter((x) => x !== id)));
+    setSkipRepliedIds((prev) => (mode === "replied" ? [...prev.filter((x) => x !== id), id] : prev.filter((x) => x !== id)));
+  }
   const skippable = otherCampaigns.filter((c) => c.id !== campaign?.id);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -79,7 +86,7 @@ export function TextCampaignEditor({
 
   async function save() {
     setError("");
-    const input = { id: campaign?.id, name, triggerType, triggerValue, steps: labeled, skipCampaignIds: skipIds, skipTagIds };
+    const input = { id: campaign?.id, name, triggerType, triggerValue, steps: labeled, skipCampaignIds: skipIds, skipTagIds, skipRepliedCampaignIds: skipRepliedIds };
     const problem = validateCampaign(input);
     if (problem) {
       setError(problem);
@@ -281,21 +288,27 @@ export function TextCampaignEditor({
 
           {skippable.length > 0 && (
             <div>
-              <Label>Skip anyone who&apos;s already in</Label>
+              <Label>Skip people from other campaigns</Label>
               <div className="mt-1 space-y-1.5">
                 {skippable.map((c) => (
-                  <label key={c.id} className="flex items-center gap-2.5 text-[14px] text-neutral-800">
-                    <input
-                      type="checkbox"
-                      checked={skipIds.includes(c.id)}
-                      onChange={() => setSkipIds((prev) => (prev.includes(c.id) ? prev.filter((x) => x !== c.id) : [...prev, c.id]))}
-                      className="h-4 w-4 rounded border-neutral-300 accent-[#34223a]"
-                    />
-                    {c.name}
-                  </label>
+                  <div key={c.id} className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="min-w-0 text-[14px] text-neutral-800">{c.name}</span>
+                    <Select
+                      className="!w-auto shrink-0 !py-1.5 text-[14px]"
+                      value={skipModeOf(c.id)}
+                      onChange={(e) => setSkipMode(c.id, e.target.value as "none" | "all" | "replied")}
+                      aria-label={`Skip people from ${c.name}`}
+                    >
+                      <option value="none">Don&apos;t skip</option>
+                      <option value="all">Skip everyone who was in it</option>
+                      <option value="replied">Skip only people who replied</option>
+                    </Select>
+                  </div>
                 ))}
               </div>
-              <p className="mt-1 text-xs text-neutral-400">So nobody gets the same invite twice from two campaigns.</p>
+              <p className="mt-1 text-xs text-neutral-400">
+                &quot;Replied&quot; means they texted you back any time after that campaign reached them, e.g. they already said they&apos;re coming.
+              </p>
             </div>
           )}
 

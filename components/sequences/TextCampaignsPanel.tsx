@@ -69,6 +69,7 @@ export function TextCampaignsPanel({
               // The copy skips anyone the original already texted.
               skip_campaign_ids: [c.id, ...(c.skip_campaign_ids ?? [])],
               skip_tag_ids: c.skip_tag_ids ?? [],
+              skip_replied_campaign_ids: c.skip_replied_campaign_ids ?? [],
             })
           }
         />
