@@ -19,6 +19,8 @@ export type CampaignInput = {
   steps: CampaignStepInput[];
   // Don't start this campaign for anyone already in these campaigns.
   skipCampaignIds: string[];
+  // Anyone with one of these tags is never texted by this campaign.
+  skipTagIds: string[];
 };
 
 export const TRIGGER_LABELS: Record<TriggerType, string> = {
@@ -33,6 +35,7 @@ export function validateCampaign(input: CampaignInput): string | null {
   if (!input.name.trim()) return "Give the campaign a name.";
   if (!input.triggerValue.trim()) return "Choose what starts the campaign.";
   if (input.steps.length === 0) return "Add at least one text.";
+  if (input.triggerType === "tag" && input.skipTagIds.includes(input.triggerValue)) return "The campaign can't skip the same tag that starts it.";
   const ids = new Set(input.steps.map((s) => s.id));
   const position = new Map(input.steps.map((s, i) => [s.id, i]));
   const label = (id: string) => input.steps[position.get(id)!]?.label ?? "that text";

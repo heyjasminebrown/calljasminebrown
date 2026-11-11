@@ -21,6 +21,7 @@ export async function saveTextCampaign(input: CampaignInput): Promise<Result> {
     trigger_type: input.triggerType,
     trigger_value: input.triggerValue.trim(),
     skip_campaign_ids: input.skipCampaignIds.filter((id) => id !== input.id),
+    skip_tag_ids: [...new Set(input.skipTagIds)],
     steps: input.steps.map((s) => ({
       id: s.id,
       label: s.label,
@@ -71,7 +72,7 @@ async function existingMatches(campaignId: string): Promise<Matching> {
   const supabase = await createClient();
   const { data: c, error } = await supabase
     .from("text_campaigns")
-    .select("id, trigger_type, trigger_value, skip_campaign_ids")
+    .select("id, trigger_type, trigger_value, skip_campaign_ids, skip_tag_ids")
     .eq("id", campaignId)
     .single();
   if (error || !c) return { ok: false, error: error?.message ?? "Campaign not found" };
@@ -97,6 +98,16 @@ async function existingMatches(campaignId: string): Promise<Matching> {
     .in("campaign_id", [campaignId, ...((c.skip_campaign_ids as string[] | null) ?? [])]);
   if (e2) return { ok: false, error: e2.message };
   const done = new Set((already ?? []).map((r) => r.contact_id as string));
+  // Anyone with a skipped tag.
+  const skipTags = (c.skip_tag_ids as string[] | null) ?? [];
+  if (skipTags.length > 0) {
+    for (let from = 0; ; from += 1000) {
+      const { data: tagged, error: e3 } = await supabase.from("contact_tags").select("contact_id").in("tag_id", skipTags).range(from, from + 999);
+      if (e3) return { ok: false, error: e3.message };
+      for (const r of tagged ?? []) done.add(r.contact_id as string);
+      if (!tagged || tagged.length < 1000) break;
+    }
+  }
   return { ok: true, contactIds: ids.filter((id) => !done.has(id)) };
 }
 

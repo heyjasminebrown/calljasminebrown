@@ -39,6 +39,7 @@ export type TextCampaign = {
   trigger_type: "source" | "tag" | "type" | "stage";
   trigger_value: string;
   steps: CampaignStep[];
+  skip_tag_ids?: string[] | null;
 };
 
 const MAX_SENDS_PER_RUN = 2;
@@ -105,7 +106,15 @@ type Enrollment = {
   failed_attempts: number;
   enrolled_at: string;
   reply_scheduled: boolean;
-  contacts: { id: string; first_name: string; phone: string | null; archived: boolean; spam: boolean; opted_out_at: string | null } | null;
+  contacts: {
+    id: string;
+    first_name: string;
+    phone: string | null;
+    archived: boolean;
+    spam: boolean;
+    opted_out_at: string | null;
+    contact_tags?: { tag_id: string }[];
+  } | null;
   text_campaigns: TextCampaign | null;
 };
 
@@ -169,7 +178,7 @@ export async function runTextAutomation(admin: SupabaseClient, ownerId: string) 
 
   const { data, error } = await admin
     .from("text_automation_enrollments")
-    .select("*, contacts(id, first_name, phone, archived, spam, opted_out_at), text_campaigns(id, name, active, trigger_type, trigger_value, steps)")
+    .select("*, contacts(id, first_name, phone, archived, spam, opted_out_at, contact_tags(tag_id)), text_campaigns(id, name, active, trigger_type, trigger_value, steps, skip_tag_ids)")
     .eq("owner_id", ownerId)
     .eq("status", "active");
   if (error) throw new Error(`Couldn't load text automation: ${error.message}`);
@@ -213,6 +222,11 @@ export async function runTextAutomation(admin: SupabaseClient, ownerId: string) 
     }
     if (c.opted_out_at) {
       await stop(e.id, "Opted out");
+      continue;
+    }
+    const skipTags = campaign.skip_tag_ids ?? [];
+    if (skipTags.length > 0 && (c.contact_tags ?? []).some((t) => skipTags.includes(t.tag_id))) {
+      await stop(e.id, "Has a tag this campaign skips");
       continue;
     }
     if (c.archived || c.spam) {

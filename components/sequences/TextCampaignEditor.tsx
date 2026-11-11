@@ -16,6 +16,7 @@ export type EditableCampaign = {
   trigger_value: string;
   steps: CampaignStepInput[];
   skip_campaign_ids?: string[];
+  skip_tag_ids?: string[];
 };
 
 // 1-30 days, plus a longer saved value so it still shows.
@@ -52,6 +53,7 @@ export function TextCampaignEditor({
   const [triggerValue, setTriggerValue] = useState(campaign?.trigger_value ?? "");
   const [steps, setSteps] = useState<CampaignStepInput[]>(campaign?.steps.length ? campaign.steps : [blankStep()]);
   const [skipIds, setSkipIds] = useState<string[]>(campaign?.skip_campaign_ids ?? []);
+  const [skipTagIds, setSkipTagIds] = useState<string[]>(campaign?.skip_tag_ids ?? []);
   const skippable = otherCampaigns.filter((c) => c.id !== campaign?.id);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -77,7 +79,7 @@ export function TextCampaignEditor({
 
   async function save() {
     setError("");
-    const input = { id: campaign?.id, name, triggerType, triggerValue, steps: labeled, skipCampaignIds: skipIds };
+    const input = { id: campaign?.id, name, triggerType, triggerValue, steps: labeled, skipCampaignIds: skipIds, skipTagIds };
     const problem = validateCampaign(input);
     if (problem) {
       setError(problem);
@@ -294,6 +296,30 @@ export function TextCampaignEditor({
                 ))}
               </div>
               <p className="mt-1 text-xs text-neutral-400">So nobody gets the same invite twice from two campaigns.</p>
+            </div>
+          )}
+
+          {tags.length > 0 && (
+            <div>
+              <Label>Skip anyone tagged</Label>
+              <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1.5">
+                {tags
+                  .filter((t) => !(triggerType === "tag" && t.id === triggerValue))
+                  .map((t) => (
+                    <label key={t.id} className="flex items-center gap-2 text-[14px] text-neutral-800">
+                      <input
+                        type="checkbox"
+                        checked={skipTagIds.includes(t.id)}
+                        onChange={() => setSkipTagIds((prev) => (prev.includes(t.id) ? prev.filter((x) => x !== t.id) : [...prev, t.id]))}
+                        className="h-4 w-4 rounded border-neutral-300 accent-[#34223a]"
+                      />
+                      {t.name}
+                    </label>
+                  ))}
+              </div>
+              <p className="mt-1 text-xs text-neutral-400">
+                They won&apos;t be added. If someone already in the campaign gets one of these tags, it stops for them before the next text.
+              </p>
             </div>
           )}
 

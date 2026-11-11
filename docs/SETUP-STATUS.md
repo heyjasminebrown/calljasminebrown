@@ -1,7 +1,7 @@
 # CRM setup status
 
 Live site: https://www.calljasminebrown.com · Live branch: `claude/peaceful-curie-mb14vu`
-(Vercel production branch). Supabase migrations through 0088 have been run. **0089 (team logins) needs to be run.**
+(Vercel production branch). Supabase migrations through 0088 have been run. **0089 (team logins) and 0090 (campaign skip tags) need to be run.**
 
 ## Done
 - Supabase, Vercel, sign-in, Gmail + Calendar (Google Workspace, Internal app), Gmail Sync now
