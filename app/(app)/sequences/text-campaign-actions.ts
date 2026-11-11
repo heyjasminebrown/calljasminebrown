@@ -19,7 +19,9 @@ export async function saveTextCampaign(input: CampaignInput): Promise<Result> {
   const row = {
     name: input.name.trim(),
     trigger_type: input.triggerType,
-    trigger_value: input.triggerValue.trim(),
+    // Tag campaigns: every starting tag, with the first also in trigger_value.
+    trigger_value: input.triggerType === "tag" ? [...new Set(input.triggerTagIds)][0] : input.triggerValue.trim(),
+    trigger_tag_ids: input.triggerType === "tag" ? [...new Set(input.triggerTagIds)] : [],
     skip_campaign_ids: input.skipCampaignIds.filter((id) => id !== input.id),
     skip_tag_ids: [...new Set(input.skipTagIds)],
     skip_replied_campaign_ids: input.skipRepliedCampaignIds.filter((id) => id !== input.id && !input.skipCampaignIds.includes(id)),
@@ -73,7 +75,7 @@ async function existingMatches(campaignId: string): Promise<Matching> {
   const supabase = await createClient();
   const { data: c, error } = await supabase
     .from("text_campaigns")
-    .select("id, trigger_type, trigger_value, skip_campaign_ids, skip_tag_ids, skip_replied_campaign_ids")
+    .select("id, trigger_type, trigger_value, trigger_tag_ids, skip_campaign_ids, skip_tag_ids, skip_replied_campaign_ids")
     .eq("id", campaignId)
     .single();
   if (error || !c) return { ok: false, error: error?.message ?? "Campaign not found" };
@@ -83,7 +85,10 @@ async function existingMatches(campaignId: string): Promise<Matching> {
     // A tag campaign joins on contact_tags; the others filter contacts directly.
     const columns: string = c.trigger_type === "tag" ? "id, contact_tags!inner(tag_id)" : "id";
     let q = supabase.from("contacts").select(columns).eq("archived", false).eq("spam", false).is("opted_out_at", null).not("phone", "is", null);
-    if (c.trigger_type === "tag") q = q.eq("contact_tags.tag_id", c.trigger_value);
+    if (c.trigger_type === "tag") {
+      const startTags = ((c.trigger_tag_ids as string[] | null) ?? []).length ? (c.trigger_tag_ids as string[]) : [c.trigger_value];
+      q = q.in("contact_tags.tag_id", startTags);
+    }
     if (c.trigger_type === "type") q = q.eq("relationship_type", c.trigger_value);
     if (c.trigger_type === "stage") q = q.eq("stage_id", c.trigger_value);
     if (c.trigger_type === "source") q = q.ilike("lead_source", c.trigger_value.trim());
@@ -131,7 +136,7 @@ async function existingMatches(campaignId: string): Promise<Matching> {
       for (const a of inbound ?? []) if ((a.occurred_at as string) >= since.get(a.contact_id as string)!) done.add(a.contact_id as string);
     }
   }
-  return { ok: true, contactIds: ids.filter((id) => !done.has(id)) };
+  return { ok: true, contactIds: [...new Set(ids)].filter((id) => !done.has(id)) };
 }
 
 export async function countExistingMatches(campaignId: string): Promise<{ ok: true; count: number } | { ok: false; error: string }> {

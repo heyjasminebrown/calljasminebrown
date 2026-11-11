@@ -65,6 +65,7 @@ export function TextCampaignsPanel({
               name: `Copy of ${c.name}`,
               trigger_type: c.trigger_type,
               trigger_value: c.trigger_value,
+              trigger_tag_ids: c.trigger_tag_ids ?? [],
               steps: c.steps,
               // The copy skips anyone the original already texted.
               skip_campaign_ids: [c.id, ...(c.skip_campaign_ids ?? [])],
@@ -94,7 +95,7 @@ export function TextCampaignsPanel({
 function triggerSummary(c: CampaignRow, tags: Tag[], stages: PipelineStage[]): string {
   const value =
     c.trigger_type === "tag"
-      ? tags.find((t) => t.id === c.trigger_value)?.name ?? "a deleted tag"
+      ? (c.trigger_tag_ids?.length ? c.trigger_tag_ids : [c.trigger_value]).map((id) => tags.find((t) => t.id === id)?.name ?? "a deleted tag").join(", ")
       : c.trigger_type === "stage"
         ? stages.find((s) => s.id === c.trigger_value)?.name ?? "a deleted stage"
         : c.trigger_type === "type"

@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, X } from "lucide-react";
+import { Check, Plus, Trash2, X } from "lucide-react";
 import { Button, Input, Label, Select, Textarea } from "@/components/ui";
 import { saveTextCampaign } from "@/app/(app)/sequences/text-campaign-actions";
 import { TRIGGER_LABELS, validateCampaign, type CampaignStepInput, type TriggerType } from "@/lib/crm/text-campaign-rules";
-import { RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS } from "@/lib/utils";
+import { cn, RELATIONSHIP_TYPES, RELATIONSHIP_TYPE_LABELS, TAG_CHIP_SELECTED } from "@/lib/utils";
 import type { PipelineStage, Tag } from "@/types/database";
 
 export type EditableCampaign = {
@@ -14,6 +14,7 @@ export type EditableCampaign = {
   name: string;
   trigger_type: TriggerType;
   trigger_value: string;
+  trigger_tag_ids?: string[];
   steps: CampaignStepInput[];
   skip_campaign_ids?: string[];
   skip_tag_ids?: string[];
@@ -52,6 +53,9 @@ export function TextCampaignEditor({
   const [name, setName] = useState(campaign?.name ?? "");
   const [triggerType, setTriggerType] = useState<TriggerType>(campaign?.trigger_type ?? "source");
   const [triggerValue, setTriggerValue] = useState(campaign?.trigger_value ?? "");
+  const [triggerTagIds, setTriggerTagIds] = useState<string[]>(
+    campaign?.trigger_tag_ids?.length ? campaign.trigger_tag_ids : campaign?.trigger_type === "tag" && campaign.trigger_value ? [campaign.trigger_value] : [],
+  );
   const [steps, setSteps] = useState<CampaignStepInput[]>(campaign?.steps.length ? campaign.steps : [blankStep()]);
   const [skipIds, setSkipIds] = useState<string[]>(campaign?.skip_campaign_ids ?? []);
   const [skipTagIds, setSkipTagIds] = useState<string[]>(campaign?.skip_tag_ids ?? []);
@@ -86,7 +90,7 @@ export function TextCampaignEditor({
 
   async function save() {
     setError("");
-    const input = { id: campaign?.id, name, triggerType, triggerValue, steps: labeled, skipCampaignIds: skipIds, skipTagIds, skipRepliedCampaignIds: skipRepliedIds };
+    const input = { id: campaign?.id, name, triggerType, triggerValue, triggerTagIds, steps: labeled, skipCampaignIds: skipIds, skipTagIds, skipRepliedCampaignIds: skipRepliedIds };
     const problem = validateCampaign(input);
     if (problem) {
       setError(problem);
@@ -138,8 +142,30 @@ export function TextCampaignEditor({
               </Select>
             </div>
             <div>
-              <Label htmlFor="tc-value">{triggerType === "source" ? "Source" : triggerType === "tag" ? "Tag" : triggerType === "type" ? "Type" : "Stage"}</Label>
-              {triggerType === "source" ? (
+              <Label htmlFor="tc-value">{triggerType === "source" ? "Source" : triggerType === "tag" ? "Tags (any of them)" : triggerType === "type" ? "Type" : "Stage"}</Label>
+              {triggerType === "tag" ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {tags.length === 0 && <p className="text-sm text-neutral-400">No tags yet.</p>}
+                  {tags.map((t) => {
+                    const on = triggerTagIds.includes(t.id);
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => setTriggerTagIds((prev) => (on ? prev.filter((x) => x !== t.id) : [...prev, t.id]))}
+                        className={cn(
+                          "flex items-center gap-1 rounded-full border px-2.5 py-1 text-[13px] font-medium",
+                          on ? `border-transparent ${TAG_CHIP_SELECTED}` : "border-neutral-200 text-neutral-600 hover:bg-neutral-50",
+                        )}
+                      >
+                        {on && <Check size={13} />}
+                        {t.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : triggerType === "source" ? (
                 <>
                   <Input id="tc-value" list="tc-sources" value={triggerValue} onChange={(e) => setTriggerValue(e.target.value)} placeholder="e.g. Conventus" />
                   <datalist id="tc-sources">
@@ -151,7 +177,6 @@ export function TextCampaignEditor({
               ) : (
                 <Select id="tc-value" value={triggerValue} onChange={(e) => setTriggerValue(e.target.value)}>
                   <option value="">Choose…</option>
-                  {triggerType === "tag" && tags.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                   {triggerType === "type" && RELATIONSHIP_TYPES.map((t) => <option key={t} value={t}>{RELATIONSHIP_TYPE_LABELS[t]}</option>)}
                   {triggerType === "stage" && stages.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </Select>
@@ -317,7 +342,7 @@ export function TextCampaignEditor({
               <Label>Skip anyone tagged</Label>
               <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1.5">
                 {tags
-                  .filter((t) => !(triggerType === "tag" && t.id === triggerValue))
+                  .filter((t) => !(triggerType === "tag" && triggerTagIds.includes(t.id)))
                   .map((t) => (
                     <label key={t.id} className="flex items-center gap-2 text-[14px] text-neutral-800">
                       <input

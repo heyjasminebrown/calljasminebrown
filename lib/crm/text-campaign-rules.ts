@@ -16,6 +16,8 @@ export type CampaignInput = {
   name: string;
   triggerType: TriggerType;
   triggerValue: string;
+  // Tag campaigns: starts when any of these tags is added.
+  triggerTagIds: string[];
   steps: CampaignStepInput[];
   // Don't start this campaign for anyone already in these campaigns.
   skipCampaignIds: string[];
@@ -27,7 +29,7 @@ export type CampaignInput = {
 
 export const TRIGGER_LABELS: Record<TriggerType, string> = {
   source: "A new contact is added with Source",
-  tag: "This tag is added to a contact (new or existing)",
+  tag: "One of these tags is added to a contact (new or existing)",
   type: "A contact becomes Type",
   stage: "A contact moves to Stage",
 };
@@ -35,9 +37,9 @@ export const TRIGGER_LABELS: Record<TriggerType, string> = {
 // Returns the first problem, or null if the campaign can be saved.
 export function validateCampaign(input: CampaignInput): string | null {
   if (!input.name.trim()) return "Give the campaign a name.";
-  if (!input.triggerValue.trim()) return "Choose what starts the campaign.";
+  if (input.triggerType === "tag" ? input.triggerTagIds.length === 0 : !input.triggerValue.trim()) return "Choose what starts the campaign.";
   if (input.steps.length === 0) return "Add at least one text.";
-  if (input.triggerType === "tag" && input.skipTagIds.includes(input.triggerValue)) return "The campaign can't skip the same tag that starts it.";
+  if (input.triggerType === "tag" && input.skipTagIds.some((t) => input.triggerTagIds.includes(t))) return "The campaign can't skip a tag that starts it.";
   const ids = new Set(input.steps.map((s) => s.id));
   const position = new Map(input.steps.map((s, i) => [s.id, i]));
   const label = (id: string) => input.steps[position.get(id)!]?.label ?? "that text";

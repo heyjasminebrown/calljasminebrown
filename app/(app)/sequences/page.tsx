@@ -27,7 +27,7 @@ export default async function CampaignsPage({ searchParams }: { searchParams: Pr
       .select("id, contact_id, campaign_id, status, stop_reason, next_step, next_send_at, last_error, contacts(first_name, last_name)")
       .order("updated_at", { ascending: false })
       .limit(500),
-    supabase.from("text_campaigns").select("id, name, active, trigger_type, trigger_value, steps, skip_campaign_ids, skip_tag_ids, skip_replied_campaign_ids").order("created_at"),
+    supabase.from("text_campaigns").select("id, name, active, trigger_type, trigger_value, trigger_tag_ids, steps, skip_campaign_ids, skip_tag_ids, skip_replied_campaign_ids").order("created_at"),
     listLeadSources(),
   ]);
   const campaignRows = (textCampaigns.data ?? []) as CampaignRow[];
