@@ -1,9 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { timingSafeEqual } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { findOrCreateContact } from "@/lib/crm/find-or-create-contact";
-import { addTagByName } from "@/lib/crm/add-tag";
-import { upsertActivity } from "@/lib/crm/activities";
+import { addWebsiteLead } from "@/lib/crm/website-lead";
 import { reportFailure } from "@/lib/errors/report-failure";
 
 export const dynamic = "force-dynamic";
@@ -31,11 +29,6 @@ function authorized(request: NextRequest): boolean | "unconfigured" {
   const a = Buffer.from(given);
   const b = Buffer.from(secret);
   return a.length === b.length && timingSafeEqual(a, b);
-}
-
-// ILIKE pattern that matches only this exact text (case-insensitive).
-function exactPattern(value: string) {
-  return `"${value.replace(/[\\%_"]/g, (c) => `\\${c}`)}"`;
 }
 
 export async function POST(request: NextRequest) {
@@ -67,48 +60,8 @@ export async function POST(request: NextRequest) {
   if (!EMAIL.test(email)) return NextResponse.json({ ok: false, error: "A valid email is required." }, { status: 400 });
 
   try {
-    const admin = createAdminClient();
-
-    // Already in the CRM under this email (any contact, archived too)?
-    const pattern = exactPattern(email);
-    const { data: existing, error: lookupError } = await admin
-      .from("contacts")
-      .select("id, email, secondary_email")
-      .eq("owner_id", ownerId)
-      .or(`email.ilike.${pattern},secondary_email.ilike.${pattern}`)
-      .limit(5);
-    if (lookupError) throw new Error(`Couldn't check for an existing contact: ${lookupError.message}`);
-    const match = (existing ?? []).find((c) => [c.email, c.secondary_email].some((e) => e && e.trim().toLowerCase() === email));
-    if (match) return NextResponse.json({ ok: true, created: false, reason: "email already in CRM" });
-
-    const { data: stages, error: stageError } = await admin.from("pipeline_stages").select("id, name").eq("owner_id", ownerId);
-    if (stageError) throw new Error(`Couldn't load stages: ${stageError.message}`);
-    const warm = stages?.find((s) => s.name.trim().toLowerCase() === "warm");
-    if (!warm) throw new Error("There's no Warm stage");
-
-    const contact = await findOrCreateContact(admin, ownerId, {
-      email,
-      phone,
-      firstName,
-      lastName: lastName || null,
-      leadSource: source,
-      relationshipType: "community",
-      stageId: warm.id,
-      // Email uniqueness was checked above; always create.
-      candidates: [],
-    });
-    if (!contact) throw new Error("The contact couldn't be created");
-
-    for (const tag of tags) await addTagByName(admin, ownerId, contact.id, tag);
-    await upsertActivity(admin, ownerId, contact.id, "site_form", "site_form_signup", `${contact.id}:${form}`, {
-      type: "note",
-      direction: "none",
-      occurred_at: new Date().toISOString(),
-      body: `Signed up on ${form}`,
-      metadata: { form, source },
-    });
-
-    return NextResponse.json({ ok: true, created: true, contactId: contact.id });
+    const result = await addWebsiteLead(createAdminClient(), ownerId, { firstName, lastName, email, phone, source, tags, form });
+    return NextResponse.json(result.created ? { ok: true, created: true, contactId: result.contactId } : { ok: true, created: false, reason: result.reason });
   } catch (err) {
     await reportFailure(`Website sign-up (${form}) couldn't be added to the CRM: ${email}`, err);
     return NextResponse.json({ ok: false, error: "Couldn't save the sign-up." }, { status: 500 });

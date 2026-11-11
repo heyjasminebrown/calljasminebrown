@@ -12,6 +12,9 @@ import { listGranolaNoteIds, fetchGranolaNote } from "@/lib/granola/client";
 import { processGranolaNote } from "@/lib/granola/process-note";
 import type { GranolaNoteEvent } from "@/lib/granola/parse-event";
 import { backfillBlinqShares } from "@/lib/google/backfill-blinq";
+import { backfillWebinarSignups } from "@/lib/google/backfill-webinar";
+import { reportFailure } from "@/lib/errors/report-failure";
+import { revalidatePath } from "next/cache";
 import { runAutoStage } from "@/lib/crm/auto-stage";
 import type { ParsedContactRow } from "@/lib/crm/bulk-import-contacts";
 import { applyStageChange } from "@/lib/crm/stage-transition";
@@ -351,6 +354,26 @@ export async function backfillBlinq() {
   if (!result) return { ok: false as const, error: "Connect Gmail first (Settings > Connections)" };
 
   return { ok: true as const, found: result.found, added: result.added, capped: result.capped };
+}
+
+// Catch-up for /conference sign-ups that only reached her inbox.
+export async function backfillWebinar() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false as const, error: "Not signed in" };
+
+  try {
+    const result = await backfillWebinarSignups(createAdminClient(), user.id);
+    if (!result) return { ok: false as const, error: "Connect Gmail first (Settings > Connections)" };
+    if (result.failed > 0) await reportFailure(`Webinar sign-up import: ${result.failed} email(s) couldn't be added - run it again`);
+    revalidatePath("/contacts");
+    return { ok: true as const, ...result };
+  } catch (err) {
+    await reportFailure("Webinar sign-up import failed", err);
+    return { ok: false as const, error: err instanceof Error ? err.message : "Import failed" };
+  }
 }
 
 // Lets her trigger the same reconciliation the hourly auto-stage cron runs,
