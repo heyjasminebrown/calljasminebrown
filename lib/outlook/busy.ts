@@ -11,24 +11,69 @@ export type BusyBlock = { start: number; end: number };
 
 const APP_TZ = "America/New_York";
 const CACHE_MS = 2 * 60 * 1000;
+// If Outlook can't be reached for a moment, keep using the last copy we
+// read (up to this old) rather than treating her as free.
+const STALE_OK_MS = 6 * 60 * 60 * 1000;
+const ATTEMPTS = 2;
+const TIMEOUT_MS = 10_000;
 let cache: { at: number; text: string } | null = null;
 
 export function isOutlookCalendarConfigured(): boolean {
   return !!process.env.OUTLOOK_CALENDAR_ICS_URL;
 }
 
-async function fetchIcs(): Promise<string | null> {
-  const raw = process.env.OUTLOOK_CALENDAR_ICS_URL;
-  if (!raw) return null;
-  if (cache && Date.now() - cache.at < CACHE_MS) return cache.text;
-  // Outlook hands out webcal:// links sometimes; they're plain https.
-  const url = raw.trim().replace(/^webcal:\/\//i, "https://");
-  const res = await fetch(url, { cache: "no-store", headers: { Accept: "text/calendar" } });
+// "fetch failed" hides the real reason (timeout, DNS, connection reset...)
+// in err.cause; surface it.
+function describeFetchError(err: unknown): string {
+  if (!(err instanceof Error)) return String(err);
+  const cause = (err as Error & { cause?: unknown }).cause;
+  const detail =
+    cause instanceof Error
+      ? [(cause as Error & { code?: string }).code, cause.message].filter(Boolean).join(" ")
+      : cause
+        ? String(cause)
+        : "";
+  return detail ? `${err.message} (${detail})` : err.message;
+}
+
+async function fetchOnce(url: string): Promise<string> {
+  const res = await fetch(url, { cache: "no-store", headers: { Accept: "text/calendar" }, signal: AbortSignal.timeout(TIMEOUT_MS) });
   if (!res.ok) throw new Error(`Outlook calendar link returned ${res.status} ${res.statusText}`);
   const text = await res.text();
   if (!text.includes("BEGIN:VCALENDAR")) throw new Error("Outlook calendar link didn't return a calendar (check it's the ICS link, not the HTML one)");
-  cache = { at: Date.now(), text };
   return text;
+}
+
+// stale: true when Outlook couldn't be reached and the last good copy
+// (no older than STALE_OK_MS) was used instead.
+async function fetchIcsWithFallback(): Promise<{ text: string; stale: boolean } | null> {
+  const raw = process.env.OUTLOOK_CALENDAR_ICS_URL;
+  if (!raw) return null;
+  if (cache && Date.now() - cache.at < CACHE_MS) return { text: cache.text, stale: false };
+  // Outlook hands out webcal:// links sometimes; they're plain https.
+  const url = raw.trim().replace(/^webcal:\/\//i, "https://");
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
+    try {
+      const text = await fetchOnce(url);
+      cache = { at: Date.now(), text };
+      return { text, stale: false };
+    } catch (err) {
+      lastError = err;
+      // A wrong link won't fix itself on a retry.
+      if (err instanceof Error && /returned 4\d\d|didn't return a calendar/.test(err.message)) break;
+      if (attempt < ATTEMPTS) await new Promise((r) => setTimeout(r, 1500));
+    }
+  }
+  if (cache && Date.now() - cache.at < STALE_OK_MS) {
+    console.warn("Outlook calendar unreachable; using the copy from", new Date(cache.at).toISOString(), describeFetchError(lastError));
+    return { text: cache.text, stale: true };
+  }
+  throw new Error(describeFetchError(lastError));
+}
+
+async function fetchIcs(): Promise<string | null> {
+  return (await fetchIcsWithFallback())?.text ?? null;
 }
 
 type Flagged = Date & { dateOnly?: boolean };
@@ -143,14 +188,15 @@ export async function checkOutlookCalendar(days = 7): Promise<OutlookCheck> {
     return { configured: true, ok: false, host, error: "The saved value isn't a web link. Paste the ICS link from Outlook (it starts with https:// and ends in .ics)." };
   }
   try {
-    cache = null;
-    const text = await fetchIcs();
-    if (!text) return { configured: false };
+    // Always a live read here (this is the "is it working?" check), but
+    // a successful one also refreshes the saved copy.
+    const text = await fetchOnce(raw.trim().replace(/^webcal:\/\//i, "https://"));
+    cache = { at: Date.now(), text };
     const stats: IcsStats = { events: 0, repeating: 0, skippedFree: 0, busyStatuses: {} };
     const now = Date.now();
     const blocks = busyBlocksFromIcs(text, now, now + days * 24 * 60 * 60 * 1000, stats).sort((a, b) => a.start - b.start);
     return { configured: true, ok: true, host, bytes: text.length, stats, blocks };
   } catch (err) {
-    return { configured: true, ok: false, host, error: err instanceof Error ? err.message : String(err) };
+    return { configured: true, ok: false, host, error: describeFetchError(err) };
   }
 }
