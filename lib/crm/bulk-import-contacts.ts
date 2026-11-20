@@ -13,6 +13,11 @@ export interface ParsedContactRow {
   // import's default". Stage is a stage name, matched case-insensitively.
   relationshipType: RelationshipType | null;
   stageName: string | null;
+  // Per-row Source (overrides the import's Source), tags (added on top of
+  // the import's tags) and a note for the contact's timeline.
+  leadSource: string | null;
+  tags: string[];
+  notes: string | null;
   errors: string[];
 }
 
@@ -64,7 +69,79 @@ const HEADER_ALIASES: Record<string, string> = {
   "date added": "leadDate",
   "created date": "leadDate",
   created: "leadDate",
+  source: "leadSource",
+  "lead source": "leadSource",
+  "contact source": "leadSource",
+  "referral source": "leadSource",
+  "how did you hear about us": "leadSource",
+  "how did you hear about us?": "leadSource",
+  "how did you hear about me": "leadSource",
+  "how did you hear about me?": "leadSource",
+  tags: "tags",
+  tag: "tags",
+  labels: "tags",
+  label: "tags",
+  groups: "tags",
+  notes: "notes",
+  note: "notes",
+  comments: "notes",
+  comment: "notes",
+  description: "notes",
 };
+
+// Several tags in one cell: "VIP; Investor" or "VIP, Investor".
+function splitTags(raw: string): string[] {
+  return [...new Set(raw.split(/[;,|]/).map((t) => t.trim()).filter(Boolean).map((t) => t.slice(0, 60)))];
+}
+
+// The whole file as rows of cells. Handles quoted cells that contain
+// commas, quotes ("") and line breaks (a multi-line note exported from
+// Excel or Google Sheets). Tab-separated text (pasted from a spreadsheet)
+// is detected from the header line.
+export function splitRecords(text: string): string[][] {
+  const firstLine = text.split(/\r?\n/, 1)[0] ?? "";
+  const delimiter = firstLine.includes("\t") ? "\t" : ",";
+  const records: string[][] = [];
+  let row: string[] = [];
+  let cur = "";
+  let inQuotes = false;
+  const endCell = () => {
+    row.push(cur);
+    cur = "";
+  };
+  const endRow = () => {
+    endCell();
+    if (row.some((c) => c.trim().length > 0)) records.push(row);
+    row = [];
+  };
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        cur += c;
+      }
+    } else if (c === '"' && cur.trim() === "") {
+      inQuotes = true;
+      cur = "";
+    } else if (c === delimiter) {
+      endCell();
+    } else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      endRow();
+    } else {
+      cur += c;
+    }
+  }
+  if (cur.length > 0 || row.length > 0) endRow();
+  return records;
+}
 
 function normalizeHeader(h: string) {
   return h.trim().toLowerCase();
@@ -126,16 +203,16 @@ function matchRelationshipType(raw: string): RelationshipType | null {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function parseBulkContacts(text: string): { rows: ParsedContactRow[]; unmatchedHeaders: string[] } {
-  const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
-  if (lines.length < 2) return { rows: [], unmatchedHeaders: [] };
+  const records = splitRecords(text);
+  if (records.length < 2) return { rows: [], unmatchedHeaders: [] };
 
-  const headerCells = splitLine(lines[0]).map(normalizeHeader);
+  const headerCells = records[0].map(normalizeHeader);
   const fieldByIndex = headerCells.map((h) => HEADER_ALIASES[h] ?? null);
   const unmatchedHeaders = headerCells.filter((h, i) => h && !fieldByIndex[i]);
 
   const rows: ParsedContactRow[] = [];
-  for (let i = 1; i < lines.length; i++) {
-    const cells = splitLine(lines[i]);
+  for (let i = 1; i < records.length; i++) {
+    const cells = records[i];
     const byField: Record<string, string> = {};
     fieldByIndex.forEach((field, idx) => {
       if (field) byField[field] = (cells[idx] ?? "").trim();
@@ -188,7 +265,11 @@ export function parseBulkContacts(text: string): { rows: ParsedContactRow[]; unm
       if (!stageName) errors.push(`Unknown stage "${stageRaw}" - use ${PIPELINE_STAGE_NAMES.join(", ")}`);
     }
 
-    rows.push({ line: i + 1, firstName, lastName, email, secondaryEmail, phone, leadDate, relationshipType, stageName, errors });
+    const leadSource = byField.leadSource ? byField.leadSource.slice(0, 100) : null;
+    const tags = byField.tags ? splitTags(byField.tags) : [];
+    const notes = byField.notes ? byField.notes.slice(0, 5000) : null;
+
+    rows.push({ line: i + 1, firstName, lastName, email, secondaryEmail, phone, leadDate, relationshipType, stageName, leadSource, tags, notes, errors });
   }
 
   return { rows, unmatchedHeaders };

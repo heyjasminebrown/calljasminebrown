@@ -1,5 +1,7 @@
 "use server";
 
+import { createHash } from "crypto";
+
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendQuoText } from "@/lib/quo/send-message";
@@ -165,7 +167,7 @@ export async function bulkImportContacts(
       phone: row.phone,
       firstName: row.firstName,
       lastName: row.lastName,
-      leadSource,
+      leadSource: row.leadSource || leadSource,
       leadDate: row.leadDate,
       skipQuoSync: true,
       candidates,
@@ -196,7 +198,23 @@ export async function bulkImportContacts(
     }
     if (result.wasCreated) created++;
     else matched++;
-    for (const tagName of tagNames) await addTagByName(supabase, user.id, result.id, tagName);
+    // Someone already on file keeps their Source - unless they don't have one.
+    if (!result.wasCreated && row.leadSource) {
+      await supabase.from("contacts").update({ lead_source: row.leadSource }).eq("id", result.id).is("lead_source", null);
+    }
+    for (const tagName of new Set([...tagNames, ...row.tags])) await addTagByName(supabase, user.id, result.id, tagName);
+    if (row.notes) {
+      // Keyed by the note's text, so importing the same file again doesn't
+      // add the same note twice.
+      const noteKey = `${result.id}:${createHash("sha1").update(row.notes).digest("hex")}`;
+      await upsertActivity(supabase, user.id, result.id, "manual", "import_note", noteKey, {
+        type: "note",
+        direction: "none",
+        occurred_at: row.leadDate ?? new Date().toISOString(),
+        body: row.notes,
+        metadata: { imported: true },
+      });
+    }
   }
 
   return { ok: true as const, created, matched, failed };

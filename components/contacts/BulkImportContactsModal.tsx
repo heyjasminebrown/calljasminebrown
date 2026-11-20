@@ -10,7 +10,7 @@ import { X, AlertTriangle, Upload, Check } from "lucide-react";
 import { parseBulkContacts, type ParsedContactRow } from "@/lib/crm/bulk-import-contacts";
 import type { RelationshipType, Tag } from "@/types/database";
 
-const TEMPLATE = "First Name\tLast Name\tEmail\tPhone\tType\tStage\tDate";
+const TEMPLATE = "First Name\tLast Name\tEmail\tPhone\tType\tStage\tDate\tSource\tTags\tNotes";
 const IMPORT_BATCH_SIZE = 50;
 
 export function BulkImportContactsModal({
@@ -58,6 +58,9 @@ export function BulkImportContactsModal({
 
   const validRows = parsed?.rows.filter((r) => r.errors.length === 0) ?? [];
   const invalidRows = parsed?.rows.filter((r) => r.errors.length > 0) ?? [];
+  const hasSource = validRows.some((r) => r.leadSource);
+  const hasTags = validRows.some((r) => r.tags.length > 0);
+  const hasNotes = validRows.some((r) => r.notes);
 
   async function createTag() {
     if (!newTagName.trim()) return;
@@ -164,7 +167,9 @@ export function BulkImportContactsModal({
               Recognized headers: First Name, Last Name (or a single Name/Full Name column), Email, Phone, and an
               optional Date column (booking/signup/registration date &mdash; any of &ldquo;Date&rdquo;, &ldquo;Booking
               Date&rdquo;, &ldquo;Registration Date&rdquo;, &ldquo;Signup Date&rdquo;, &ldquo;Date Added&rdquo; work).
-              Extra columns are ignored. Each row needs a name and at least an email or phone. Without a Date
+              Optional per-person columns: <b>Type</b>, <b>Stage</b>, <b>Source</b> (overrides the Source you pick
+              below), <b>Tags</b> (several in one cell, separated by commas or semicolons, added on top of the tags you
+              pick below) and <b>Notes</b> (saved on their timeline). Extra columns are ignored. Each row needs a name and at least an email or phone. Without a Date
               column, imported contacts are dated today &mdash; if that&apos;s wrong, re-import the same file later
               with a Date column added and existing contacts get corrected instead of duplicated.
             </p>
@@ -206,6 +211,9 @@ export function BulkImportContactsModal({
                     <th className="px-2 py-1.5 font-medium">Type</th>
                     <th className="px-2 py-1.5 font-medium">Stage</th>
                     <th className="px-2 py-1.5 font-medium">Date</th>
+                    {hasSource && <th className="px-2 py-1.5 font-medium">Source</th>}
+                    {hasTags && <th className="px-2 py-1.5 font-medium">Tags</th>}
+                    {hasNotes && <th className="px-2 py-1.5 font-medium">Notes</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -223,6 +231,13 @@ export function BulkImportContactsModal({
                       <td className="px-2 py-1.5">
                         {r.leadDate ? new Date(r.leadDate).toLocaleDateString() : <span className="text-neutral-300">Today</span>}
                       </td>
+                      {hasSource && <td className="px-2 py-1.5">{r.leadSource ?? <span className="text-neutral-300">{leadSource || "CSV import"}</span>}</td>}
+                      {hasTags && <td className="px-2 py-1.5">{r.tags.length ? r.tags.join(", ") : "—"}</td>}
+                      {hasNotes && (
+                        <td className="max-w-[180px] truncate px-2 py-1.5" title={r.notes ?? undefined}>
+                          {r.notes ?? "—"}
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -273,7 +288,7 @@ export function BulkImportContactsModal({
                 </Select>
               )}
               <p className="mt-1 text-xs text-neutral-400">
-                Only applied to brand-new contacts — anyone already on file keeps their original source. Anyone
+                Only applied to brand-new contacts — anyone already on file keeps their original source. Rows with their own Source column use that instead. Anyone
                 imported with a phone number shows up in Event calls automatically.
               </p>
             </div>
